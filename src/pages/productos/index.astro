@@ -1,0 +1,114 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import ProductCard from "@/components/ProductCard.astro";
+import ProductFilter from "@/components/islands/ProductFilter";
+import { supabase } from "@/lib/supabase";
+
+// Obtener todos los productos de la BD
+const { data: allProducts } = await supabase
+  .from('productos')
+  .select(`
+    id, 
+    nombre, 
+    slug, 
+    precio_venta, 
+    precio_original, 
+    descripcion, 
+    stock_total,
+    categoria_id,
+    categoria:categorias(nombre, slug),
+    imagenes_producto(url)
+  `)
+  .eq('activo', true)
+  .order('nombre', { ascending: true });
+
+// Obtener todas las categorías
+const { data: categories } = await supabase
+  .from('categorias')
+  .select('id, nombre, slug')
+  .eq('activa', true)
+  .order('orden', { ascending: true });
+
+// Mapear productos al formato de componente
+const products = (allProducts || []).map((product) => ({
+  id: product.id,
+  name: product.nombre,
+  slug: product.slug,
+  price: product.precio_venta,
+  originalPrice: product.precio_original,
+  image: product.imagenes_producto?.[0]?.url || 'https://via.placeholder.com/500x700?text=' + product.nombre,
+  badge: product.precio_original && product.precio_venta < product.precio_original ? "Oferta" : null,
+  badge_color: "bg-[#e2ff7a]",
+  condition: "Excelente estado",
+  rating: 4.8,
+  reviews: 245,
+  categoryId: product.categoria_id,
+  categoryName: product.categoria?.nombre,
+}));
+---
+
+<Layout title="Todos los Productos - TechStore">
+  <Header />
+  
+  <main class="min-h-screen bg-[#f5f5f7]">
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-r from-[#00aa45] to-green-600 text-white py-12 sm:py-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-4xl sm:text-5xl font-black italic mb-4">Todos los Productos</h1>
+        <p class="text-lg text-white/90 max-w-2xl">
+          Explora nuestra amplia selección de productos con garantía certificada.
+        </p>
+      </div>
+    </section>
+
+    <!-- Productos y Filtros -->
+    <section class="py-12 sm:py-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          <!-- Filtros Sidebar -->
+          <aside class="lg:col-span-1">
+            <ProductFilter 
+              client:load
+              products={products}
+              categories={categories || []}
+            />
+          </aside>
+
+          <!-- Grid de Productos -->
+          <div class="lg:col-span-3">
+            <div class="mb-6 flex items-center justify-between">
+              <p class="text-gray-600 font-semibold">
+                Mostrando <span id="product-count">{products.length}</span> productos
+              </p>
+            </div>
+
+            {products.length > 0 ? (
+              <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {products.map((product) => (
+                  <ProductCard
+                    id={product.id}
+                    name={product.name}
+                    price={product.price}
+                    originalPrice={product.originalPrice}
+                    image={product.image}
+                    badge={product.badge}
+                    badge_color={product.badge_color}
+                    condition={product.condition}
+                    rating={product.rating}
+                    reviews={product.reviews}
+                    slug={product.slug}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div class="text-center py-12">
+                <p class="text-xl text-gray-600">No hay productos disponibles con esos filtros</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</Layout>

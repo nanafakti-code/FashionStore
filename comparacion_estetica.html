@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparación de Estética - FashionStore Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f5f7 0%, #ffffff 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+            color: #000;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+
+        .comparison-item {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .comparison-item h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            font-weight: 900;
+            color: #000;
+        }
+
+        .comparison-item h2.before {
+            color: #999;
+        }
+
+        .comparison-item h2.after {
+            color: #00aa45;
+        }
+
+        .mockup {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            background: #f9f9f9;
+            margin-top: 15px;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .mockup.after {
+            background: white;
+            border-color: #d0d0d0;
+        }
+
+        .modal-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .modal-logo {
+            font-size: 1.3rem;
+            font-weight: 900;
+            margin-bottom: 15px;
+        }
+
+        .modal-logo span {
+            color: #00aa45;
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            font-weight: 900;
+            font-style: italic;
+            margin-bottom: 15px;
+            line-height: 1.2;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #d3d3d3;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 1rem;
+            text-align: left;
+        }
+
+        .modal-button-primary {
+            width: 100%;
+            padding: 15px;
+            background: black;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .modal-button-secondary {
+            width: 100%;
+            padding: 15px;
+            background: white;
+            color: black;
+            border: 1px solid #d3d3d3;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 1rem;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            gap: 10px;
+            color: #999;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #d3d3d3;
+        }
+
+        .specs-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .spec {
+            background: #f5f5f7;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #00aa45;
+        }
+
+        .spec-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .spec-value {
+            font-size: 1.1rem;
+            color: #000;
+            font-weight: 500;
+        }
+
+        .features {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-top: 40px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .features h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            font-weight: 900;
+            color: #00aa45;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: #f5f5f7;
+            border-radius: 6px;
+        }
+
+        .feature-item::before {
+            content: '✓';
+            color: #00aa45;
+            font-weight: bold;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .color-box {
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .color-white {
+            background: white;
+            border: 2px solid #d3d3d3;
+            color: black;
+        }
+
+        .color-black {
+            background: black;
+        }
+
+        .color-green {
+            background: #00aa45;
+        }
+
+        .color-gray {
+            background: #666;
+        }
+
+        .color-lightgray {
+            background: #f5f5f7;
+            border: 2px solid #d3d3d3;
+            color: #333;
+        }
+
+        .before-section {
+            opacity: 0.6;
+        }
+
+        @media (max-width: 768px) {
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .color-palette {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✨ Modal de Autenticación</h1>
+        <p class="subtitle">Comparación: Antes vs Después</p>
+
+        <div class="comparison">
+            <!-- ANTES -->
+            <div class="comparison-item before-section">
+                <h2 class="before">Antes</h2>
+                <div class="mockup">
+                    <div style="padding-top: 30px;">
+                        <div style="font-size: 1.2rem; font-weight: 900; margin-bottom: 10px;">Iniciar Sesión</div>
+                        <button style="border: none; background: white; color: black; font-size: 1.8rem; cursor: pointer;">✕</button>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <p style="color: #999; font-size: 0.9rem; margin-bottom: 15px;">Elige tu forma preferida de iniciar sesión</p>
+                        <button class="modal-button-secondary" style="margin-bottom: 8px;">
+                            <span>🔵</span> Iniciar con Google
+                        </button>
+                        <button class="modal-button-secondary">
+                            <span>🍎</span> Iniciar con Apple
+                        </button>
+                        <div class="divider">o</div>
+                        <p style="color: #999; font-size: 0.85rem;">Por ahora solo Google y Apple</p>
+                    </div>
+                </div>
+                <div class="specs-grid">
+                    <div class="spec">
+                        <div class="spec-title">Overlay</div>
+                        <div class="spec-value">Negro/50</div>
+                    </div>
+                    <div class="spec">
+                        <div class="spec-title">Bordes</div>
+                        <div class="spec-value">rounded-lg</div>
+                    </div>
+                    <div class="spec">
+                        <div class="spec-title">Shadow</div>
+                        <div class="spec-value">shadow-xl</div>
+                    </div>
+                    <div class="spec">
+                        <div class="spec-title">Email</div>
+                        <div class="spec-value">No incluido</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DESPUÉS -->
+            <div class="comparison-item">
+                <h2 class="after">Después ✨</h2>
+                <div class="mockup after">
+                    <div class="modal-container">
+                        <div class="modal-logo">
+                            Fashion<span>Store</span>
+                        </div>
+                        <div class="modal-title">¿Quién anda ahí?</div>
+                        <input type="email" class="modal-input" placeholder="Correo electrónico">
+                        <button class="modal-button-primary">Continuar</button>
+                        <div class="divider">o</div>
+                        <button class="modal-button-secondary" style="background: white;">
+                            <span>🔵</span> Continuar con Google
+                        </button>
+                        <button class="modal-button-secondary" style="background: black; color: white;">
+                            <span>🍎</span> Continuar con Apple
+                        </button>
+                        <p style="color: #999; font-size: 0.85rem; margin-top: 15px;">
+                            <a href="#" style="text-decoration: underline; color: #666;">Política de confidencialidad</a>
+                        </p>
+                    </div>
+                </div>
+                <div class="specs-grid">
+                    <div class="spec">
+                        <div class="spec-title">Overlay</div>
+                        <div class="spec-value">Blanco/95</div>
+                    </div>
+                    <div class="spec">
+                        <div class="spec-title">Bordes</div>
+                        <div class="spec-value">rounded-none</div>
+                    </div>
+                    <div class="spec">
+                        <div class="spec-title">Shadow</div>
+                        <div class="spec-value">shadow-none</div>
+                    </div>
+                    <div class="spec">
+                        <div class="spec-title">Email</div>
+                        <div class="spec-value">✓ Incluido</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FEATURES -->
+        <div class="features">
+            <h2>✨ Mejoras Implementadas</h2>
+            <div class="features-grid">
+                <div class="feature-item">Diseño minimalista y limpio</div>
+                <div class="feature-item">Logo de FashionStore prominente</div>
+                <div class="feature-item">Título más grande y legible</div>
+                <div class="feature-item">Campo de email integrado</div>
+                <div class="feature-item">Botón "Continuar" negro</div>
+                <div class="feature-item">Divisor elegante</div>
+                <div class="feature-item">Botones más espaciosos</div>
+                <div class="feature-item">Mejor espaciado vertical</div>
+                <div class="feature-item">Colores consistentes</div>
+                <div class="feature-item">Respuesta más clara al usuario</div>
+            </div>
+        </div>
+
+        <!-- COLORS -->
+        <div class="features">
+            <h2>🎨 Paleta de Colores</h2>
+            <div class="color-palette">
+                <div class="color-box color-white">#FFFFFF<br>Blanco</div>
+                <div class="color-box color-black">#000000<br>Negro</div>
+                <div class="color-box color-green">#00AA45<br>Verde</div>
+                <div class="color-box color-gray">#666666<br>Gris</div>
+                <div class="color-box color-lightgray">#F5F5F7<br>Fondo</div>
+            </div>
+        </div>
+
+        <!-- SPACING -->
+        <div class="features">
+            <h2>📐 Espaciado</h2>
+            <div class="features-grid">
+                <div class="spec">
+                    <div class="spec-title">Logo → Título</div>
+                    <div class="spec-value">mb-12 (48px)</div>
+                </div>
+                <div class="spec">
+                    <div class="spec-title">Título → Input</div>
+                    <div class="spec-value">mb-10 (40px)</div>
+                </div>
+                <div class="spec">
+                    <div class="spec-title">Entre campos</div>
+                    <div class="spec-value">mb-6 a mb-8</div>
+                </div>
+                <div class="spec">
+                    <div class="spec-title">Entre botones</div>
+                    <div class="spec-value">gap-4 (16px)</div>
+                </div>
+                <div class="spec">
+                    <div class="spec-title">Padding input</div>
+                    <div class="spec-value">px-5 py-4</div>
+                </div>
+                <div class="spec">
+                    <div class="spec-title">Modal padding</div>
+                    <div class="spec-value">px-6 py-12</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FONTS -->
+        <div class="features">
+            <h2>🔤 Tipografía</h2>
+            <div class="features-grid">
+                <div class="spec">
+                    <div class="spec-title">Título (h1)</div>
+                    <div class="spec-value" style="font-size: 1.8rem; font-weight: 900; font-style: italic;">¿Quién anda ahí?</div>
+                </div>
+                <div class="spec">
+                    <div class="spec-title">Logo</div>
+                    <div class="spec-value" style="font-size: 1.4rem; font-weight: 900;">FashionStore</div>
+                </div>
+                <div class="spec">
+                    <div class="spec-title">Botones</div>
+                    <div class="spec-value" style="font-weight: 600;">font-semibold</div>
+                </div>
+                <div class="spec">
+                    <div class="spec-title">Secundario</div>
+                    <div class="spec-value" style="font-weight: 500;">font-medium</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,30 @@
+---
+interface Props {
+  name: string;
+  image: string;
+  color?: string;
+}
+
+const { name, image, color = 'bg-[#e2ff7a]' } = Astro.props;
+---
+
+<div class="group cursor-pointer relative overflow-hidden rounded-lg h-64">
+  {/* Imagen */}
+  <img
+    src={image}
+    alt={name}
+    class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+  />
+
+  {/* Overlay oscuro */}
+  <div class="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors duration-300"></div>
+
+  {/* Nombre de categoría */}
+  <div class="absolute inset-0 flex items-center justify-center">
+    <div class={`${color} px-6 py-3 rounded-full shadow-lg transform group-hover:scale-110 transition-transform duration-300`}>
+      <h3 class="font-black italic text-lg text-black text-center">
+        {name}
+      </h3>
+    </div>
+  </div>
+</div>

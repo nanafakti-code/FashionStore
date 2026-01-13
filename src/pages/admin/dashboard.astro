@@ -1,0 +1,24 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import AdminDashboard from '@/components/islands/AdminDashboard';
+
+const { section } = Astro.url.searchParams;
+---
+
+<AdminLayout title="Admin Dashboard - FashionStore">
+  <AdminDashboard client:load initialSection={section || 'dashboard'} />
+</AdminLayout>
+
+<script>
+  function handleLogout() {
+    if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+      localStorage.removeItem('admin_token');
+      localStorage.removeItem('admin_user');
+      window.location.href = '/admin-secret-login';
+    }
+  }
+
+  // Hacer la función global
+  window.handleLogout = handleLogout;
+</script>
+

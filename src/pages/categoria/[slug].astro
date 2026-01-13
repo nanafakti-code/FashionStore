@@ -1,0 +1,122 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import Header from '@/components/Header.astro';
+import ProductCard from '@/components/ProductCard.astro';
+import { supabase } from '@/lib/supabase';
+
+const { slug } = Astro.params;
+
+// Obtener categoría de Supabase
+const { data: categoria } = await supabase
+  .from('categorias')
+  .select('id, nombre, slug, descripcion')
+  .eq('slug', slug)
+  .eq('activa', true)
+  .single();
+
+if (!categoria) {
+  return Astro.redirect('/');
+}
+
+// Obtener productos de esa categoría
+const { data: productos } = await supabase
+  .from('productos')
+  .select(`
+    id, 
+    nombre, 
+    slug, 
+    precio_venta, 
+    precio_original, 
+    descripcion, 
+    stock_total,
+    imagenes_producto(url)
+  `)
+  .eq('categoria_id', categoria.id)
+  .eq('activo', true)
+  .order('nombre', { ascending: true });
+
+// Mapear productos
+const products = (productos || []).map((p) => ({
+  id: p.id,
+  name: p.nombre,
+  slug: p.slug,
+  price: p.precio_venta,
+  originalPrice: p.precio_original,
+  image: p.imagenes_producto?.[0]?.url || 'https://via.placeholder.com/500x700?text=' + p.nombre,
+  badge: p.precio_original && p.precio_venta < p.precio_original ? "Oferta" : null,
+  badge_color: "bg-[#e2ff7a]",
+  condition: "Excelente estado",
+  rating: 4.8,
+  reviews: 245,
+}));
+---
+
+<Layout title={`${categoria.nombre} - TechStore`}>
+  <Header />
+  
+  <main class="min-h-screen bg-[#f5f5f7]">
+    <!-- Breadcrumb -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <nav class="flex items-center gap-2 text-sm text-gray-600">
+        <a href="/" class="hover:text-[#00aa45]">Inicio</a>
+        <span>/</span>
+        <span class="text-gray-900 font-semibold">{categoria.nombre}</span>
+      </nav>
+    </div>
+
+    <!-- Category Header -->
+    <section class="bg-[#e2ff7a] text-gray-900 py-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-4xl sm:text-5xl font-black italic mb-4">{categoria.nombre}</h1>
+        <p class="text-lg text-gray-700 max-w-2xl">{categoria.descripcion}</p>
+        <p class="text-sm mt-4 text-gray-600">{products.length} productos disponibles</p>
+      </div>
+    </section>
+
+    <!-- Products Grid -->
+    <section class="py-12 sm:py-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {products.length > 0 ? (
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {products.map((product) => (
+              <ProductCard
+                name={product.name}
+                price={product.price}
+                originalPrice={product.originalPrice}
+                image={product.image}
+                badge={product.badge}
+                badge_color="bg-[#e2ff7a]"
+                condition={product.condition}
+                rating={product.rating}
+                reviews={product.reviews}
+                slug={product.slug}
+              />
+            ))}
+          </div>
+        ) : (
+          <div class="text-center py-12">
+            <p class="text-xl text-gray-600">No hay productos en esta categoría</p>
+          </div>
+        )}
+      </div>
+    </section>
+
+    <!-- Promotional Banner -->
+    <section class="bg-[#e2ff7a] py-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-3xl font-black italic text-gray-900 mb-4">
+          ¿Buscas algo específico?
+        </h2>
+        <p class="text-lg text-gray-700 mb-6">
+          Utiliza nuestra barra de búsqueda para encontrar exactamente lo que necesitas
+        </p>
+        <a
+          href="/"
+          class="inline-block bg-[#00aa45] text-white px-8 py-3 rounded-lg font-bold hover:bg-green-700 transition-colors"
+        >
+          Ir al Inicio
+        </a>
+      </div>
+    </section>
+  </main>
+</Layout>

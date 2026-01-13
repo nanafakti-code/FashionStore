@@ -1,0 +1,295 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import ProductCard from "@/components/ProductCard.astro";
+import CategoryCard from "@/components/CategoryCard.astro";
+import HeroImage from "@/components/islands/HeroImage";
+import { supabase } from "@/lib/supabase";
+
+// ============================================
+// TRAER DATOS DE SUPABASE
+// ============================================
+
+// Obtener productos destacados de la BD
+const { data: productsFromDB, error: productsError } = await supabase
+  .from('productos')
+  .select(`
+    id, 
+    nombre, 
+    slug, 
+    precio_venta, 
+    precio_original, 
+    descripcion, 
+    stock_total, 
+    destacado,
+    categoria_id,
+    imagenes_producto(url)
+  `)
+  .eq('destacado', true)
+  .eq('activo', true)
+  .limit(8);
+
+// Obtener categorías de la BD
+const { data: categoriesFromDB, error: categoriesError } = await supabase
+  .from('categorias')
+  .select('id, nombre, slug, descripcion')
+  .eq('activa', true)
+  .order('orden', { ascending: true });
+
+// Obtener un producto de cada categoría para usar su imagen
+const categoryProducts = categoriesFromDB ? await Promise.all(
+  categoriesFromDB.map(async (cat) => {
+    const { data: productData } = await supabase
+      .from('productos')
+      .select('imagenes_producto(url)')
+      .eq('categoria_id', cat.id)
+      .eq('activo', true)
+      .limit(1)
+      .single();
+    
+    return {
+      categoryId: cat.id,
+      image: productData?.imagenes_producto?.[0]?.url || `https://images.unsplash.com/photo-1511707267537-b85faf00021e?w=800&h=400&fit=crop`
+    };
+  })
+) : [];
+
+// ============================================
+// MAPEAR DATOS A FORMATO DE COMPONENTE
+// ============================================
+
+// Mapear productos
+const featuredProducts = (productsFromDB || []).map((product) => ({
+  id: product.id,
+  name: product.nombre,
+  slug: product.slug,
+  price: product.precio_venta,
+  originalPrice: product.precio_original,
+  description: product.descripcion,
+  image: product.imagenes_producto?.[0]?.url || 'https://via.placeholder.com/500x700?text=' + product.nombre,
+  badge: product.precio_original && product.precio_venta < product.precio_original ? "Oferta" : null,
+  badge_color: "bg-[#e2ff7a]",
+  condition: "Excelente estado",
+  rating: 4.8,
+  reviews: 245,
+}));
+
+// Mapear categorías con imágenes de productos
+const categories = (categoriesFromDB || []).map((cat) => {
+  const productImage = categoryProducts.find(cp => cp.categoryId === cat.id);
+  return {
+    name: cat.nombre,
+    slug: cat.slug,
+    image: productImage?.image || `https://images.unsplash.com/photo-1511707267537-b85faf00021e?w=800&h=400&fit=crop`,
+    color: "bg-[#e2ff7a]",
+  };
+});
+
+// Fallback si hay error o no hay datos
+if (productsError || !productsFromDB || productsFromDB.length === 0) {
+  console.warn('Error obteniendo productos:', productsError);
+}
+---
+
+<Layout title="TechStore - Electrónica Reacondicionada">
+  <Header />
+  
+  <main class="bg-[#f5f5f7] min-h-screen">
+    <!-- Hero Section -->
+    <section class="bg-[#e2ff7a] py-3 sm:py-5 relative overflow-hidden">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <!-- Contenido Izquierdo -->
+          <div>
+            <h1 class="text-5xl sm:text-6xl lg:text-7xl font-black italic text-gray-900 mb-6 leading-tight">
+              Tecnología Premium
+              <br />
+              <span class="text-[#00aa45]">al mejor precio</span>
+            </h1>
+
+            <p class="text-xl text-gray-800 mb-8 max-w-2xl">
+              Descubre los mejores productos electrónicos con garantía. Smartphones, laptops y accesorios a los mejores precios.
+            </p>
+
+            <div class="flex flex-col sm:flex-row gap-4">
+              <a href="/productos" class="bg-gray-900 hover:bg-gray-800 text-white font-black py-3 px-8 rounded-lg transition-colors duration-200 text-lg text-center">
+                Ver Productos
+              </a>
+              <button class="border-2 border-gray-900 text-gray-900 hover:bg-gray-100 font-black py-3 px-8 rounded-lg transition-colors duration-200 text-lg">
+                Cómo funciona
+              </button>
+            </div>
+          </div>
+
+          <!-- Imagen Derecha -->
+          <HeroImage 
+            client:load
+            images={[
+              'https://cdsassets.apple.com/live/SZLF0YNV/images/sp/111883_macbookair.png',
+              'https://cdsassets.apple.com/live/7WUAS350/images/tech-specs/iphone-16.png',
+              'https://cdsassets.apple.com/live/SZLF0YNV/images/sp/111979_ipad-pro-12-2018.png'
+            ]}
+            interval={5000}
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- Compra los "más buscados" -->
+    <section class="py-16 sm:py-24 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-4xl sm:text-5xl font-black italic text-gray-900 mb-12">Compra los "más buscados"</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <!-- Ofertones -->
+          <a href="/productos" class="group relative overflow-hidden rounded-2xl h-64 flex items-end">
+            <img 
+              src="https://www.backmarket.es/cdn-cgi/image/format%3Dauto%2Cquality%3D75%2Cwidth%3D3840/https://images.ctfassets.net/mmeshd7gafk1/Pp4pOTfXlUSotMSqXEbxu/3370173794ce712f1e1cbcc40295b383/Modular-card_Desktop_Great_deals.jpg"
+              alt="Ofertones"
+              class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div class="relative z-10 p-6 w-full">
+              <h3 class="text-2xl font-black text-white">Ofertones</h3>
+            </div>
+          </a>
+
+          <!-- iPhone -->
+          <a href="/categoria/smartphones" class="group relative overflow-hidden rounded-2xl h-64 flex items-end">
+            <img 
+              src="https://www.backmarket.es/cdn-cgi/image/format%3Dauto%2Cquality%3D75%2Cwidth%3D3840/https://images.ctfassets.net/mmeshd7gafk1/1bRy70V8KNknn628bf14h8/00d17107aeb0b9649fbdf6b07f3ffaf5/Modular-card_Desktop_iPhone.jpg"
+              alt="iPhone"
+              class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div class="relative z-10 p-6 w-full">
+              <h3 class="text-2xl font-black text-white">iPhone</h3>
+            </div>
+          </a>
+
+          <!-- MacBook -->
+          <a href="/categoria/laptops" class="group relative overflow-hidden rounded-2xl h-64 flex items-end">
+            <img 
+              src="https://www.backmarket.es/cdn-cgi/image/format%3Dauto%2Cquality%3D75%2Cwidth%3D3840/https://images.ctfassets.net/mmeshd7gafk1/5GjoGJCqWVngJRShjjG7a/e5244dcc76c3549e25b290f886334388/Modular-card_Desktop_Macbooks.jpg"
+              alt="MacBook"
+              class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div class="relative z-10 p-6 w-full">
+              <h3 class="text-2xl font-black text-white">MacBook</h3>
+            </div>
+          </a>
+
+          <!-- iPad -->
+          <a href="/categoria/tablets" class="group relative overflow-hidden rounded-2xl h-64 flex items-end">
+            <img 
+              src="https://www.backmarket.es/cdn-cgi/image/format%3Dauto%2Cquality%3D75%2Cwidth%3D3840/https://images.ctfassets.net/mmeshd7gafk1/jW258Um5YCpwOTHNgEokq/1bf0f42f2e1714c689abf89d98b4710c/Modular-card_Desktop_iPad.jpg"
+              alt="iPad"
+              class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div class="relative z-10 p-6 w-full">
+              <h3 class="text-2xl font-black text-white">iPad</h3>
+            </div>
+          </a>
+
+          <!-- Smartwatches -->
+          <a href="/categoria/wearables" class="group relative overflow-hidden rounded-2xl h-64 flex items-end">
+            <img 
+              src="https://www.backmarket.es/cdn-cgi/image/format%3Dauto%2Cquality%3D75%2Cwidth%3D3840/https://images.ctfassets.net/mmeshd7gafk1/1W08wc0KJB4db2rXsJyP1P/cec0c617c837e6ca306ef223eae6d8ee/Modular-card_Desktop_Smartwatch.jpg"
+              alt="Smartwatches"
+              class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div class="relative z-10 p-6 w-full">
+              <h3 class="text-2xl font-black text-white">Smartwatches</h3>
+            </div>
+          </a>
+
+          <!-- Smartphones Android -->
+          <a href="/categoria/smartphones" class="group relative overflow-hidden rounded-2xl h-64 flex items-end">
+            <img 
+              src="https://www.backmarket.es/cdn-cgi/image/format%3Dauto%2Cquality%3D75%2Cwidth%3D3840/https://images.ctfassets.net/mmeshd7gafk1/1kHjYTtX4lFsNMLAybrL15/039602935bc433400942240a92a50a4d/Modular-card_Desktop_Android.jpg"
+              alt="Smartphones Android"
+              class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div class="relative z-10 p-6 w-full">
+              <h3 class="text-2xl font-black text-white">Smartphones Android</h3>
+            </div>
+          </a>
+
+          <!-- Portátiles Windows -->
+          <a href="/categoria/laptops" class="group relative overflow-hidden rounded-2xl h-64 flex items-end">
+            <img 
+              src="https://www.backmarket.es/cdn-cgi/image/format%3Dauto%2Cquality%3D75%2Cwidth%3D3840/https://images.ctfassets.net/mmeshd7gafk1/5hkcYLitLSwmhC6mC9UkYI/1b14e28d69023e48311650e134dd7623/Modular-card_Desktop_Windows_Laptop.jpg"
+              alt="Portátiles Windows"
+              class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div class="relative z-10 p-6 w-full">
+              <h3 class="text-2xl font-black text-white">Portátiles Windows</h3>
+            </div>
+          </a>
+
+          <!-- Electrodomésticos -->
+          <a href="/productos" class="group relative overflow-hidden rounded-2xl h-64 flex items-end">
+            <img 
+              src="https://www.backmarket.es/cdn-cgi/image/format%3Dauto%2Cquality%3D75%2Cwidth%3D3840/https://images.ctfassets.net/mmeshd7gafk1/7snz6xrm8ugZjYmQFScxkl/3311b3b3194d277b2dcd1a2d39bfc69f/Modular-card_Desktop_Home_appliances.jpg"
+              alt="Electrodomésticos"
+              class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div class="relative z-10 p-6 w-full">
+              <h3 class="text-2xl font-black text-white">Electrodomésticos</h3>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+
+
+    <!-- Productos Destacados -->
+    <section id="productos" class="py-16 sm:py-24 bg-[#f5f5f7]">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-4xl sm:text-5xl font-black italic text-gray-900 mb-12">Productos Destacados</h2>
+        
+        {featuredProducts.length > 0 ? (
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {featuredProducts.map((product) => (
+              <ProductCard 
+                id={product.id}
+                name={product.name}
+                price={product.price}
+                originalPrice={product.originalPrice}
+                image={product.image}
+                slug={product.slug}
+                badge={product.badge}
+                badge_color={product.badge_color}
+                condition={product.condition}
+                rating={product.rating}
+                reviews={product.reviews}
+              />
+            ))}
+          </div>
+        ) : (
+          <div class="text-center py-12">
+            <p class="text-gray-600 text-lg">Cargando productos...</p>
+          </div>
+        )}
+      </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="py-16 sm:py-24 bg-gradient-to-r from-[#00aa45] to-green-600 text-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-4xl sm:text-5xl font-black text-white mb-6">¿No encontraste lo que buscas?</h2>
+        <p class="text-xl text-white/90 mb-8">Explora nuestro catálogo completo de productos</p>
+        <a href="/productos" class="inline-block bg-white hover:bg-gray-100 text-[#00aa45] font-black py-4 px-12 rounded-lg transition-colors duration-200 text-lg">
+          Ver Catálogo Completo
+        </a>
+      </div>
+    </section>
+  </main>
+</Layout>

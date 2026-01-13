@@ -1,0 +1,70 @@
+---
+import CartIcon from './islands/CartIcon.tsx';
+import UserMenu from './islands/UserMenu.tsx';
+import SearchBar from './islands/SearchBar.tsx';
+import MobileSearchBar from './islands/MobileSearchBar.tsx';
+---
+
+<header class="bg-white shadow-lg sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    {/* Top Bar */}
+    <div class="flex justify-between items-center py-3 border-b border-gray-200">
+      <div class="text-xs text-gray-600">
+        <p>Envío gratis en pedidos mayores a 50€</p>
+      </div>
+      <div class="flex gap-4 text-sm text-gray-600 items-center">
+        <a href="#" class="hover:text-[#00aa45]">Ayuda</a>
+        <UserMenu client:load />
+      </div>
+    </div>
+
+    {/* Main Header */}
+    <div class="flex justify-between items-center py-4">
+      {/* Logo */}
+      <div class="flex items-center gap-2">
+        <img src="/admin-logo.png" alt="FashionStore Logo" class="w-16 h-16 object-contain flex-shrink-0" />
+        <h1 class="text-3xl font-black italic text-gray-900">FashionStore</h1>
+      </div>
+
+      {/* Search Bar */}
+      <SearchBar client:load />
+
+      {/* Cart Icon */}
+      <CartIcon client:load />
+    </div>
+
+    {/* Navigation */}
+    <nav class="flex gap-6 py-4 overflow-x-auto">
+      <a href="/" class="text-gray-700 hover:text-[#00aa45] font-semibold whitespace-nowrap">
+        Inicio
+      </a>
+      <a href="/categoria/smartphones" class="text-gray-700 hover:text-[#00aa45] font-semibold whitespace-nowrap">
+        Móviles
+      </a>
+      <a href="/categoria/laptops" class="text-gray-700 hover:text-[#00aa45] font-semibold whitespace-nowrap">
+        Portátiles
+      </a>
+      <a href="/categoria/tablets" class="text-gray-700 hover:text-[#00aa45] font-semibold whitespace-nowrap">
+        Tablets
+      </a>
+      <a href="/categoria/audio" class="text-gray-700 hover:text-[#00aa45] font-semibold whitespace-nowrap">
+        Audio
+      </a>
+      <a href="/categoria/wearables" class="text-gray-700 hover:text-[#00aa45] font-semibold whitespace-nowrap">
+        Smartwatches
+      </a>
+      <a href="/categoria/camaras" class="text-gray-700 hover:text-[#00aa45] font-semibold whitespace-nowrap">
+        Cámaras
+      </a>
+      <a href="/categoria/monitores" class="text-gray-700 hover:text-[#00aa45] font-semibold whitespace-nowrap">
+        Monitores
+      </a>
+      <a href="/categoria/consolas" class="text-gray-700 hover:text-[#00aa45] font-semibold whitespace-nowrap">
+        Consolas
+      </a>
+    </nav>
+  </div>
+
+  {/* Mobile Search */}
+  <MobileSearchBar client:load />
+</header>

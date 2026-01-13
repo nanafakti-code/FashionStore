@@ -1,0 +1,126 @@
+---
+import '@/styles/global.css';
+
+/**
+ * FASHIONSTORE - PUBLIC LAYOUT
+ * ==============================
+ * Layout para la tienda pública con header y footer
+ */
+
+interface Props {
+    title?: string;
+    description?: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description || "FashionStore - Tienda de productos reacondicionados"} />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title || 'FashionStore'}</title>
+  </head>
+  <body class="bg-[#f5f5f7]">
+    <slot />
+
+    <footer class="bg-gray-900 text-white mt-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+          {/* Sobre nosotros */}
+          <div>
+            <h4 class="font-black italic text-lg mb-4 text-[#e2ff7a]">Sobre FashionStore</h4>
+            <ul class="space-y-2 text-sm text-gray-400">
+              <li><a href="#" class="hover:text-[#e2ff7a] transition-colors">Acerca de nosotros</a></li>
+              <li><a href="#" class="hover:text-[#e2ff7a] transition-colors">Cómo funciona</a></li>
+              <li><a href="#" class="hover:text-[#e2ff7a] transition-colors">Blog</a></li>
+              <li><a href="#" class="hover:text-[#e2ff7a] transition-colors">Prensa</a></li>
+            </ul>
+          </div>
+
+          {/* Compra */}
+          <div>
+            <h4 class="font-black italic text-lg mb-4 text-[#e2ff7a]">Compra</h4>
+            <ul class="space-y-2 text-sm text-gray-400">
+              <li><a href="#" class="hover:text-[#e2ff7a] transition-colors">Categorías</a></li>
+              <li><a href="#" class="hover:text-[#e2ff7a] transition-colors">Ofertas</a></li>
+              <li><a href="#" class="hover:text-[#e2ff7a] transition-colors">Best Sellers</a></li>
+              <li><a href="#" class="hover:text-[#e2ff7a] transition-colors">Nuevo</a></li>
+            </ul>
+          </div>
+
+          {/* Ayuda */}
+          <div>
+            <h4 class="font-black italic text-lg mb-4 text-[#e2ff7a]">Ayuda</h4>
+            <ul class="space-y-2 text-sm text-gray-400">
+              <li><a href="#" class="hover:text-[#e2ff7a] transition-colors">Centro de ayuda</a></li>
+              <li><a href="#" class="hover:text-[#e2ff7a] transition-colors">Contacto</a></li>
+              <li><a href="#" class="hover:text-[#e2ff7a] transition-colors">Devoluciones</a></li>
+              <li><a href="#" class="hover:text-[#e2ff7a] transition-colors">Preguntas frecuentes</a></li>
+            </ul>
+          </div>
+
+          {/* Legal */}
+          <div>
+            <h4 class="font-black italic text-lg mb-4 text-[#e2ff7a]">Legal</h4>
+            <ul class="space-y-2 text-sm text-gray-400">
+              <li><a href="#" class="hover:text-[#e2ff7a] transition-colors">Términos de servicio</a></li>
+              <li><a href="#" class="hover:text-[#e2ff7a] transition-colors">Privacidad</a></li>
+              <li><a href="#" class="hover:text-[#e2ff7a] transition-colors">Cookies</a></li>
+              <li><a href="#" class="hover:text-[#e2ff7a] transition-colors">Sostenibilidad</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
+          <p class="text-sm text-gray-400 mb-4 md:mb-0">
+            © 2026 FashionStore. Todos los derechos reservados.
+          </p>
+          <div class="flex gap-4">
+            <a href="#" class="text-gray-400 hover:text-[#e2ff7a] transition-colors">Facebook</a>
+            <a href="#" class="text-gray-400 hover:text-[#e2ff7a] transition-colors">Instagram</a>
+            <a href="#" class="text-gray-400 hover:text-[#e2ff7a] transition-colors">Twitter</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
+
+<style is:global>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    font-family: system-ui, -apple-system, sans-serif;
+    background-color: #f5f5f7;
+  }
+
+  body {
+    background-color: #f5f5f7;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f5f5f7;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #00aa45;
+    border-radius: 5px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #008c38;
+  }
+</style>

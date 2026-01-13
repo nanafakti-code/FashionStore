@@ -1,0 +1,259 @@
+---
+// Archivo de ejemplo: Cómo usar los componentes en tus páginas
+
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import ProductCard from "@/components/ProductCard.astro";
+import CategoryCard from "@/components/CategoryCard.astro";
+import FilterSidebar from "@/components/FilterSidebar.astro";
+
+// Ejemplo de datos de productos
+const exampleProduct = {
+  id: "1",
+  name: "iPhone 13 Pro",
+  price: 69900,        // En centavos: 699.00
+  originalPrice: 99900, // En centavos: 999.00
+  image: "https://images.unsplash.com/photo-1592286927505-1def25115558?w=500&h=500&fit=crop",
+  badge: "Oferta",
+  badge_color: "bg-[#e2ff7a]",
+  condition: "Aspecto excelente",
+  rating: 4.8,
+  reviews: 245,
+  slug: "iphone-13-pro"
+};
+
+// Ejemplo de datos de categoría
+const exampleCategory = {
+  name: "Smartphones",
+  image: "https://images.unsplash.com/photo-1511707267537-b85faf00021e?w=800&h=400&fit=crop",
+  color: "bg-[#e2ff7a]"
+};
+---
+
+<Layout title="Ejemplo de Uso - FashionStore">
+  <Header />
+  
+  <main class="bg-[#f5f5f7] min-h-screen p-8">
+    {/* 
+      EJEMPLOS DE USO DE COMPONENTES
+    */}
+
+    {/* EJEMPLO 1: Usar ProductCard */}
+    <section class="max-w-7xl mx-auto mb-16">
+      <h2 class="text-4xl font-black italic mb-8 text-gray-900">
+        Ejemplo: ProductCard
+      </h2>
+      <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
+        <pre><code>{`<ProductCard
+  id="1"
+  name="iPhone 13 Pro"
+  price={69900}
+  originalPrice={99900}
+  image="https://images.unsplash.com/photo-1592286927505-1def25115558"
+  badge="Oferta"
+  badge_color="bg-[#e2ff7a]"
+  condition="Aspecto excelente"
+  rating={4.8}
+  reviews={245}
+  slug="iphone-13-pro"
+/>`}</code></pre>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <ProductCard {...exampleProduct} />
+        <ProductCard {...exampleProduct} />
+        <ProductCard {...exampleProduct} />
+      </div>
+    </section>
+
+    {/* EJEMPLO 2: Usar CategoryCard */}
+    <section class="max-w-7xl mx-auto mb-16">
+      <h2 class="text-4xl font-black italic mb-8 text-gray-900">
+        Ejemplo: CategoryCard
+      </h2>
+      <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
+        <pre><code>{`<CategoryCard
+  name="Smartphones"
+  image="https://images.unsplash.com/photo-1511707267537-b85faf00021e"
+  color="bg-[#e2ff7a]"
+/>`}</code></pre>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <CategoryCard {...exampleCategory} />
+        <CategoryCard name="Laptops" image="https://images.unsplash.com/photo-1517336714731-489689fd1ca8" />
+        <CategoryCard name="Audio" image="https://images.unsplash.com/photo-1484704849700-f032a568e944" />
+        <CategoryCard name="Wearables" image="https://images.unsplash.com/photo-1523275335684-37898b6baf30" />
+      </div>
+    </section>
+
+    {/* EJEMPLO 3: Usar FilterSidebar */}
+    <section class="max-w-7xl mx-auto mb-16">
+      <h2 class="text-4xl font-black italic mb-8 text-gray-900">
+        Ejemplo: FilterSidebar con Grid
+      </h2>
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div class="lg:col-span-1">
+          <FilterSidebar title="Buscar Productos" />
+        </div>
+        <div class="lg:col-span-3">
+          <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-2xl font-black italic mb-4">Productos Filtrados</h3>
+            <p class="text-gray-600">
+              Los filtros se mostrarán aquí cuando implementes la funcionalidad de búsqueda.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* EJEMPLO 4: Sistema de Colores */}
+    <section class="max-w-7xl mx-auto mb-16">
+      <h2 class="text-4xl font-black italic mb-8 text-gray-900">
+        Paleta de Colores
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Verde Principal */}
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div class="bg-[#00aa45] h-24"></div>
+          <div class="p-4">
+            <h4 class="font-bold mb-2">Verde Primario</h4>
+            <code class="text-sm text-gray-600">#00aa45</code>
+            <p class="text-xs text-gray-500 mt-2">Botones, links, acentos</p>
+          </div>
+        </div>
+
+        {/* Lima */}
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div class="bg-[#e2ff7a] h-24"></div>
+          <div class="p-4">
+            <h4 class="font-bold mb-2">Lima</h4>
+            <code class="text-sm text-gray-600">#e2ff7a</code>
+            <p class="text-xs text-gray-500 mt-2">Badges, highlights</p>
+          </div>
+        </div>
+
+        {/* Fondo */}
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden border-2 border-gray-200">
+          <div class="bg-[#f5f5f7] h-24"></div>
+          <div class="p-4">
+            <h4 class="font-bold mb-2">Fondo</h4>
+            <code class="text-sm text-gray-600">#f5f5f7</code>
+            <p class="text-xs text-gray-500 mt-2">Fondo principal</p>
+          </div>
+        </div>
+
+        {/* Texto */}
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div class="bg-[#1f2937] h-24"></div>
+          <div class="p-4">
+            <h4 class="font-bold mb-2">Texto Oscuro</h4>
+            <code class="text-sm text-gray-600">#1f2937</code>
+            <p class="text-xs text-gray-500 mt-2">Texto principal</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* EJEMPLO 5: Responsive Utilities */}
+    <section class="max-w-7xl mx-auto mb-16">
+      <h2 class="text-4xl font-black italic mb-8 text-gray-900">
+        Responsive Design
+      </h2>
+      <div class="bg-white rounded-lg shadow-lg p-8">
+        <div class="space-y-6">
+          <div>
+            <h4 class="font-bold mb-2">Grid de 1, 2 o 4 columnas</h4>
+            <code class="text-sm bg-gray-100 p-3 rounded block">
+              grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6
+            </code>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-4">
+              <div class="bg-[#e2ff7a] h-20 rounded flex items-center justify-center font-bold">1</div>
+              <div class="bg-[#e2ff7a] h-20 rounded flex items-center justify-center font-bold">2</div>
+              <div class="bg-[#e2ff7a] h-20 rounded flex items-center justify-center font-bold">3</div>
+              <div class="bg-[#e2ff7a] h-20 rounded flex items-center justify-center font-bold">4</div>
+            </div>
+          </div>
+
+          <div>
+            <h4 class="font-bold mb-2">Espaciado responsivo</h4>
+            <code class="text-sm bg-gray-100 p-3 rounded block">
+              py-4 sm:py-8 lg:py-16 px-4 sm:px-6 lg:px-8
+            </code>
+            <div class="py-4 sm:py-8 lg:py-16 px-4 sm:px-6 lg:px-8 bg-blue-50 rounded mt-4">
+              El padding se adapta según el tamaño de pantalla
+            </div>
+          </div>
+
+          <div>
+            <h4 class="font-bold mb-2">Tipografía responsiva</h4>
+            <code class="text-sm bg-gray-100 p-3 rounded block">
+              text-2xl sm:text-3xl lg:text-4xl
+            </code>
+            <h3 class="text-2xl sm:text-3xl lg:text-4xl font-bold mt-4">
+              El texto cambia de tamaño
+            </h3>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* EJEMPLO 6: Componentes Reutilizables */}
+    <section class="max-w-7xl mx-auto mb-16">
+      <h2 class="text-4xl font-black italic mb-8 text-gray-900">
+        Patrones Reutilizables
+      </h2>
+      <div class="space-y-6">
+        {/* Botón Principal */}
+        <div>
+          <h4 class="font-bold mb-3">Botones</h4>
+          <div class="flex flex-wrap gap-4">
+            <button class="bg-[#00aa45] hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg transition-colors">
+              Botón Principal
+            </button>
+            <button class="border-2 border-[#00aa45] text-[#00aa45] hover:bg-[#f5f5f7] font-bold py-3 px-8 rounded-lg transition-colors">
+              Botón Secundario
+            </button>
+            <button class="bg-gray-300 text-gray-700 font-bold py-3 px-8 rounded-lg cursor-not-allowed opacity-50">
+              Botón Deshabilitado
+            </button>
+          </div>
+        </div>
+
+        {/* Badges */}
+        <div>
+          <h4 class="font-bold mb-3">Badges</h4>
+          <div class="flex flex-wrap gap-3">
+            <span class="bg-[#e2ff7a] text-black px-3 py-1 rounded-full text-sm font-bold">Best Seller</span>
+            <span class="bg-[#00aa45] text-white px-3 py-1 rounded-full text-sm font-bold">Oferta</span>
+            <span class="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm font-bold">Aspecto excelente</span>
+            <span class="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">-30%</span>
+          </div>
+        </div>
+
+        {/* Cards */}
+        <div>
+          <h4 class="font-bold mb-3">Tarjetas</h4>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition-shadow">
+              <h5 class="font-bold text-lg mb-2">Tarjeta Simple</h5>
+              <p class="text-gray-600">Contenido de ejemplo para una tarjeta</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition-shadow border-l-4 border-[#00aa45]">
+              <h5 class="font-bold text-lg mb-2">Tarjeta con Acento</h5>
+              <p class="text-gray-600">Con borde izquierdo verde</p>
+            </div>
+            <div class="bg-gradient-to-br from-[#e2ff7a] to-[#d4f050] rounded-lg shadow-md p-6 hover:shadow-xl transition-shadow">
+              <h5 class="font-bold text-lg mb-2">Tarjeta Destacada</h5>
+              <p class="text-gray-800">Con gradiente de fondo</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</Layout>
+
+<style>
+  code {
+    font-family: 'Courier New', monospace;
+  }
+</style>

@@ -1,0 +1,242 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import ProductCard from '@/components/ProductCard.astro';
+
+// Datos de productos
+const allProducts = [
+  {
+    id: 1,
+    name: 'iPhone 13 Pro',
+    category: 'electronics',
+    price: 799,
+    originalPrice: 1099,
+    image: 'https://images.pexels.com/photos/699122/pexels-photo-699122.jpeg?auto=compress&cs=tinysrgb&w=500&h=500&fit=crop',
+    discount: 27,
+    rating: 4.8,
+    reviews: 128,
+    condition: 'Excelente',
+    badge: 'Más Vendido'
+  },
+  {
+    id: 2,
+    name: 'Samsung Galaxy S21',
+    category: 'electronics',
+    price: 599,
+    originalPrice: 899,
+    image: 'https://images.pexels.com/photos/788946/pexels-photo-788946.jpeg?auto=compress&cs=tinysrgb&w=500&h=500&fit=crop',
+    discount: 33,
+    rating: 4.7,
+    reviews: 95,
+    condition: 'Muy bueno',
+    badge: null
+  },
+  {
+    id: 3,
+    name: 'MacBook Air M1',
+    category: 'electronics',
+    price: 899,
+    originalPrice: 1299,
+    image: 'https://images.pexels.com/photos/18105/pexels-photo.jpeg?auto=compress&cs=tinysrgb&w=500&h=500&fit=crop',
+    discount: 31,
+    rating: 4.9,
+    reviews: 156,
+    condition: 'Excelente',
+    badge: 'Más Vendido'
+  },
+  {
+    id: 4,
+    name: 'Zapatillas Nike Air',
+    category: 'fashion',
+    price: 89,
+    originalPrice: 150,
+    image: 'https://images.pexels.com/photos/2529157/pexels-photo-2529157.jpeg?auto=compress&cs=tinysrgb&w=500&h=500&fit=crop',
+    discount: 41,
+    rating: 4.6,
+    reviews: 78,
+    condition: 'Muy bueno',
+    badge: null
+  },
+  {
+    id: 5,
+    name: 'Reloj Smartwatch',
+    category: 'electronics',
+    price: 199,
+    originalPrice: 299,
+    image: 'https://images.pexels.com/photos/437037/pexels-photo-437037.jpeg?auto=compress&cs=tinysrgb&w=500&h=500&fit=crop',
+    discount: 33,
+    rating: 4.5,
+    reviews: 62,
+    condition: 'Excelente',
+    badge: null
+  },
+  {
+    id: 6,
+    name: 'Cámara Canon EOS',
+    category: 'electronics',
+    price: 649,
+    originalPrice: 999,
+    image: 'https://images.pexels.com/photos/606941/pexels-photo-606941.jpeg?auto=compress&cs=tinysrgb&w=500&h=500&fit=crop',
+    discount: 35,
+    rating: 4.8,
+    reviews: 103,
+    condition: 'Muy bueno',
+    badge: 'Más Vendido'
+  },
+  {
+    id: 7,
+    name: 'Auriculares Sony',
+    category: 'electronics',
+    price: 249,
+    originalPrice: 349,
+    image: 'https://images.pexels.com/photos/3394650/pexels-photo-3394650.jpeg?auto=compress&cs=tinysrgb&w=500&h=500&fit=crop',
+    discount: 29,
+    rating: 4.7,
+    reviews: 87,
+    condition: 'Excelente',
+    badge: null
+  },
+  {
+    id: 8,
+    name: 'iPad Pro 12.9',
+    category: 'electronics',
+    price: 749,
+    originalPrice: 1099,
+    image: 'https://images.pexels.com/photos/546822/pexels-photo-546822.jpeg?auto=compress&cs=tinysrgb&w=500&h=500&fit=crop',
+    discount: 32,
+    rating: 4.9,
+    reviews: 142,
+    condition: 'Excelente',
+    badge: 'Más Vendido'
+  },
+  {
+    id: 9,
+    name: 'Chaqueta Leather',
+    category: 'fashion',
+    price: 129,
+    originalPrice: 249,
+    image: 'https://images.pexels.com/photos/1055691/pexels-photo-1055691.jpeg?auto=compress&cs=tinysrgb&w=500&h=500&fit=crop',
+    discount: 48,
+    rating: 4.6,
+    reviews: 54,
+    condition: 'Muy bueno',
+    badge: null
+  },
+  {
+    id: 10,
+    name: 'Jeans Premium',
+    category: 'fashion',
+    price: 59,
+    originalPrice: 120,
+    image: 'https://images.pexels.com/photos/1055691/pexels-photo-1055691.jpeg?auto=compress&cs=tinysrgb&w=500&h=500&fit=crop',
+    discount: 51,
+    rating: 4.4,
+    reviews: 41,
+    condition: 'Bueno',
+    badge: null
+  },
+  {
+    id: 11,
+    name: 'Sofá moderno',
+    category: 'home',
+    price: 399,
+    originalPrice: 799,
+    image: 'https://images.pexels.com/photos/1350789/pexels-photo-1350789.jpeg?auto=compress&cs=tinysrgb&w=500&h=500&fit=crop',
+    discount: 50,
+    rating: 4.7,
+    reviews: 68,
+    condition: 'Muy bueno',
+    badge: null
+  },
+  {
+    id: 12,
+    name: 'Lámpara LED',
+    category: 'home',
+    price: 49,
+    originalPrice: 99,
+    image: 'https://images.unsplash.com/photo-1565182999555-e6debc666030?w=500&h=500&fit=crop',
+    discount: 51,
+    rating: 4.5,
+    reviews: 33,
+    condition: 'Excelente',
+    badge: null
+  }
+];
+
+// Obtener parámetro de búsqueda
+const query = new URL(Astro.request.url).searchParams.get('q') || '';
+
+// Filtrar productos
+const searchResults = allProducts.filter(product => 
+  product.name.toLowerCase().includes(query.toLowerCase()) ||
+  product.category.toLowerCase().includes(query.toLowerCase())
+);
+
+const hasResults = searchResults.length > 0;
+---
+
+<BaseLayout title={`Búsqueda: ${query} - FashionStore`}>
+  <div class="min-h-screen bg-white">
+    {/* Header Section */}
+    <div class="bg-gray-50 border-b border-gray-200 py-6">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-3xl font-black italic mb-2">
+          Resultados de búsqueda
+        </h1>
+        <p class="text-gray-600">
+          {query ? (
+            <>
+              <span class="font-semibold">"{query}"</span>
+              <span class="ml-2">
+                {hasResults 
+                  ? `${searchResults.length} producto${searchResults.length !== 1 ? 's' : ''} encontrado${searchResults.length !== 1 ? 's' : ''}` 
+                  : 'No se encontraron productos'}
+              </span>
+            </>
+          ) : (
+            'Ingresa un término de búsqueda'
+          )}
+        </p>
+      </div>
+    </div>
+
+    {/* Results Section */}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {hasResults ? (
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {searchResults.map(product => (
+            <ProductCard
+              id={product.id}
+              name={product.name}
+              price={product.price}
+              originalPrice={product.originalPrice}
+              image={product.image}
+              discount={product.discount}
+              rating={product.rating}
+              reviews={product.reviews}
+              condition={product.condition}
+              badge={product.badge}
+            />
+          ))}
+        </div>
+      ) : (
+        <div class="text-center py-12">
+          <div class="text-6xl mb-4">🔍</div>
+          <h2 class="text-2xl font-bold text-gray-900 mb-2">
+            No se encontraron productos
+          </h2>
+          <p class="text-gray-600 mb-6">
+            Intenta con otras palabras clave o explora nuestras categorías
+          </p>
+          <div class="flex gap-4 justify-center flex-wrap">
+            <a href="/" class="bg-[#00aa45] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#009340] transition">
+              Ir al inicio
+            </a>
+            <a href="/productos" class="border-2 border-[#00aa45] text-[#00aa45] px-6 py-3 rounded-lg font-semibold hover:bg-[#f5f5f7] transition">
+              Ver todos los productos
+            </a>
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+</BaseLayout>

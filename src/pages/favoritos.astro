@@ -1,0 +1,295 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Favoritos | FashionStore">
+  <main class="min-h-screen bg-gradient-to-br from-[#f5f5f7] via-white to-[#f0fff6] py-12">
+    <div class="max-w-6xl mx-auto px-4">
+      {/* Header */}
+      <div class="mb-12">
+        <div class="inline-block mb-4">
+          <span class="bg-gradient-to-r from-[#00aa45] to-[#008a35] text-white px-4 py-1 rounded-full text-sm font-bold">Colecciones</span>
+        </div>
+        <h1 class="text-5xl font-black text-gray-900 mb-2">Mis Favoritos</h1>
+        <p class="text-lg text-gray-600">Tus productos guardados</p>
+      </div>
+
+      {/* Filtros */}
+      <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 mb-6 hover:shadow-lg transition">
+        <div class="flex flex-col md:flex-row gap-4">
+          <div class="flex-1">
+            <input
+              type="text"
+              id="search-fav"
+              placeholder="Buscar en favoritos..."
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00aa45]"
+            />
+          </div>
+          <select
+            id="sort-fav"
+            class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00aa45]"
+          >
+            <option value="reciente">Más Reciente</option>
+            <option value="nombre">Por Nombre</option>
+            <option value="precio-asc">Menor Precio</option>
+            <option value="precio-desc">Mayor Precio</option>
+          </select>
+          <button
+            id="clear-fav"
+            class="px-6 py-2 border-2 border-red-300 text-red-600 rounded-lg font-bold hover:bg-red-50 transition text-sm"
+          >
+            Limpiar Todos
+          </button>
+        </div>
+      </div>
+
+      {/* Products Grid */}
+      <div id="favorites-container" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div class="col-span-full bg-white rounded-2xl shadow-xl border border-gray-100 p-8 text-center">
+          <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+          </svg>
+          <p class="text-gray-600 font-semibold">Cargando favoritos...</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script client:only="react">
+    import { getCurrentUser } from "@/lib/auth";
+    import { supabase } from "@/lib/supabase";
+
+    let allFavorites = [];
+
+    async function loadFavorites() {
+      try {
+        const user = await getCurrentUser();
+        if (!user) {
+          window.location.href = "/";
+          return;
+        }
+
+        const { data: favorites, error } = await supabase
+          .from("favoritos")
+          .select(
+            `
+            id,
+            producto_id,
+            productos (
+              id,
+              nombre,
+              descripcion,
+              precio,
+              descuento,
+              stock,
+              imagen_principal,
+              calificacion_promedio
+            )
+          `
+          )
+          .eq("usuario_id", user.id)
+          .order("fecha_agregado", { ascending: false });
+
+        if (error) throw error;
+
+        allFavorites = favorites || [];
+        displayFavorites(allFavorites);
+      } catch (error) {
+        console.error("Error loading favorites:", error);
+        document.getElementById("favorites-container").innerHTML = `
+          <div class="col-span-full bg-white rounded-xl shadow-lg p-8 text-center">
+            <p class="text-red-600 font-semibold">Error al cargar favoritos</p>
+          </div>
+        `;
+      }
+    }
+
+    function displayFavorites(favorites) {
+      const container = document.getElementById("favorites-container");
+
+      if (favorites.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full bg-white rounded-2xl shadow-xl border border-gray-100 p-8 text-center">
+            <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+            </svg>
+            <p class="text-gray-600 font-semibold">No tienes favoritos aún</p>
+            <a href="/productos" class="text-[#00aa45] hover:underline mt-2 inline-block">Explorar productos</a>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = favorites
+        .map(
+          (fav) => `
+        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden hover:shadow-2xl transition group">
+          {/* Image */}
+          <div class="relative overflow-hidden bg-slate-100 h-48">
+            <img
+              src="${fav.productos.imagen_principal || "/placeholder.jpg"}"
+              alt="${fav.productos.nombre}"
+              class="w-full h-full object-cover group-hover:scale-110 transition duration-300"
+            />
+            ${fav.productos.descuento ? `
+              <div class="absolute top-3 right-3 bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-1 rounded-lg text-xs font-black shadow-lg">
+                -${fav.productos.descuento}%
+              </div>
+            ` : ""}
+            <button
+              data-fav-id="${fav.id}"
+              class="absolute top-3 left-3 w-10 h-10 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition shadow-lg remove-favorite"
+            >
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+              </svg>
+            </button>
+          </div>
+
+          {/* Content */}
+          <div class="p-5">
+            <h3 class="font-black text-gray-900 text-sm mb-3 line-clamp-2">
+              ${fav.productos.nombre}
+            </h3>
+
+            {/* Rating */}
+            <div class="flex items-center gap-1 mb-3">
+              ${"⭐".repeat(Math.round(fav.productos.calificacion_promedio || 0))}
+              <span class="text-xs text-gray-500 font-bold">(${fav.productos.calificacion_promedio || 0})</span>
+            </div>
+
+            {/* Price */}
+            <div class="flex items-baseline gap-2 mb-4">
+              <span class="text-xl font-black text-[#00aa45]">
+                ${fav.productos.precio.toFixed(2)}€
+              </span>
+              ${fav.productos.descuento ? `
+                <span class="text-xs text-gray-400 line-through font-semibold">
+                  ${(fav.productos.precio / (1 - fav.productos.descuento / 100)).toFixed(2)}€
+                </span>
+              ` : ""}
+            </div>
+
+            {/* Buttons */}
+            <div class="flex gap-2">
+              <a
+                href="/productos/${fav.productos.id}"
+                class="flex-1 bg-gradient-to-r from-[#00aa45] to-[#009340] text-white py-2 rounded-lg font-bold text-sm hover:shadow-lg hover:from-[#009340] hover:to-[#007a2d] transition text-center"
+              >
+                Ver
+              </a>
+              <button
+                class="flex-1 border-2 border-[#00aa45] text-[#00aa45] py-2 rounded-lg font-bold text-sm hover:bg-[#f0fff6] transition add-to-cart"
+                data-product-id="${fav.productos.id}"
+              >
+                Añadir
+              </button>
+            </div>
+          </div>
+        </div>
+      `
+        )
+        .join("");
+
+      // Event listeners
+      document.querySelectorAll(".remove-favorite").forEach((btn) => {
+        btn.addEventListener("click", removeFavorite);
+      });
+
+      document.querySelectorAll(".add-to-cart").forEach((btn) => {
+        btn.addEventListener("click", addToCart);
+      });
+    }
+
+    async function removeFavorite(e) {
+      const favId = e.currentTarget.dataset.favId;
+      try {
+        const { error } = await supabase
+          .from("favoritos")
+          .delete()
+          .eq("id", favId);
+
+        if (error) throw error;
+
+        allFavorites = allFavorites.filter((f) => f.id !== favId);
+        displayFavorites(allFavorites);
+      } catch (error) {
+        console.error("Error removing favorite:", error);
+        alert("Error al eliminar de favoritos");
+      }
+    }
+
+    function addToCart(e) {
+      const productId = e.currentTarget.dataset.productId;
+      const existingCart =
+        JSON.parse(localStorage.getItem("fashionstore_cart")) || [];
+      const existingProduct = existingCart.find((p) => p.id === productId);
+
+      if (existingProduct) {
+        existingProduct.cantidad++;
+      } else {
+        existingCart.push({ id: productId, cantidad: 1 });
+      }
+
+      localStorage.setItem("fashionstore_cart", JSON.stringify(existingCart));
+      window.dispatchEvent(new Event("cartUpdated"));
+
+      e.currentTarget.textContent = "Añadido";
+      e.currentTarget.disabled = true;
+      setTimeout(() => {
+        e.currentTarget.textContent = "Añadir";
+        e.currentTarget.disabled = false;
+      }, 1500);
+    }
+
+    // Search and sort
+    document.getElementById("search-fav")?.addEventListener("input", (e) => {
+      const query = e.target.value.toLowerCase();
+      const filtered = allFavorites.filter((f) =>
+        f.productos.nombre.toLowerCase().includes(query)
+      );
+      displayFavorites(filtered);
+    });
+
+    document.getElementById("sort-fav")?.addEventListener("change", (e) => {
+      const sorted = [...allFavorites];
+      switch (e.target.value) {
+        case "nombre":
+          sorted.sort((a, b) =>
+            a.productos.nombre.localeCompare(b.productos.nombre)
+          );
+          break;
+        case "precio-asc":
+          sorted.sort((a, b) => a.productos.precio - b.productos.precio);
+          break;
+        case "precio-desc":
+          sorted.sort((a, b) => b.productos.precio - a.productos.precio);
+          break;
+      }
+      displayFavorites(sorted);
+    });
+
+    document.getElementById("clear-fav")?.addEventListener("click", async () => {
+      if (!confirm("¿Estás seguro de que deseas eliminar todos los favoritos?"))
+        return;
+
+      try {
+        const user = await getCurrentUser();
+        const { error } = await supabase
+          .from("favoritos")
+          .delete()
+          .eq("usuario_id", user?.id);
+
+        if (error) throw error;
+
+        allFavorites = [];
+        displayFavorites([]);
+      } catch (error) {
+        console.error("Error clearing favorites:", error);
+        alert("Error al limpiar favoritos");
+      }
+    });
+
+    loadFavorites();
+  </script>
+</BaseLayout>

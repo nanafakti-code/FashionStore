@@ -1,0 +1,73 @@
+---
+interface Props {
+  title?: string;
+}
+
+const { title = "Filtros" } = Astro.props;
+---
+
+<aside class="bg-white rounded-lg p-6 shadow-md">
+  <h3 class="text-lg font-black italic mb-6 text-gray-900">{title}</h3>
+
+  <!-- Filtro de Precio -->
+  <div class="mb-8">
+    <h4 class="font-bold mb-4 text-gray-900">Rango de Precio</h4>
+    <input
+      type="range"
+      min="0"
+      max="1000"
+      class="w-full accent-[#00aa45]"
+    />
+    <div class="flex justify-between text-sm text-gray-600 mt-2">
+      <span>$0</span>
+      <span>$1000</span>
+    </div>
+  </div>
+
+  <!-- Filtro de Categoría -->
+  <div class="mb-8">
+    <h4 class="font-bold mb-4 text-gray-900">Categoría</h4>
+    <div class="space-y-3">
+      <label class="flex items-center cursor-pointer">
+        <input type="checkbox" class="accent-[#00aa45]" />
+        <span class="ml-2 text-gray-700">Electrónica</span>
+      </label>
+      <label class="flex items-center cursor-pointer">
+        <input type="checkbox" class="accent-[#00aa45]" />
+        <span class="ml-2 text-gray-700">Moda</span>
+      </label>
+      <label class="flex items-center cursor-pointer">
+        <input type="checkbox" class="accent-[#00aa45]" />
+        <span class="ml-2 text-gray-700">Hogar</span>
+      </label>
+      <label class="flex items-center cursor-pointer">
+        <input type="checkbox" class="accent-[#00aa45]" />
+        <span class="ml-2 text-gray-700">Deportes</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Filtro de Condición -->
+  <div class="mb-8">
+    <h4 class="font-bold mb-4 text-gray-900">Condición</h4>
+    <div class="space-y-3">
+      <label class="flex items-center cursor-pointer">
+        <input type="checkbox" class="accent-[#00aa45]" />
+        <span class="ml-2 text-gray-700">Como nuevo</span>
+      </label>
+      <label class="flex items-center cursor-pointer">
+        <input type="checkbox" class="accent-[#00aa45]" />
+        <span class="ml-2 text-gray-700">Aspecto excelente</span>
+      </label>
+      <label class="flex items-center cursor-pointer">
+        <input type="checkbox" class="accent-[#00aa45]" />
+        <span class="ml-2 text-gray-700">Buen estado</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Botón Limpiar Filtros -->
+  <button class="w-full py-2 border-2 border-[#00aa45] text-[#00aa45] font-bold rounded-lg hover:bg-[#f5f5f7] transition-colors">
+    Limpiar filtros
+  </button>
+</aside>

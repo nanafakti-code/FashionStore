@@ -1,0 +1,276 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import Header from '@/components/Header.astro';
+---
+
+<Layout title="Checkout - FashionStore">
+  <Header />
+  
+  <main class="min-h-screen bg-[#f5f5f7]">
+    <!-- Breadcrumb -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <nav class="flex items-center gap-2 text-sm text-gray-600">
+        <a href="/" class="hover:text-[#00aa45]">Inicio</a>
+        <span>/</span>
+        <a href="/carrito" class="hover:text-[#00aa45]">Carrito</a>
+        <span>/</span>
+        <span class="text-gray-900 font-semibold">Checkout</span>
+      </nav>
+    </div>
+
+    <!-- Checkout Header -->
+    <section class="bg-gradient-to-r from-[#00aa45] to-green-600 text-white py-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-4xl sm:text-5xl font-black italic mb-4">Tramitar Pedido</h1>
+        <p class="text-lg text-white/90">Completa los datos de entrega y pago</p>
+      </div>
+    </section>
+
+    <!-- Checkout Content -->
+    <section class="py-12 sm:py-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <!-- Formulario -->
+          <div class="lg:col-span-2">
+            <!-- Mensajes de Error -->
+            <div id="error-message" class="hidden mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg" role="alert">
+              <p id="error-text"></p>
+            </div>
+
+            <form class="space-y-6" id="checkout-form">
+              <!-- Datos Personales -->
+              <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-2xl font-bold mb-4">Datos Personales</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nombre *</label>
+                    <input type="text" placeholder="Tu nombre" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Apellidos *</label>
+                    <input type="text" placeholder="Tus apellidos" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                  </div>
+                </div>
+
+                <div class="mt-4">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                  <input type="email" placeholder="tu@correo.com" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                </div>
+
+                <div class="mt-4">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Teléfono *</label>
+                  <input type="tel" placeholder="Tu teléfono" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                </div>
+              </div>
+
+              <!-- Dirección de Entrega -->
+              <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-2xl font-bold mb-4">Dirección de Entrega</h2>
+                
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Calle y número *</label>
+                  <input type="text" placeholder="Calle y número" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Ciudad *</label>
+                    <input type="text" placeholder="Ciudad" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Código Postal *</label>
+                    <input type="text" placeholder="Código Postal" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                  </div>
+                </div>
+
+                <div class="mt-4">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">País *</label>
+                  <select required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent">
+                    <option value="">Selecciona un país</option>
+                    <option value="ES">España</option>
+                    <option value="FR">Francia</option>
+                    <option value="IT">Italia</option>
+                    <option value="PT">Portugal</option>
+                    <option value="DE">Alemania</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Términos y Condiciones -->
+              <div class="bg-white p-6 rounded-lg shadow">
+                <label class="flex items-start gap-3 cursor-pointer">
+                  <input type="checkbox" required class="mt-1" />
+                  <span class="text-sm text-gray-600">
+                    Acepto los <a href="#" class="text-[#00aa45] hover:underline">términos y condiciones</a> y la <a href="#" class="text-[#00aa45] hover:underline">política de privacidad</a>
+                  </span>
+                </label>
+              </div>
+            </form>
+          </div>
+
+          <!-- Resumen de Pedido -->
+          <div class="lg:col-span-1">
+            <div class="bg-white p-6 rounded-lg shadow sticky top-4">
+              <h2 class="text-2xl font-bold mb-4">Resumen de Pedido</h2>
+              
+              <div id="summary-items" class="space-y-2 mb-4 border-b border-gray-200 pb-4">
+                <!-- Items se cargarán aquí con JavaScript -->
+              </div>
+
+              <div class="space-y-3 text-sm mb-4">
+                <div class="flex justify-between text-gray-700">
+                  <span>Subtotal:</span>
+                  <span id="subtotal" class="text-gray-900">0.00€</span>
+                </div>
+                <div class="flex justify-between text-gray-700">
+                  <span>Impuesto (IVA 21%):</span>
+                  <span id="tax" class="text-gray-900">0.00€</span>
+                </div>
+                <div class="flex justify-between text-gray-700">
+                  <span>Envío:</span>
+                  <span id="shipping" class="text-gray-900 font-bold">Gratis</span>
+                </div>
+              </div>
+
+              <div class="mb-6 border-t border-gray-200 pt-4">
+                <div class="flex justify-between text-2xl font-black text-gray-900">
+                  <span>Total:</span>
+                  <span id="total">0.00€</span>
+                </div>
+              </div>
+
+              <button 
+                type="button" 
+                id="pay-button"
+                class="w-full bg-[#00aa45] text-white py-3 rounded-lg font-bold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Ir a Pagar con Stripe
+              </button>
+
+              <a href="/carrito" class="block text-center text-[#00aa45] hover:underline mt-3 font-medium">
+                ← Volver al carrito
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Cargar carrito y mostrar resumen
+    document.addEventListener('DOMContentLoaded', () => {
+      const cartJSON = localStorage.getItem('cart');
+      const cart = cartJSON ? JSON.parse(cartJSON) : [];
+      
+      const summaryItems = document.getElementById('summary-items');
+      let subtotal = 0;
+
+      if (cart.length === 0) {
+        summaryItems!.innerHTML = '<p class="text-gray-600">Tu carrito está vacío</p>';
+      } else {
+        summaryItems!.innerHTML = cart.map((item: any) => {
+          const itemTotal = (item.price * item.quantity) / 100;
+          subtotal += item.price * item.quantity;
+          return `
+            <div class="flex justify-between text-sm text-gray-700">
+              <span>${item.name} x${item.quantity}</span>
+              <span>${itemTotal.toFixed(2)}€</span>
+            </div>
+          `;
+        }).join('');
+      }
+
+      const subtotalEuros = subtotal / 100;
+      const taxAmount = Math.round(subtotal * 0.21) / 100; // 21% IVA
+      const totalAmount = subtotalEuros + taxAmount;
+
+      document.getElementById('subtotal')!.textContent = `${subtotalEuros.toFixed(2)}€`;
+      document.getElementById('tax')!.textContent = `${taxAmount.toFixed(2)}€`;
+      document.getElementById('total')!.textContent = `${totalAmount.toFixed(2)}€`;
+
+      // Manejar clic en botón de pago
+      const payButton = document.getElementById('pay-button') as HTMLButtonElement;
+      const errorMessage = document.getElementById('error-message') as HTMLElement;
+      const errorText = document.getElementById('error-text') as HTMLElement;
+
+      const showError = (message: string) => {
+        errorText.textContent = message;
+        errorMessage.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      };
+
+      const hideError = () => {
+        errorMessage.classList.add('hidden');
+      };
+
+      if (payButton) {
+        payButton.addEventListener('click', async (e) => {
+          e.preventDefault();
+          hideError();
+          
+          // Validar formulario
+          const inputs = document.querySelectorAll('#checkout-form input, #checkout-form select');
+          let allFilled = true;
+          
+          inputs.forEach((input: any) => {
+            if (input.type === 'checkbox') {
+              if (!input.checked) allFilled = false;
+            } else if (input.value.trim() === '') {
+              allFilled = false;
+            }
+          });
+          
+          if (!allFilled) {
+            showError('Por favor completa todos los campos obligatorios y acepta los términos y condiciones');
+            return;
+          }
+
+          // Desactivar botón mientras se procesa
+          payButton.disabled = true;
+          payButton.textContent = 'Procesando...';
+
+          try {
+            // Obtener email del formulario
+            const emailInput = document.querySelector('#checkout-form input[type="email"]') as HTMLInputElement;
+            const email = emailInput?.value.trim();
+
+            // Convertir total a céntimos
+            const totalCents = Math.round(totalAmount * 100);
+
+            // Crear sesión de Stripe en el backend
+            const response = await fetch('/api/stripe/create-session', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                totalAmount: totalCents,
+                userEmail: email,
+                successUrl: window.location.origin + '/checkout/success?session_id={CHECKOUT_SESSION_ID}',
+                cancelUrl: window.location.origin + '/checkout'
+              })
+            });
+
+            if (!response.ok) {
+              throw new Error('Error creating checkout session');
+            }
+
+            const { url } = await response.json();
+
+            // Redirigir a la URL de Stripe Checkout
+            if (url) {
+              window.location.href = url;
+            } else {
+              throw new Error('No checkout URL returned');
+            }
+          } catch (error) {
+            console.error('Error:', error);
+            showError('Error procesando el pago. Intenta de nuevo.');
+            payButton.disabled = false;
+            payButton.textContent = 'Ir a Pagar con Stripe';
+          }
+        });
+      }
+    });
+  </script>
+</Layout>
