@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 interface Shipment {
@@ -13,7 +13,7 @@ interface Shipment {
   direccion_destino?: string;
 }
 
-const AdminShipments: React.FC = () => {
+const AdminShipments = () => {
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('todos');
@@ -136,7 +136,7 @@ const AdminShipments: React.FC = () => {
                   <td className="px-6 py-4">
                     <select
                       defaultValue={shipment.estado}
-                      onChange={(e) => updateStatus(shipment.id, e.target.value)}
+                      onChange={(e: any) => updateStatus(shipment.id, e.target.value)}
                       className="px-3 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:border-blue-500"
                     >
                       <option value="pendiente">Pendiente</option>

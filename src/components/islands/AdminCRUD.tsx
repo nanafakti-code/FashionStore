@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Product {
   id: string;
@@ -57,14 +57,8 @@ export default function AdminCRUD({ initialProducts = [] }: AdminCRUDProps) {
     }
   };
 
-  // Guardar productos
-  const saveProducts = (updatedProducts: Product[]) => {
-    localStorage.setItem('admin_products', JSON.stringify(updatedProducts));
-    setProducts(updatedProducts);
-  };
-
   // Manejar cambios en el formulario
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: any) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -73,7 +67,7 @@ export default function AdminCRUD({ initialProducts = [] }: AdminCRUDProps) {
   };
 
   // Crear nuevo producto
-  const handleCreateProduct = async (e: React.FormEvent) => {
+  const handleCreateProduct = async (e: any) => {
     e.preventDefault();
     setLoading(true);
 
@@ -154,7 +148,7 @@ export default function AdminCRUD({ initialProducts = [] }: AdminCRUDProps) {
   };
 
   // Actualizar producto
-  const handleUpdateProduct = async (e: React.FormEvent) => {
+  const handleUpdateProduct = async (e: any) => {
     e.preventDefault();
     if (!editingId) return;
 

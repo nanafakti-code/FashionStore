@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 interface AddReviewButtonProps {
   productId: string;
@@ -18,10 +18,17 @@ export default function AddReviewButton({ productId, onReviewAdded }: AddReviewB
     setTimeout(() => setNotification(null), 4000);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
 
-    if (!title.trim() || !comment.trim()) {
+    const target = e.currentTarget;
+    const titleInput = target.querySelector('input[type="text"]') as HTMLInputElement;
+    const commentInput = target.querySelector('textarea') as HTMLTextAreaElement;
+
+    const titleValue = titleInput?.value || '';
+    const commentValue = commentInput?.value || '';
+
+    if (!titleValue.trim() || !commentValue.trim()) {
       showNotification('error', 'Por favor completa el título y comentario');
       return;
     }
@@ -35,9 +42,9 @@ export default function AddReviewButton({ productId, onReviewAdded }: AddReviewB
         body: JSON.stringify({
           productId,
           calificacion: rating,
-          titulo: title,
-          comentario: comment,
-          verificada_compra: false // Nueva reseña siempre se crea desverificada
+          titulo: titleValue,
+          comentario: commentValue,
+          verificada_compra: false
         })
       });
 
@@ -119,7 +126,7 @@ export default function AddReviewButton({ productId, onReviewAdded }: AddReviewB
             <input
               type="text"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e: any) => setTitle(e.target.value)}
               placeholder="Ej: Excelente producto, muy recomendado"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45]"
               maxLength={100}
@@ -133,7 +140,7 @@ export default function AddReviewButton({ productId, onReviewAdded }: AddReviewB
             </label>
             <textarea
               value={comment}
-              onChange={(e) => setComment(e.target.value)}
+              onChange={(e: any) => setComment(e.target.value)}
               placeholder="Comparte tu experiencia con este producto (calidad, durabilidad, servicio, etc.)..."
               rows={4}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45]"

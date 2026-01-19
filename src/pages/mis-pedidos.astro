@@ -65,7 +65,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
     </div>
   </main>
 
-  <script client:only="react">
+  <script>
     import { getCurrentUser } from "@/lib/auth";
     import { supabase } from "@/lib/supabase";
 
@@ -98,7 +98,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
         displayOrders(orders || []);
       } catch (error) {
         console.error("Error loading orders:", error);
-        document.getElementById("orders-container").innerHTML = `
+        document.getElementById("orders-container")!.innerHTML = `
           <div class="bg-white rounded-xl shadow-lg p-8 text-center">
             <p class="text-red-600 font-semibold">Error al cargar los pedidos</p>
           </div>
@@ -106,11 +106,11 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
       }
     }
 
-    function displayOrders(orders) {
+    function displayOrders(orders: any) {
       const container = document.getElementById("orders-container");
 
       if (orders.length === 0) {
-        container.innerHTML = `
+        container!.innerHTML = `
           <div class="bg-white rounded-xl shadow-lg p-8 text-center">
             <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m0 0l8 4m-8-4v10l8 4m0-10l8 4m-8-4v10l8-4m-8 4v10"></path>
@@ -122,9 +122,9 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
         return;
       }
 
-      container.innerHTML = orders
+      container!.innerHTML = orders
         .map(
-          (order) => `
+          (order: any) => `
         <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 hover:shadow-2xl transition">
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 pb-4 border-b-2 border-gray-100">
             <div>
@@ -153,7 +153,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
               ${
                 order.items_orden
                   ?.map(
-                    (item) => `
+                    (item: any) => `
                 <div class="flex justify-between items-center text-sm">
                   <span class="text-gray-600">x${item.cantidad}</span>
                   <span class="text-gray-900 font-bold">${(item.cantidad * item.precio_unitario).toFixed(2)}€</span>
@@ -179,8 +179,8 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
         .join("");
     }
 
-    function getStatusColor(status) {
-      const colors = {
+    function getStatusColor(status: any) {
+      const colors: Record<string, string> = {
         pendiente: "bg-yellow-100 text-yellow-700",
         procesando: "bg-blue-100 text-blue-700",
         enviado: "bg-purple-100 text-purple-700",
@@ -190,7 +190,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
       return colors[status] || "bg-gray-100 text-gray-700";
     }
 
-    function capitalizar(str) {
+    function capitalizar(str: any) {
       return str.charAt(0).toUpperCase() + str.slice(1);
     }
 

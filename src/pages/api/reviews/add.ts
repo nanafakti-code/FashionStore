@@ -9,7 +9,7 @@ const supabase = createClient(
 export const POST: APIRoute = async (context) => {
   try {
     const body = await context.request.json();
-    const { productId, calificacion, titulo, comentario, verificada_compra } = body;
+    const { productId, calificacion, titulo, comentario } = body;
 
     // Validar datos
     if (!productId || !calificacion || !titulo || !comentario) {

@@ -59,7 +59,7 @@ export default function ProductFilter({ products, categories }: ProductFilterPro
       if (filtered.length > 0) {
         grid.innerHTML = filtered.map(product => `
           <a href="/productos/${product.slug}" class="group">
-            <div class="relative overflow-hidden rounded-lg bg-gray-100 mb-3 aspect-square">
+            <div class="relative overflow-hidden rounded-lg bg-white mb-3 aspect-square">
               <img
                 src="${product.image}"
                 alt="${product.name}"
@@ -90,12 +90,12 @@ export default function ProductFilter({ products, categories }: ProductFilterPro
     }
   }, [priceRange, selectedCategory, products]);
 
-  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePriceChange = (e: any) => {
     const value = parseInt(e.currentTarget.value);
     setPriceRange([priceRange[0], value]);
   };
 
-  const handleMinPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMinPriceChange = (e: any) => {
     const value = parseInt(e.currentTarget.value);
     setPriceRange([value, priceRange[1]]);
   };

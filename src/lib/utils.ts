@@ -86,7 +86,7 @@ export function getFirstImage(images: string[] | null | undefined): string {
     if (!images || images.length === 0) {
         return '/placeholder-product.jpg';
     }
-    return images[0];
+    return images[0] ?? '/placeholder-product.jpg';
 }
 
 /**
@@ -175,7 +175,9 @@ export function shuffle<T>(array: T[]): T[] {
     const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        const temp = shuffled[i];
+        shuffled[i] = shuffled[j]!;
+        shuffled[j] = temp!;
     }
     return shuffled;
 }

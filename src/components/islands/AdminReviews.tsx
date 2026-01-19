@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 interface Review {
@@ -16,7 +16,7 @@ interface Review {
   [key: string]: any; // Permitir propiedades dinámicas
 }
 
-const AdminReviews: React.FC = () => {
+const AdminReviews = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('todas');

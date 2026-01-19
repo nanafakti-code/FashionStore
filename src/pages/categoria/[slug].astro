@@ -29,25 +29,26 @@ const { data: productos } = await supabase
     precio_original, 
     descripcion, 
     stock_total,
-    imagenes_producto(url)
+    imagenes_producto(id, url, alt_text, es_principal)
   `)
   .eq('categoria_id', categoria.id)
   .eq('activo', true)
   .order('nombre', { ascending: true });
 
 // Mapear productos
-const products = (productos || []).map((p) => ({
+const products = (productos || []).map((p: any) => ({
   id: p.id,
   name: p.nombre,
   slug: p.slug,
   price: p.precio_venta,
   originalPrice: p.precio_original,
-  image: p.imagenes_producto?.[0]?.url || 'https://via.placeholder.com/500x700?text=' + p.nombre,
+  image: p.imagenes_producto?.[0]?.url || null,
   badge: p.precio_original && p.precio_venta < p.precio_original ? "Oferta" : null,
   badge_color: "bg-[#e2ff7a]",
   condition: "Excelente estado",
   rating: 4.8,
   reviews: 245,
+  stock: p.stock_total,
 }));
 ---
 
@@ -78,8 +79,9 @@ const products = (productos || []).map((p) => ({
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {products.length > 0 ? (
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {products.map((product) => (
+            {products.map((product: any) => (
               <ProductCard
+                id={product.id}
                 name={product.name}
                 price={product.price}
                 originalPrice={product.originalPrice}
@@ -90,6 +92,7 @@ const products = (productos || []).map((p) => ({
                 rating={product.rating}
                 reviews={product.reviews}
                 slug={product.slug}
+                stock={product.stock}
               />
             ))}
           </div>

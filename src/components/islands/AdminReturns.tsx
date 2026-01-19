@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 interface Return {
@@ -13,7 +13,7 @@ interface Return {
   notas?: string;
 }
 
-const AdminReturns: React.FC = () => {
+const AdminReturns = () => {
   const [returns, setReturns] = useState<Return[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('todos');
@@ -134,7 +134,7 @@ const AdminReturns: React.FC = () => {
                   <td className="px-6 py-4">
                     <select
                       defaultValue={ret.estado}
-                      onChange={(e) => updateStatus(ret.id, e.target.value)}
+                      onChange={(e: any) => updateStatus(ret.id, e.target.value)}
                       className="px-3 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:border-blue-500"
                     >
                       <option value="pendiente">Pendiente</option>

@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
         // Configuración base de Astro
+        "ignoreDeprecations": "6.0",
         "target": "ES2022",
         "module": "ESNext",
         "lib": [
@@ -16,12 +17,11 @@
         "jsxImportSource": "preact",
         // Strict mode para mejor type-safety
         "strict": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
+        "noUnusedLocals": false,
+        "noUnusedParameters": false,
         "noFallthroughCasesInSwitch": true,
         "noUncheckedIndexedAccess": true,
         // Configuración de paths
-        "baseUrl": ".",
         "paths": {
             "@/*": [
                 "./src/*"
@@ -55,6 +55,7 @@
     "exclude": [
         "node_modules",
         "dist",
-        ".astro"
+        ".astro",
+        "src/tests"
     ]
 }

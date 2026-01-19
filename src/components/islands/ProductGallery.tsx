@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 interface Image {
   url: string;
@@ -64,7 +64,7 @@ export default function ProductGallery({
   return (
     <div className="space-y-4">
       {/* Imagen Principal - Estilo BackMarket */}
-      <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl overflow-hidden aspect-square flex items-center justify-center shadow-md">
+      <div className="relative bg-white rounded-2xl overflow-hidden aspect-square flex items-center justify-center shadow-md">
         {mainImage ? (
           <img
             src={optimizeImageUrl(mainImage.url)}
@@ -73,7 +73,7 @@ export default function ProductGallery({
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+          <div className="w-full h-full bg-white flex items-center justify-center">
             <span className="text-slate-400 text-lg font-medium text-center px-4">{productName}</span>
           </div>
         )}
@@ -92,8 +92,8 @@ export default function ProductGallery({
             <button
               key={idx}
               onClick={() => handleImageClick(img)}
-              className={`relative aspect-square bg-gray-50 rounded-lg overflow-hidden hover:opacity-80 transition-all border-2 ${
-                mainImage.url === img.url
+              className={`relative aspect-square bg-white rounded-lg overflow-hidden hover:opacity-80 transition-all border-2 ${
+                mainImage?.url === img.url
                   ? 'border-[#00aa45] shadow-md'
                   : 'border-gray-200 hover:border-gray-300'
               }`}
@@ -158,7 +158,7 @@ export default function ProductGallery({
                       ? 'border-[#00aa45] bg-[#00aa45] text-white'
                       : hasStock
                       ? 'border-gray-300 bg-white text-gray-900 hover:border-[#00aa45]'
-                      : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'border-gray-200 bg-white text-gray-400 cursor-not-allowed'
                   }`}
                   disabled={!hasStock}
                   title={color}

@@ -1,59 +1,201 @@
 ---
+/**
+ * FASHIONSTORE - PÁGINA DE CONFIRMACIÓN DE PAGO
+ * =============================================
+ * Muestra los detalles del pedido tras un pago exitoso
+ * Obtiene datos reales de Supabase (no solo de Stripe)
+ */
 import Layout from '@/layouts/Layout.astro';
 import Header from '@/components/Header.astro';
 ---
 
-<Layout title="Pago Completado - FashionStore">
+<Layout title="Pedido Confirmado - FashionStore">
   <Header />
   
-  <main class="min-h-screen bg-[#f5f5f7] flex items-center justify-center py-12">
-    <div class="max-w-2xl mx-auto px-4">
-      <div class="bg-white rounded-lg shadow-lg p-8 md:p-12 text-center">
-        <!-- Icono de éxito -->
-        <div class="mb-6">
-          <svg class="w-20 h-20 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
+  <main class="min-h-screen bg-gradient-to-br from-[#f5f5f7] via-white to-[#f0fff6] py-12">
+    <div class="max-w-3xl mx-auto px-4">
+      <!-- Loading State -->
+      <div id="loading-state" class="bg-white rounded-2xl shadow-xl p-12 text-center">
+        <div class="animate-pulse">
+          <div class="w-20 h-20 mx-auto bg-gray-200 rounded-full mb-6"></div>
+          <div class="h-8 bg-gray-200 rounded w-2/3 mx-auto mb-4"></div>
+          <div class="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
         </div>
+        <p class="mt-6 text-gray-500">Procesando tu pedido...</p>
+      </div>
 
-        <!-- Mensaje de éxito -->
-        <h1 class="text-4xl font-black italic text-gray-900 mb-4">¡Pago Completado!</h1>
-        <p class="text-xl text-gray-600 mb-8">
-          Gracias por tu compra en FashionStore. Tu pedido ha sido procesado exitosamente.
-        </p>
+      <!-- Success State (hidden initially) -->
+      <div id="success-state" class="hidden">
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+          <!-- Header con icono de éxito -->
+          <div class="bg-gradient-to-r from-[#00aa45] to-[#008a35] p-8 text-center">
+            <div class="w-20 h-20 mx-auto bg-white/20 rounded-full flex items-center justify-center mb-4">
+              <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+            </div>
+            <h1 class="text-3xl font-black text-white mb-2">Pedido Confirmado</h1>
+            <p class="text-white/90">Gracias por tu compra en FashionStore</p>
+          </div>
 
-        <!-- Información del pedido -->
-        <div class="bg-gray-50 p-6 rounded-lg mb-8 text-left">
-          <h2 class="text-lg font-bold text-gray-900 mb-4">Detalles del Pedido</h2>
-          <div class="space-y-2" id="order-details">
-            <p class="text-gray-600">Cargando detalles del pedido...</p>
+          <!-- Número de pedido destacado -->
+          <div class="bg-gray-50 border-b border-gray-200 p-6 text-center">
+            <p class="text-sm text-gray-600 mb-1">Numero de pedido</p>
+            <p id="order-number" class="text-2xl font-black text-gray-900">---</p>
+          </div>
+
+          <!-- Detalles del pedido -->
+          <div class="p-8">
+            <!-- Información principal -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div class="bg-gray-50 rounded-xl p-5">
+                <h3 class="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <svg class="w-5 h-5 text-[#00aa45]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                  </svg>
+                  Datos del cliente
+                </h3>
+                <p id="customer-name" class="text-gray-700 font-medium">---</p>
+                <p id="customer-email" class="text-gray-600 text-sm">---</p>
+                <p id="customer-phone" class="text-gray-600 text-sm">---</p>
+              </div>
+
+              <div class="bg-gray-50 rounded-xl p-5">
+                <h3 class="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <svg class="w-5 h-5 text-[#00aa45]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  </svg>
+                  Direccion de envio
+                </h3>
+                <div id="shipping-address" class="text-gray-600 text-sm">---</div>
+              </div>
+            </div>
+
+            <!-- Productos comprados -->
+            <div class="mb-8">
+              <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-[#00aa45]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                </svg>
+                Productos
+              </h3>
+              <div id="order-items" class="space-y-3">
+                <!-- Items se insertan aquí -->
+              </div>
+            </div>
+
+            <!-- Resumen de pago -->
+            <div class="border-t border-gray-200 pt-6">
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-gray-600">Subtotal</span>
+                <span id="subtotal" class="text-gray-900">---</span>
+              </div>
+              <div id="discount-row" class="flex justify-between items-center mb-2 hidden">
+                <span class="text-gray-600">Descuento</span>
+                <span id="discount" class="text-green-600">---</span>
+              </div>
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-gray-600">Envio</span>
+                <span id="shipping" class="text-gray-900">Gratis</span>
+              </div>
+              <div class="flex justify-between items-center pt-4 border-t border-gray-200">
+                <span class="text-xl font-bold text-gray-900">Total pagado</span>
+                <span id="total" class="text-2xl font-black text-[#00aa45]">---</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Próximos pasos -->
+          <div class="bg-blue-50 border-t border-blue-100 p-6">
+            <h3 class="font-bold text-blue-900 mb-4">Proximos pasos</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                  <span class="text-blue-700 font-bold text-sm">1</span>
+                </div>
+                <div>
+                  <p class="font-medium text-blue-900">Email de confirmacion</p>
+                  <p class="text-sm text-blue-700">Recibiras un email con los detalles</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                  <span class="text-blue-700 font-bold text-sm">2</span>
+                </div>
+                <div>
+                  <p class="font-medium text-blue-900">Preparacion</p>
+                  <p class="text-sm text-blue-700">Prepararemos tu pedido en 24h</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                  <span class="text-blue-700 font-bold text-sm">3</span>
+                </div>
+                <div>
+                  <p class="font-medium text-blue-900">Envio</p>
+                  <p class="text-sm text-blue-700">Recibiras el codigo de seguimiento</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Botones -->
+          <div class="p-6 bg-gray-50 flex flex-col sm:flex-row gap-4">
+            <a 
+              href="/mi-cuenta#pedidos" 
+              class="flex-1 bg-[#00aa45] text-white py-3 px-6 rounded-xl font-bold hover:bg-[#009340] transition-colors text-center flex items-center justify-center gap-2"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+              </svg>
+              Ver mis pedidos
+            </a>
+            <a 
+              href="/productos" 
+              class="flex-1 border-2 border-gray-300 text-gray-700 py-3 px-6 rounded-xl font-bold hover:bg-gray-100 transition-colors text-center"
+            >
+              Seguir comprando
+            </a>
           </div>
         </div>
 
-        <!-- Próximos pasos -->
-        <div class="bg-blue-50 border border-blue-200 p-6 rounded-lg mb-8 text-left">
-          <h2 class="text-lg font-bold text-blue-900 mb-4">Próximos Pasos</h2>
-          <ul class="space-y-2 text-blue-800 list-disc list-inside">
-            <li>Recibirás un email de confirmación en los próximos minutos</li>
-            <li>Tu pedido será procesado dentro de 24 horas</li>
-            <li>Recibirás un código de seguimiento por email</li>
-            <li>Envío gratis a partir de 50€</li>
-          </ul>
+        <!-- Información adicional para invitados -->
+        <div id="guest-info" class="hidden mt-6 bg-amber-50 border border-amber-200 rounded-xl p-6">
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+              <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <div>
+              <h3 class="font-bold text-amber-900 mb-1">Compraste como invitado</h3>
+              <p class="text-amber-800 text-sm mb-3">
+                Para hacer seguimiento de tu pedido, usa tu email y numero de pedido en nuestra pagina de seguimiento.
+              </p>
+              <a href="/seguimiento" class="text-amber-700 font-medium hover:underline text-sm">
+                Ir a seguimiento de pedidos
+              </a>
+            </div>
+          </div>
         </div>
+      </div>
 
-        <!-- Botones -->
-        <div class="flex flex-col sm:flex-row gap-4">
-          <a 
-            href="/" 
-            class="flex-1 bg-[#00aa45] text-white py-3 rounded-lg font-bold hover:bg-green-700 transition-colors text-center"
-          >
-            Volver al Inicio
+      <!-- Error State (hidden initially) -->
+      <div id="error-state" class="hidden bg-white rounded-2xl shadow-xl p-12 text-center">
+        <div class="w-20 h-20 mx-auto bg-red-100 rounded-full flex items-center justify-center mb-6">
+          <svg class="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">No pudimos encontrar tu pedido</h1>
+        <p class="text-gray-600 mb-6">Es posible que el enlace haya expirado o sea incorrecto.</p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="/" class="bg-[#00aa45] text-white py-3 px-6 rounded-xl font-bold hover:bg-[#009340] transition-colors">
+            Volver al inicio
           </a>
-          <a 
-            href="/productos" 
-            class="flex-1 border-2 border-[#00aa45] text-[#00aa45] py-3 rounded-lg font-bold hover:bg-green-50 transition-colors text-center"
-          >
-            Seguir Comprando
+          <a href="/contacto" class="border-2 border-gray-300 text-gray-700 py-3 px-6 rounded-xl font-bold hover:bg-gray-100 transition-colors">
+            Contactar soporte
           </a>
         </div>
       </div>
@@ -62,44 +204,118 @@ import Header from '@/components/Header.astro';
 
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
+      const loadingState = document.getElementById('loading-state');
+      const successState = document.getElementById('success-state');
+      const errorState = document.getElementById('error-state');
+      const guestInfo = document.getElementById('guest-info');
+
       // Obtener sessionId de la URL
       const params = new URLSearchParams(window.location.search);
       const sessionId = params.get('session_id');
 
       if (!sessionId) {
-        document.getElementById('order-details')!.innerHTML = '<p class="text-red-600">No se encontró información del pedido</p>';
+        loadingState?.classList.add('hidden');
+        errorState?.classList.remove('hidden');
         return;
       }
 
       try {
-        // Obtener detalles de la sesión
-        const response = await fetch(`/api/stripe/session/${sessionId}`);
-        const session = await response.json();
-
-        if (response.ok) {
-          const totalAmount = (session.total_amount / 100).toFixed(2);
-          
-          document.getElementById('order-details')!.innerHTML = `
-            <div>
-              <p><strong>ID Pedido:</strong> ${session.id.substring(0, 20)}...</p>
-              <p><strong>Email:</strong> ${session.customer_email}</p>
-              <p><strong>Monto Total:</strong> ${totalAmount}€</p>
-              <p><strong>Fecha:</strong> ${new Date(session.created * 1000).toLocaleDateString('es-ES')}</p>
-              <p><strong>Estado:</strong> <span class="text-green-600 font-bold">Pagado ✓</span></p>
-            </div>
-          `;
-
-          // Limpiar carrito
-          localStorage.removeItem('cart');
-          
-          // Disparar evento para actualizar CartIcon
-          window.dispatchEvent(new Event('cartUpdated'));
-        } else {
-          document.getElementById('order-details')!.innerHTML = '<p class="text-red-600">Error cargando detalles del pedido</p>';
+        // Obtener detalles del pedido desde el backend
+        const response = await fetch(`/api/order/by-session/${sessionId}`);
+        
+        if (!response.ok) {
+          throw new Error('Error obteniendo datos del pedido');
         }
+
+        const data = await response.json();
+        const order = data.order;
+        const items = data.items || [];
+
+        // Mostrar estado de éxito
+        loadingState?.classList.add('hidden');
+        successState?.classList.remove('hidden');
+
+        // Rellenar datos
+        const orderNumber = document.getElementById('order-number');
+        if (orderNumber) orderNumber.textContent = order.numero_orden;
+
+        const customerName = document.getElementById('customer-name');
+        if (customerName) customerName.textContent = order.nombre_cliente || 'Cliente';
+
+        const customerEmail = document.getElementById('customer-email');
+        if (customerEmail) customerEmail.textContent = order.email_cliente;
+
+        const customerPhone = document.getElementById('customer-phone');
+        if (customerPhone && order.telefono_cliente) {
+          customerPhone.textContent = order.telefono_cliente;
+        } else if (customerPhone) {
+          customerPhone.classList.add('hidden');
+        }
+
+        // Dirección de envío
+        const shippingAddress = document.getElementById('shipping-address');
+        if (shippingAddress && order.direccion_envio) {
+          const dir = typeof order.direccion_envio === 'string' 
+            ? JSON.parse(order.direccion_envio) 
+            : order.direccion_envio;
+          shippingAddress.innerHTML = `
+            <p>${dir.calle || ''}</p>
+            <p>${dir.codigo_postal || ''} ${dir.ciudad || ''}</p>
+            <p>${dir.provincia || ''}</p>
+            <p>${dir.pais || 'Espana'}</p>
+          `;
+        }
+
+        // Items del pedido
+        const orderItemsEl = document.getElementById('order-items');
+        if (orderItemsEl && items.length > 0) {
+          orderItemsEl.innerHTML = items.map((item: any) => `
+            <div class="flex items-center gap-4 bg-gray-50 rounded-lg p-4">
+              <img 
+                src="${item.producto_imagen || '/productos/placeholder.jpg'}" 
+                alt="${item.producto_nombre}"
+                class="w-16 h-16 object-cover rounded-lg"
+              />
+              <div class="flex-1">
+                <p class="font-medium text-gray-900">${item.producto_nombre}</p>
+                <p class="text-sm text-gray-600">
+                  Cantidad: ${item.cantidad}
+                  ${item.talla ? ` | Talla: ${item.talla}` : ''}
+                  ${item.color ? ` | Color: ${item.color}` : ''}
+                </p>
+              </div>
+              <p class="font-bold text-gray-900">${(item.subtotal / 100).toFixed(2)} EUR</p>
+            </div>
+          `).join('');
+        }
+
+        // Totales
+        const subtotal = document.getElementById('subtotal');
+        if (subtotal) subtotal.textContent = `${(order.subtotal / 100).toFixed(2)} EUR`;
+
+        const discountRow = document.getElementById('discount-row');
+        const discount = document.getElementById('discount');
+        if (order.descuento > 0 && discountRow && discount) {
+          discountRow.classList.remove('hidden');
+          discount.textContent = `-${(order.descuento / 100).toFixed(2)} EUR`;
+        }
+
+        const total = document.getElementById('total');
+        if (total) total.textContent = `${(order.total / 100).toFixed(2)} EUR`;
+
+        // Mostrar info de invitado si aplica
+        if (!order.usuario_id && guestInfo) {
+          guestInfo.classList.remove('hidden');
+        }
+
+        // Limpiar carrito
+        localStorage.removeItem('cart');
+        window.dispatchEvent(new Event('cartUpdated'));
+
       } catch (error) {
         console.error('Error:', error);
-        document.getElementById('order-details')!.innerHTML = '<p class="text-red-600">Error procesando la solicitud</p>';
+        loadingState?.classList.add('hidden');
+        errorState?.classList.remove('hidden');
       }
     });
   </script>

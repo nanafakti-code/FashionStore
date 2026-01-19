@@ -18,7 +18,7 @@ function verifyAdminToken(token: string): boolean {
   }
 }
 
-export const GET: APIRoute = async (context) => {
+export const GET: APIRoute = async (_context) => {
   try {
     const { data, error } = await supabase
       .from('productos')

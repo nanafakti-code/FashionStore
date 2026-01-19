@@ -2,7 +2,6 @@
 import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import ProductCard from "@/components/ProductCard.astro";
-import CategoryCard from "@/components/CategoryCard.astro";
 import HeroImage from "@/components/islands/HeroImage";
 import { supabase } from "@/lib/supabase";
 
@@ -30,15 +29,15 @@ const { data: productsFromDB, error: productsError } = await supabase
   .limit(8);
 
 // Obtener categorías de la BD
-const { data: categoriesFromDB, error: categoriesError } = await supabase
+const { data: categoriesFromDB } = await supabase
   .from('categorias')
   .select('id, nombre, slug, descripcion')
   .eq('activa', true)
   .order('orden', { ascending: true });
 
 // Obtener un producto de cada categoría para usar su imagen
-const categoryProducts = categoriesFromDB ? await Promise.all(
-  categoriesFromDB.map(async (cat) => {
+await Promise.all(
+  (categoriesFromDB || []).map(async (cat: any) => {
     const { data: productData } = await supabase
       .from('productos')
       .select('imagenes_producto(url)')
@@ -52,14 +51,14 @@ const categoryProducts = categoriesFromDB ? await Promise.all(
       image: productData?.imagenes_producto?.[0]?.url || `https://images.unsplash.com/photo-1511707267537-b85faf00021e?w=800&h=400&fit=crop`
     };
   })
-) : [];
+);
 
 // ============================================
 // MAPEAR DATOS A FORMATO DE COMPONENTE
 // ============================================
 
 // Mapear productos
-const featuredProducts = (productsFromDB || []).map((product) => ({
+const featuredProducts = (productsFromDB || []).map((product: any) => ({
   id: product.id,
   name: product.nombre,
   slug: product.slug,
@@ -72,18 +71,10 @@ const featuredProducts = (productsFromDB || []).map((product) => ({
   condition: "Excelente estado",
   rating: 4.8,
   reviews: 245,
+  stock: product.stock_total,
 }));
 
 // Mapear categorías con imágenes de productos
-const categories = (categoriesFromDB || []).map((cat) => {
-  const productImage = categoryProducts.find(cp => cp.categoryId === cat.id);
-  return {
-    name: cat.nombre,
-    slug: cat.slug,
-    image: productImage?.image || `https://images.unsplash.com/photo-1511707267537-b85faf00021e?w=800&h=400&fit=crop`,
-    color: "bg-[#e2ff7a]",
-  };
-});
 
 // Fallback si hay error o no hay datos
 if (productsError || !productsFromDB || productsFromDB.length === 0) {
@@ -257,7 +248,7 @@ if (productsError || !productsFromDB || productsFromDB.length === 0) {
         
         {featuredProducts.length > 0 ? (
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProducts.map((product) => (
+            {featuredProducts.map((product: any) => (
               <ProductCard 
                 id={product.id}
                 name={product.name}
@@ -270,6 +261,7 @@ if (productsError || !productsFromDB || productsFromDB.length === 0) {
                 condition={product.condition}
                 rating={product.rating}
                 reviews={product.reviews}
+                stock={product.stock}
               />
             ))}
           </div>

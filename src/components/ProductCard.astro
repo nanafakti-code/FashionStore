@@ -19,6 +19,7 @@ interface Props {
     reviews?: number;
     badge_color?: string; // bg-color
     slug: string;
+    stock?: number; // Stock disponible
 }
 
 const { 
@@ -33,6 +34,7 @@ const {
     rating = 4.5,
     reviews = 0,
     badge_color = "bg-amber-400",
+    stock = 0,
 } = Astro.props;
 
 // Calcular el descuento
@@ -49,7 +51,7 @@ const hasHalfStar = rating % 1 !== 0;
     <div class="relative overflow-hidden rounded-2xl bg-white hover:shadow-xl transition-all duration-300 hover:scale-105 flex flex-col h-full">
         
         <!-- Imagen Container -->
-        <div class="relative bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden h-48 sm:h-56 flex items-center justify-center">
+        <div class="relative bg-white overflow-hidden h-48 sm:h-56 flex items-center justify-center border border-gray-200">
             {image ? (
                 <img
                     src={image}
@@ -66,7 +68,7 @@ const hasHalfStar = rating % 1 !== 0;
                     <p class="text-sm font-medium px-2">{name}</p>
                 </div>
             ) : (
-                <div class="hidden text-center text-slate-400 w-full h-full flex items-center justify-center absolute inset-0">
+                <div class="absolute inset-0 hidden text-center text-slate-400 w-full h-full items-center justify-center">
                     <p class="text-sm font-medium px-2">{name}</p>
                 </div>
             )}
@@ -98,14 +100,13 @@ const hasHalfStar = rating % 1 !== 0;
             {reviews > 0 && (
                 <div class="flex items-center gap-2 mb-3">
                     <div class="flex gap-0.5">
-                        {stars.map((filled, idx) => (
+                        {stars.map((filled: boolean, _idx: number) => (
                             <svg
-                                key={idx}
                                 class={`w-4 h-4 ${filled ? 'text-amber-400 fill-current' : 'text-slate-300 fill-current'}`}
                                 xmlns="http://www.w3.org/2000/svg"
                                 viewBox="0 0 20 20"
                             >
-                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" fill-opacity="0.5" />
                             </svg>
                         ))}
                         {hasHalfStar && (
@@ -114,7 +115,7 @@ const hasHalfStar = rating % 1 !== 0;
                                 xmlns="http://www.w3.org/2000/svg"
                                 viewBox="0 0 20 20"
                             >
-                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" fillOpacity="0.5" />
+                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" fill-opacity="0.5" />
                             </svg>
                         )}
                     </div>
@@ -127,7 +128,7 @@ const hasHalfStar = rating % 1 !== 0;
             <!-- Estado del Producto -->
             {condition && (
                 <div class="mb-4">
-                    <span class="inline-block bg-slate-100 text-slate-700 px-2 py-1 rounded text-xs font-bold">
+                    <span class="inline-block bg-white text-slate-700 px-2 py-1 rounded text-xs font-bold border border-gray-200">
                         {condition}
                     </span>
                 </div>
@@ -149,7 +150,7 @@ const hasHalfStar = rating % 1 !== 0;
                 <!-- Ahorro Info -->
                 {discount > 0 && (
                     <p class="text-xs text-green-600 font-bold">
-                        Ahorras {((originalPrice - price) / 100).toFixed(2)}€
+                        Ahorras {originalPrice && ((originalPrice - price) / 100).toFixed(2)}€
                     </p>
                 )}
             </div>
@@ -161,6 +162,7 @@ const hasHalfStar = rating % 1 !== 0;
                 productName={name}
                 price={price}
                 image={image || ''}
+                stock={stock}
             />
         </div>
     </div>

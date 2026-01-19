@@ -7,6 +7,7 @@
 import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
 import preact from '@astrojs/preact';
+import node from '@astrojs/node';
 
 // https://astro.build/config
 export default defineConfig({
@@ -16,6 +17,11 @@ export default defineConfig({
     // Modo servidor: SSR por defecto, usa export const prerender = true para SSG
     // En Astro 5.0, 'hybrid' fue removido. Usamos 'server' y marcamos páginas estáticas con prerender
     output: 'server',
+    
+    // Adaptador para Node.js (producción)
+    adapter: node({
+        mode: 'standalone'
+    }),
 
     // Integraciones
     integrations: [

@@ -1,0 +1,190 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Cambiar Contraseña | FashionStore">
+  <main class="min-h-screen bg-gradient-to-br from-[#f5f5f7] via-white to-[#f0fff6] py-12">
+    <div class="max-w-md mx-auto px-4">
+      <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+        <div class="text-center mb-8">
+          <div class="w-16 h-16 mx-auto mb-4 bg-[#00aa45]/10 rounded-full flex items-center justify-center">
+            <svg class="w-8 h-8 text-[#00aa45]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+            </svg>
+          </div>
+          <h1 class="text-2xl font-black text-gray-900 mb-2">Cambiar Contraseña</h1>
+          <p class="text-gray-600">Introduce tu contraseña actual y la nueva contraseña</p>
+        </div>
+
+        <form id="change-password-form" class="space-y-6">
+          <div>
+            <label for="current-password" class="block text-sm font-semibold text-gray-700 mb-2">
+              Contraseña actual
+            </label>
+            <input 
+              type="password" 
+              id="current-password" 
+              name="currentPassword"
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <div>
+            <label for="new-password" class="block text-sm font-semibold text-gray-700 mb-2">
+              Nueva contraseña
+            </label>
+            <input 
+              type="password" 
+              id="new-password" 
+              name="newPassword"
+              required
+              minlength="8"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent"
+              placeholder="••••••••"
+            />
+            <p class="text-xs text-gray-500 mt-1">Mínimo 8 caracteres</p>
+          </div>
+
+          <div>
+            <label for="confirm-password" class="block text-sm font-semibold text-gray-700 mb-2">
+              Confirmar nueva contraseña
+            </label>
+            <input 
+              type="password" 
+              id="confirm-password" 
+              name="confirmPassword"
+              required
+              minlength="8"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <div id="error-message" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm"></div>
+          <div id="success-message" class="hidden bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm"></div>
+
+          <button 
+            type="submit"
+            id="submit-btn"
+            class="w-full bg-gradient-to-r from-[#00aa45] to-[#009340] text-white py-3 rounded-lg font-bold hover:shadow-lg hover:from-[#009340] hover:to-[#007a2d] transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Cambiar contraseña
+          </button>
+        </form>
+
+        <div class="mt-6 text-center">
+          <a href="/mi-cuenta" class="text-[#00aa45] hover:underline font-medium">
+            ← Volver a Mi Cuenta
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    import { supabase } from "@/lib/supabase";
+    import { getCurrentUser } from "@/lib/auth";
+
+    const form = document.getElementById('change-password-form') as HTMLFormElement;
+    const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+    const errorMessage = document.getElementById('error-message') as HTMLElement;
+    const successMessage = document.getElementById('success-message') as HTMLElement;
+
+    // Verificar autenticación
+    async function checkAuth() {
+      const user = await getCurrentUser();
+      if (!user) {
+        window.location.href = '/login?from=cambiar-contrasena';
+      }
+    }
+
+    checkAuth();
+
+    function showError(message: string) {
+      errorMessage.textContent = message;
+      errorMessage.classList.remove('hidden');
+      successMessage.classList.add('hidden');
+    }
+
+    function showSuccess(message: string) {
+      successMessage.textContent = message;
+      successMessage.classList.remove('hidden');
+      errorMessage.classList.add('hidden');
+    }
+
+    function hideMessages() {
+      errorMessage.classList.add('hidden');
+      successMessage.classList.add('hidden');
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideMessages();
+
+      const currentPassword = (document.getElementById('current-password') as HTMLInputElement).value;
+      const newPassword = (document.getElementById('new-password') as HTMLInputElement).value;
+      const confirmPassword = (document.getElementById('confirm-password') as HTMLInputElement).value;
+
+      // Validaciones
+      if (!currentPassword || !newPassword || !confirmPassword) {
+        showError('Todos los campos son obligatorios');
+        return;
+      }
+
+      if (newPassword.length < 8) {
+        showError('La nueva contraseña debe tener al menos 8 caracteres');
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        showError('Las contraseñas no coinciden');
+        return;
+      }
+
+      if (currentPassword === newPassword) {
+        showError('La nueva contraseña debe ser diferente a la actual');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Procesando...';
+
+      try {
+        // Actualizar contraseña con Supabase
+        const { error } = await supabase.auth.updateUser({
+          password: newPassword
+        });
+
+        if (error) {
+          if (error.message.includes('should be different')) {
+            showError('La nueva contraseña debe ser diferente a la actual');
+          } else if (error.message.includes('weak')) {
+            showError('La contraseña es demasiado débil. Usa letras, números y símbolos.');
+          } else {
+            showError(error.message || 'Error al cambiar la contraseña');
+          }
+          return;
+        }
+
+        showSuccess('¡Contraseña cambiada correctamente! Serás redirigido...');
+        
+        // Limpiar formulario
+        form.reset();
+
+        // Redirigir después de 2 segundos
+        setTimeout(() => {
+          window.location.href = '/mi-cuenta';
+        }, 2000);
+
+      } catch (error: any) {
+        console.error('Error changing password:', error);
+        showError('Error al cambiar la contraseña. Inténtalo de nuevo.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Cambiar contraseña';
+      }
+    });
+  </script>
+</BaseLayout>

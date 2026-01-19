@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 interface Coupon {
@@ -14,7 +14,7 @@ interface Coupon {
   creada_en: string;
 }
 
-const AdminCoupons: React.FC = () => {
+const AdminCoupons = () => {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -138,7 +138,7 @@ const AdminCoupons: React.FC = () => {
                   type="text"
                   placeholder="Ej: DESCUENTO25"
                   value={formData.codigo}
-                  onChange={(e) => setFormData({...formData, codigo: e.target.value.toUpperCase()})}
+                  onChange={(e: any) => setFormData({...formData, codigo: e.target.value.toUpperCase()})}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-bold"
                 />
               </div>
@@ -148,7 +148,7 @@ const AdminCoupons: React.FC = () => {
                   type="number"
                   placeholder="Ej: 25"
                   value={formData.descuento_porcentaje}
-                  onChange={(e) => setFormData({...formData, descuento_porcentaje: parseInt(e.target.value) || 0})}
+                  onChange={(e: any) => setFormData({...formData, descuento_porcentaje: parseInt(e.target.value) || 0})}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </div>
@@ -158,7 +158,7 @@ const AdminCoupons: React.FC = () => {
                   type="number"
                   placeholder="Ej: 10.00"
                   value={formData.monto_fijo}
-                  onChange={(e) => setFormData({...formData, monto_fijo: parseInt(e.target.value) || 0})}
+                  onChange={(e: any) => setFormData({...formData, monto_fijo: parseInt(e.target.value) || 0})}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </div>
@@ -168,7 +168,7 @@ const AdminCoupons: React.FC = () => {
                   type="number"
                   placeholder="Ej: 50.00"
                   value={formData.minimo_compra}
-                  onChange={(e) => setFormData({...formData, minimo_compra: parseInt(e.target.value) || 0})}
+                  onChange={(e: any) => setFormData({...formData, minimo_compra: parseInt(e.target.value) || 0})}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </div>
@@ -178,7 +178,7 @@ const AdminCoupons: React.FC = () => {
                   type="number"
                   placeholder="Ej: 100"
                   value={formData.uses_limit}
-                  onChange={(e) => setFormData({...formData, uses_limit: parseInt(e.target.value) || 0})}
+                  onChange={(e: any) => setFormData({...formData, uses_limit: parseInt(e.target.value) || 0})}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </div>
@@ -187,7 +187,7 @@ const AdminCoupons: React.FC = () => {
                 <input
                   type="date"
                   value={formData.fecha_expiracion}
-                  onChange={(e) => setFormData({...formData, fecha_expiracion: e.target.value})}
+                  onChange={(e: any) => setFormData({...formData, fecha_expiracion: e.target.value})}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </div>

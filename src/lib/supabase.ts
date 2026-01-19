@@ -37,9 +37,9 @@ console.warn(
 
 // Mock client para desarrollo sin Supabase
 class MockSupabaseClient {
-    from(table: string) {
+    from() {
         return {
-            select: (fields = '*') => ({
+            select: () => ({
                 eq: () => ({
                     eq: () => ({
                         limit: () => ({
@@ -108,7 +108,7 @@ export const supabase = isConfigured
  * Crea un cliente Supabase para uso en servidor (SSR)
  * Permite pasar cookies de sesión para autenticación
  */
-export function createServerClient(accessToken?: string, refreshToken?: string) {
+export function createServerClient(accessToken?: string) {
     if (!isConfigured) {
         return new MockSupabaseClient() as any;
     }

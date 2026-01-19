@@ -21,7 +21,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
-  const handleEmailAuth = async (e: React.FormEvent) => {
+  const handleEmailAuth = async (e: any) => {
     e.preventDefault();
     setLoading(true);
     setError("");
@@ -189,7 +189,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
               type="email"
               placeholder="tu@correo.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e: any) => setEmail(e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
               required
             />
@@ -205,7 +205,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   type="text"
                   placeholder="Tu nombre"
                   value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
+                  onChange={(e: any) => setNombre(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
                   required
                 />
@@ -218,7 +218,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   type="text"
                   placeholder="Tus apellidos"
                   value={apellidos}
-                  onChange={(e) => setApellidos(e.target.value)}
+                  onChange={(e: any) => setApellidos(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
                   required
                 />
@@ -231,7 +231,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   type="tel"
                   placeholder="Ej: +34 600 123 456"
                   value={telefono}
-                  onChange={(e) => setTelefono(e.target.value)}
+                  onChange={(e: any) => setTelefono(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
                 />
               </div>
@@ -241,7 +241,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Género</label>
                 <select
                   value={genero}
-                  onChange={(e) => setGenero(e.target.value)}
+                  onChange={(e: any) => setGenero(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
                 >
                   <option value="">Selecciona tu género</option>
@@ -257,7 +257,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 <input
                   type="date"
                   value={fechaNacimiento}
-                  onChange={(e) => setFechaNacimiento(e.target.value)}
+                  onChange={(e: any) => setFechaNacimiento(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
                 />
               </div>
@@ -271,7 +271,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
               type={showPassword ? "text" : "password"}
               placeholder={isSignUp ? "Crea una contraseña" : "Tu contraseña"}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e: any) => setPassword(e.target.value)}
               className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
               required
             />

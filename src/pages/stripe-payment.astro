@@ -1,7 +1,10 @@
 ---
 // Esta página ya no se necesita - Usa /checkout/success.astro en su lugar
-import { redirect } from 'astro';
-
-redirect('/checkout');
+return new Response(null, {
+  status: 302,
+  headers: {
+    Location: '/checkout'
+  }
+});
 ---
 

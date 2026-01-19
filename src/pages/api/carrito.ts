@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { getCurrentUser } from '@/lib/auth';
 
 // GET: Obtiene el carrito del usuario actual
-export const GET: APIRoute = async (context) => {
+export const GET: APIRoute = async (_context) => {
   try {
     const user = await getCurrentUser();
     

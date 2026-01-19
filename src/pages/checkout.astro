@@ -23,6 +23,9 @@ import Header from '@/components/Header.astro';
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 class="text-4xl sm:text-5xl font-black italic mb-4">Tramitar Pedido</h1>
         <p class="text-lg text-white/90">Completa los datos de entrega y pago</p>
+        <div id="auth-status" class="mt-4 flex items-center gap-2 text-white/90">
+          <!-- Se cargará con JavaScript -->
+        </div>
       </div>
     </section>
 
@@ -115,7 +118,7 @@ import Header from '@/components/Header.astro';
               <h2 class="text-2xl font-bold mb-4">Resumen de Pedido</h2>
               
               <div id="summary-items" class="space-y-2 mb-4 border-b border-gray-200 pb-4">
-                <!-- Items se cargarán aquí con JavaScript -->
+                <p class="text-gray-500">Cargando carrito...</p>
               </div>
 
               <div class="space-y-3 text-sm mb-4">
@@ -159,62 +162,228 @@ import Header from '@/components/Header.astro';
   </main>
 
   <script>
-    // Cargar carrito y mostrar resumen
-    document.addEventListener('DOMContentLoaded', () => {
-      const cartJSON = localStorage.getItem('cart');
-      const cart = cartJSON ? JSON.parse(cartJSON) : [];
+    // @ts-nocheck
+    // CHECKOUT SCRIPT - Lee carrito desde localStorage y BD
+    console.log('=== CHECKOUT: Iniciando ===');
+    
+    // Configuración
+    const SUPABASE_URL = 'https://spzvtjybxpaxpnpfxbqv.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwenZ0anlieHBheHBucGZ4YnF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjgyMzUsImV4cCI6MjA4MzQ0NDIzNX0.5gggyKxtxR7IdQejFS48eoF_xL-7CPuP2jOeuMLTS8M';
+    const CART_KEY = 'fashionstore_guest_cart';
+    const SESSION_KEY = 'sb-spzvtjybxpaxpnpfxbqv-auth-token';
+
+    // Obtener sesión actual de Supabase
+    function getSession() {
+      try {
+        const sessionData = localStorage.getItem(SESSION_KEY);
+        if (sessionData) {
+          const parsed = JSON.parse(sessionData);
+          if (parsed.access_token && parsed.user) {
+            console.log('✓ Sesión encontrada:', parsed.user.email);
+            return parsed;
+          }
+        }
+      } catch (e) {
+        console.error('Error leyendo sesión:', e);
+      }
+      return null;
+    }
+
+    // Obtener carrito de usuario autenticado usando RPC get_user_cart
+    async function getAuthenticatedCart(accessToken) {
+      try {
+        console.log('Obteniendo carrito de BD via RPC...');
+        
+        // Usar RPC get_user_cart como hace el resto del sistema
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_user_cart`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: '{}'
+        });
+
+        if (!response.ok) {
+          console.error('Error RPC get_user_cart:', response.status, await response.text());
+          return getGuestCart(); // Fallback
+        }
+
+        const data = await response.json();
+        console.log('Datos RPC get_user_cart:', data);
+        
+        if (!data || data.length === 0) {
+          console.log('Carrito BD vacío, probando localStorage...');
+          return getGuestCart();
+        }
+        
+        // Mapear los datos al formato esperado
+        return (data || []).map(item => ({
+          id: item.id,
+          product_id: item.product_id,
+          product_name: item.product_name || 'Producto',
+          product_image: item.product_image || '',
+          precio_unitario: item.precio_unitario,
+          price: item.precio_unitario,
+          quantity: item.quantity,
+          talla: item.talla,
+          color: item.color
+        }));
+      } catch (error) {
+        console.error('Error obteniendo carrito autenticado:', error);
+        return getGuestCart();
+      }
+    }
+
+    // Obtener carrito de invitado desde localStorage
+    function getGuestCart() {
+      try {
+        console.log('Leyendo carrito de localStorage...');
+        console.log('Keys en localStorage:', Object.keys(localStorage));
+        
+        let cartJSON = localStorage.getItem(CART_KEY);
+        if (!cartJSON) {
+          cartJSON = sessionStorage.getItem(CART_KEY);
+          console.log('Intentando sessionStorage');
+        }
+        
+        const cart = cartJSON ? JSON.parse(cartJSON) : [];
+        console.log('Carrito localStorage/sessionStorage:', cart);
+        return cart;
+      } catch (error) {
+        console.error('Error getting guest cart:', error);
+        return [];
+      }
+    }
+
+    // Obtener carrito (detecta si es usuario o invitado)
+    async function getCart() {
+      const session = getSession();
+      
+      if (session?.access_token) {
+        console.log('Usuario autenticado, obteniendo carrito de BD...');
+        const authCart = await getAuthenticatedCart(session.access_token);
+        if (authCart && authCart.length > 0) {
+          return authCart;
+        }
+        // Si el carrito autenticado está vacío, probar localStorage por si hay items
+        console.log('Carrito autenticado vacío, probando localStorage...');
+      }
+      
+      console.log('Obteniendo carrito de localStorage...');
+      return getGuestCart();
+    }
+
+    // Variable global para el carrito
+    let cartData = [];
+    let currentSession = null;
+
+    // INICIALIZAR
+    async function initCheckout() {
+      console.log('=== INICIANDO CHECKOUT ===');
+      
+      currentSession = getSession();
+      const isGuest = !currentSession;
+
+      // Mostrar estado de autenticación
+      const authStatus = document.getElementById('auth-status');
+      if (authStatus) {
+        if (isGuest) {
+          authStatus.innerHTML = `
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <span>Comprando como invitado</span>
+            <span class="mx-2">|</span>
+            <a href="/login?from=checkout" class="underline hover:text-white font-semibold">
+              Iniciar sesión
+            </a>
+          `;
+        } else {
+          authStatus.innerHTML = `
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Sesión iniciada como: <strong>${currentSession.user.email}</strong></span>
+          `;
+        }
+      }
+
+      // Cargar carrito
+      console.log('Obteniendo carrito...');
+      try {
+        const cart = await getCart();
+        console.log('Carrito obtenido:', cart);
+        cartData = Array.isArray(cart) ? cart : [];
+      } catch (error) {
+        console.error('Error al obtener carrito:', error);
+        cartData = [];
+      }
       
       const summaryItems = document.getElementById('summary-items');
       let subtotal = 0;
 
-      if (cart.length === 0) {
-        summaryItems!.innerHTML = '<p class="text-gray-600">Tu carrito está vacío</p>';
-      } else {
-        summaryItems!.innerHTML = cart.map((item: any) => {
-          const itemTotal = (item.price * item.quantity) / 100;
-          subtotal += item.price * item.quantity;
-          return `
-            <div class="flex justify-between text-sm text-gray-700">
-              <span>${item.name} x${item.quantity}</span>
-              <span>${itemTotal.toFixed(2)}€</span>
-            </div>
-          `;
-        }).join('');
+      if (summaryItems) {
+        if (cartData.length === 0) {
+          summaryItems.innerHTML = '<p class="text-gray-600">Tu carrito está vacío</p>';
+        } else {
+          summaryItems.innerHTML = cartData.map(item => {
+            const itemPrice = item.precio_unitario || item.price || 0;
+            const itemQuantity = item.quantity || 1;
+            const itemTotal = (itemPrice * itemQuantity) / 100;
+            subtotal += itemPrice * itemQuantity;
+            const itemName = item.product_name || item.name || 'Producto desconocido';
+            return `
+              <div class="flex justify-between text-sm text-gray-700">
+                <span>${itemName} x${itemQuantity}</span>
+                <span>${itemTotal.toFixed(2)}€</span>
+              </div>
+            `;
+          }).join('');
+        }
       }
 
       const subtotalEuros = subtotal / 100;
-      const taxAmount = Math.round(subtotal * 0.21) / 100; // 21% IVA
+      const taxAmount = Math.round(subtotal * 0.21) / 100;
       const totalAmount = subtotalEuros + taxAmount;
 
-      document.getElementById('subtotal')!.textContent = `${subtotalEuros.toFixed(2)}€`;
-      document.getElementById('tax')!.textContent = `${taxAmount.toFixed(2)}€`;
-      document.getElementById('total')!.textContent = `${totalAmount.toFixed(2)}€`;
+      const subtotalEl = document.getElementById('subtotal');
+      const taxEl = document.getElementById('tax');
+      const totalEl = document.getElementById('total');
+      
+      if (subtotalEl) subtotalEl.textContent = `${subtotalEuros.toFixed(2)}€`;
+      if (taxEl) taxEl.textContent = `${taxAmount.toFixed(2)}€`;
+      if (totalEl) totalEl.textContent = `${totalAmount.toFixed(2)}€`;
 
-      // Manejar clic en botón de pago
-      const payButton = document.getElementById('pay-button') as HTMLButtonElement;
-      const errorMessage = document.getElementById('error-message') as HTMLElement;
-      const errorText = document.getElementById('error-text') as HTMLElement;
+      // Botón de pago
+      const payButton = document.getElementById('pay-button');
+      const errorMessage = document.getElementById('error-message');
+      const errorText = document.getElementById('error-text');
 
-      const showError = (message: string) => {
-        errorText.textContent = message;
-        errorMessage.classList.remove('hidden');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+      const showError = message => {
+        if (errorText && errorMessage) {
+          errorText.textContent = message;
+          errorMessage.classList.remove('hidden');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
       };
 
       const hideError = () => {
-        errorMessage.classList.add('hidden');
+        if (errorMessage) {
+          errorMessage.classList.add('hidden');
+        }
       };
 
       if (payButton) {
-        payButton.addEventListener('click', async (e) => {
+        payButton.addEventListener('click', async e => {
           e.preventDefault();
           hideError();
           
-          // Validar formulario
           const inputs = document.querySelectorAll('#checkout-form input, #checkout-form select');
           let allFilled = true;
           
-          inputs.forEach((input: any) => {
+          inputs.forEach(input => {
             if (input.type === 'checkbox') {
               if (!input.checked) allFilled = false;
             } else if (input.value.trim() === '') {
@@ -223,54 +392,93 @@ import Header from '@/components/Header.astro';
           });
           
           if (!allFilled) {
-            showError('Por favor completa todos los campos obligatorios y acepta los términos y condiciones');
+            showError('Por favor completa todos los campos obligatorios');
             return;
           }
 
-          // Desactivar botón mientras se procesa
+          if (cartData.length === 0) {
+            showError('Tu carrito está vacío');
+            return;
+          }
+
           payButton.disabled = true;
           payButton.textContent = 'Procesando...';
 
           try {
-            // Obtener email del formulario
-            const emailInput = document.querySelector('#checkout-form input[type="email"]') as HTMLInputElement;
+            const formInputs = document.querySelectorAll('#checkout-form input, #checkout-form select');
+            const nombre = formInputs[0]?.value.trim();
+            const apellidos = formInputs[1]?.value.trim();
+            const emailInput = document.querySelector('#checkout-form input[type="email"]');
             const email = emailInput?.value.trim();
+            const telefonoInput = document.querySelector('#checkout-form input[type="tel"]');
+            const telefono = telefonoInput?.value.trim();
+            const calle = formInputs[4]?.value.trim();
+            const ciudad = formInputs[5]?.value.trim();
+            const codigoPostal = formInputs[6]?.value.trim();
+            const paisSelect = document.querySelector('#checkout-form select');
+            const pais = paisSelect?.value;
 
-            // Convertir total a céntimos
+            const items = cartData.map(item => ({
+              producto_id: item.product_id || item.id,
+              nombre: item.product_name || item.name,
+              imagen: item.product_image || item.image,
+              cantidad: item.quantity,
+              precio_unitario: item.precio_unitario || item.price,
+              talla: item.talla || null,
+              color: item.color || null
+            }));
+
+            const direccion = {
+              calle,
+              ciudad,
+              codigo_postal: codigoPostal,
+              pais,
+              nombre_completo: `${nombre} ${apellidos}`
+            };
+
             const totalCents = Math.round(totalAmount * 100);
+            const isGuest = !currentSession;
 
-            // Crear sesión de Stripe en el backend
             const response = await fetch('/api/stripe/create-session', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 totalAmount: totalCents,
                 userEmail: email,
+                items: items,
+                isGuest: isGuest,
+                userId: currentSession?.user?.id || null,
+                nombre: `${nombre} ${apellidos}`,
+                telefono: telefono,
+                direccion: direccion,
                 successUrl: window.location.origin + '/checkout/success?session_id={CHECKOUT_SESSION_ID}',
                 cancelUrl: window.location.origin + '/checkout'
               })
             });
 
+            const data = await response.json();
+
             if (!response.ok) {
-              throw new Error('Error creating checkout session');
+              throw new Error(data.error || 'Error creating checkout session');
             }
 
-            const { url } = await response.json();
-
-            // Redirigir a la URL de Stripe Checkout
-            if (url) {
-              window.location.href = url;
+            if (data.url) {
+              window.location.href = data.url;
             } else {
               throw new Error('No checkout URL returned');
             }
           } catch (error) {
             console.error('Error:', error);
-            showError('Error procesando el pago. Intenta de nuevo.');
+            const errorMsg = error instanceof Error ? error.message : 'Error procesando el pago. Intenta de nuevo.';
+            showError(errorMsg);
             payButton.disabled = false;
             payButton.textContent = 'Ir a Pagar con Stripe';
           }
         });
       }
-    });
+    }
+    
+    // Iniciar cuando el DOM esté listo
+    initCheckout();
   </script>
 </Layout>

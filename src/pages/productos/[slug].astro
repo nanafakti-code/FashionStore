@@ -87,12 +87,12 @@ if (variantes) {
 }
 
 // Obtener estados únicos de las variantes
-const estadosUnicos = variantes 
+const estadosUnicos: string[] = variantes 
   ? Array.from(new Set(variantes.map((v: any) => v.estado).filter(Boolean)))
   : [];
 
 // Mapeo de descripciones de estado
-const estadoDescripcion = {
+const estadoDescripcion: Record<string, string> = {
   'Correcto': '✓ Correcto',
   'Muy Bueno': '✓✓ Muy Bueno',
   'Excelente': '✓✓✓ Excelente'
@@ -234,12 +234,12 @@ export async function getStaticPaths() {
                             class={`px-4 py-2 border-2 rounded-lg font-medium transition-all ${
                               tieneStock
                                 ? 'border-gray-300 hover:border-[#00aa45] hover:bg-[#00aa45] hover:text-white'
-                                : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'border-gray-200 bg-white text-gray-400 cursor-not-allowed'
                             }`}
                             disabled={!tieneStock}
                             title={tieneStock ? estado : 'Sin stock en este estado'}
                           >
-                            {estadoDescripcion[estado] || estado}
+                            {estadoDescripcion[estado as keyof typeof estadoDescripcion] || estado}
                           </button>
                         );
                       })}
@@ -263,7 +263,7 @@ export async function getStaticPaths() {
                             class={`px-4 py-2 border-2 rounded-lg font-medium transition-all ${
                               tieneStock
                                 ? 'border-gray-300 hover:border-[#00aa45] hover:bg-[#00aa45] hover:text-white'
-                                : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'border-gray-200 bg-white text-gray-400 cursor-not-allowed'
                             }`}
                             disabled={!tieneStock}
                             title={tieneStock ? capacidad : 'Sin stock en esta capacidad'}
@@ -292,6 +292,7 @@ export async function getStaticPaths() {
               productName={producto.nombre}
               price={producto.precio_venta}
               image={imagenPrincipal?.url || ''}
+              stock={producto.stock_total}
             />
 
             <!-- Características -->
@@ -407,7 +408,7 @@ export async function getStaticPaths() {
                   href={`/productos/${prod.slug}`}
                   class="group bg-white rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                 >
-                  <div class="aspect-square bg-gradient-to-br from-slate-100 to-slate-200 relative overflow-hidden">
+                  <div class="aspect-square bg-white border border-gray-200 relative overflow-hidden">
                     {imgPrincipal ? (
                       <img
                         src={imgPrincipal.url}

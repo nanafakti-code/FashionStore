@@ -6,17 +6,14 @@
 
 import { defineMiddleware } from 'astro:middleware';
 
-let supabase: any = null;
-
 // Intenta cargar Supabase solo si las credenciales están disponibles
 try {
-    const { supabase: sb } = await import('./lib/supabase');
-    supabase = sb;
+    await import('./lib/supabase');
 } catch (error) {
     console.warn('⚠️ Supabase no está disponible. Las rutas /admin no serán protegidas.');
 }
 
-export const onRequest = defineMiddleware(async ({ url, cookies, redirect }, next) => {
+export const onRequest = defineMiddleware(async ({ url }, next) => {
     // NOTA: Las rutas /admin/ usan autenticación client-side con localStorage
     // No necesitan protección de middleware basada en cookies de Supabase
 

@@ -205,16 +205,15 @@ const hasResults = searchResults.length > 0;
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {searchResults.map(product => (
             <ProductCard
-              id={product.id}
+              slug={String(product.id)}
               name={product.name}
               price={product.price}
               originalPrice={product.originalPrice}
               image={product.image}
-              discount={product.discount}
               rating={product.rating}
               reviews={product.reviews}
               condition={product.condition}
-              badge={product.badge}
+              badge={product.badge ?? undefined}
             />
           ))}
         </div>

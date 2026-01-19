@@ -55,11 +55,11 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
     </div>
   </main>
 
-  <script client:only="react">
+  <script>
     import { getCurrentUser } from "@/lib/auth";
     import { supabase } from "@/lib/supabase";
 
-    let allFavorites = [];
+    let allFavorites: any[] = [];
 
     async function loadFavorites() {
       try {
@@ -96,7 +96,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
         displayFavorites(allFavorites);
       } catch (error) {
         console.error("Error loading favorites:", error);
-        document.getElementById("favorites-container").innerHTML = `
+        document.getElementById("favorites-container")!.innerHTML = `
           <div class="col-span-full bg-white rounded-xl shadow-lg p-8 text-center">
             <p class="text-red-600 font-semibold">Error al cargar favoritos</p>
           </div>
@@ -104,11 +104,11 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
       }
     }
 
-    function displayFavorites(favorites) {
+    function displayFavorites(favorites: any) {
       const container = document.getElementById("favorites-container");
 
       if (favorites.length === 0) {
-        container.innerHTML = `
+        container!.innerHTML = `
           <div class="col-span-full bg-white rounded-2xl shadow-xl border border-gray-100 p-8 text-center">
             <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
@@ -120,12 +120,12 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
         return;
       }
 
-      container.innerHTML = favorites
+      container!.innerHTML = favorites
         .map(
-          (fav) => `
+          (fav: any) => `
         <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden hover:shadow-2xl transition group">
           {/* Image */}
-          <div class="relative overflow-hidden bg-slate-100 h-48">
+          <div class="relative overflow-hidden bg-white border border-gray-200 h-48">
             <img
               src="${fav.productos.imagen_principal || "/placeholder.jpg"}"
               alt="${fav.productos.nombre}"
@@ -154,7 +154,11 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 
             {/* Rating */}
             <div class="flex items-center gap-1 mb-3">
-              ${"⭐".repeat(Math.round(fav.productos.calificacion_promedio || 0))}
+              ${Array.from({length: Math.round(fav.productos.calificacion_promedio || 0)}).map(() => `
+                <svg class="w-4 h-4 text-yellow-400 fill-yellow-400" viewBox="0 0 24 24">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+              `).join('')}
               <span class="text-xs text-gray-500 font-bold">(${fav.productos.calificacion_promedio || 0})</span>
             </div>
 
@@ -201,7 +205,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
       });
     }
 
-    async function removeFavorite(e) {
+    async function removeFavorite(e: any) {
       const favId = e.currentTarget.dataset.favId;
       try {
         const { error } = await supabase
@@ -211,7 +215,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 
         if (error) throw error;
 
-        allFavorites = allFavorites.filter((f) => f.id !== favId);
+        allFavorites = allFavorites.filter((f: any) => f.id !== favId);
         displayFavorites(allFavorites);
       } catch (error) {
         console.error("Error removing favorite:", error);
@@ -219,11 +223,11 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
       }
     }
 
-    function addToCart(e) {
+    function addToCart(e: any) {
       const productId = e.currentTarget.dataset.productId;
       const existingCart =
-        JSON.parse(localStorage.getItem("fashionstore_cart")) || [];
-      const existingProduct = existingCart.find((p) => p.id === productId);
+        JSON.parse(localStorage.getItem("fashionstore_cart") || '[]')
+      const existingProduct = existingCart.find((p: any) => p.id === productId);
 
       if (existingProduct) {
         existingProduct.cantidad++;
@@ -243,17 +247,17 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
     }
 
     // Search and sort
-    document.getElementById("search-fav")?.addEventListener("input", (e) => {
-      const query = e.target.value.toLowerCase();
-      const filtered = allFavorites.filter((f) =>
+    document.getElementById("search-fav")?.addEventListener("input", (e: any) => {
+      const query = (e as Event)?.target ? ((e.target as HTMLInputElement).value.toLowerCase()) : '';
+      const filtered = allFavorites.filter((f: any) =>
         f.productos.nombre.toLowerCase().includes(query)
       );
       displayFavorites(filtered);
     });
 
-    document.getElementById("sort-fav")?.addEventListener("change", (e) => {
+    document.getElementById("sort-fav")?.addEventListener("change", (e: any) => {
       const sorted = [...allFavorites];
-      switch (e.target.value) {
+      switch ((e as Event)?.target ? ((e.target as HTMLSelectElement).value) : '') {
         case "nombre":
           sorted.sort((a, b) =>
             a.productos.nombre.localeCompare(b.productos.nombre)

@@ -26,16 +26,34 @@ const { title } = Astro.props;
     .sidebar-logo {
       display: flex;
     }
+    /* Ocultar barra de desplazamiento */
+    ::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+    }
+    ::-webkit-scrollbar-track {
+      display: none;
+    }
+    ::-webkit-scrollbar-thumb {
+      display: none;
+    }
+    /* Firefox */
+    * {
+      scrollbar-width: none;
+    }
   </style>
 </head>
 <body>
   <div class="flex h-screen bg-gray-100">
+    <!-- Overlay para móvil -->
+    <div id="mobile-overlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"></div>
+
     <!-- Sidebar -->
-    <aside class="w-64 bg-gray-900 text-white shadow-lg fixed h-screen overflow-y-auto">
+    <aside id="sidebar" class="w-64 bg-gray-900 text-white shadow-lg fixed h-screen overflow-y-auto transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-50 md:z-auto md:relative flex flex-col">
       <!-- Logo -->
       <div class="sidebar-logo p-6 border-b border-gray-800">
         <a href="/admin/dashboard" class="flex items-center gap-2 hover:opacity-80 transition">
-          <div class="w-10 h-10 bg-[#00aa45] rounded-lg flex items-center justify-center font-bold text-white">FS</div>
+          <img src="/admin-logo.png" alt="FashionStore" class="w-10 h-10 rounded-lg" />
           <div>
             <div class="font-black text-lg">Fashion<span class="text-[#00aa45]">Store</span></div>
             <div class="text-xs text-gray-400">Admin</div>
@@ -43,23 +61,8 @@ const { title } = Astro.props;
         </a>
       </div>
 
-      <!-- User Info -->
-      <div class="px-6 py-4 border-b border-gray-800">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 bg-[#00aa45] rounded-full flex items-center justify-center font-bold text-white">
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-            </svg>
-          </div>
-          <div>
-            <div class="text-sm font-semibold" id="sidebar-username">Admin</div>
-            <div class="text-xs text-gray-400">Administrador</div>
-          </div>
-        </div>
-      </div>
-
       <!-- Navigation -->
-      <nav class="px-3 py-6 space-y-2">
+      <nav class="px-3 py-6 space-y-2 flex-1">
         <!-- Dashboard -->
         <a href="/admin/dashboard?section=dashboard" class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition-all duration-200" data-page="dashboard">
           <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
@@ -167,10 +170,10 @@ const { title } = Astro.props;
       </nav>
 
       <!-- Logout Button -->
-      <div class="px-3 py-6 border-t border-gray-800 mt-auto">
+      <div class="px-3 py-6 border-t border-gray-800 flex-shrink-0 flex justify-center">
         <button
-          onclick="handleLogout()"
-          class="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-red-600 hover:bg-red-700 transition-all duration-200 font-semibold"
+          onclick="showLogoutModal()"
+          class="flex items-center gap-2 px-6 py-3 rounded-xl bg-red-600 hover:bg-red-700 transition-all duration-200 font-semibold text-white text-sm whitespace-nowrap"
         >
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
             <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
@@ -181,10 +184,27 @@ const { title } = Astro.props;
     </aside>
 
     <!-- Main Content -->
-    <div class="flex-1 ml-64 flex flex-col overflow-hidden">
+    <div class="flex-1 flex flex-col overflow-hidden">
       <!-- Top Bar -->
-      <header class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
-        <div class="px-8 py-4 flex justify-between items-center">
+      <header class="md:bg-white bg-gray-900 border-b md:border-gray-200 border-gray-800 shadow-sm sticky top-0 z-50">
+        <div class="px-4 py-3 flex justify-between items-center md:justify-start md:px-8">
+          <button id="menu-toggle" class="md:hidden p-2 hover:bg-gray-800 rounded-lg transition">
+            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+            </svg>
+          </button>
+          <div class="flex-1 md:hidden flex justify-center">
+            <span class="text-white font-black italic text-lg sm:text-2xl">Fashion<span class="text-[#00aa45]">Store</span></span>
+          </div>
+          <button
+            onclick="showLogoutModal()"
+            class="md:hidden p-2 hover:bg-gray-800 rounded-lg transition flex-shrink-0"
+            title="Cerrar Sesión"
+          >
+            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+            </svg>
+          </button>
         </div>
       </header>
 
@@ -195,7 +215,71 @@ const { title } = Astro.props;
     </div>
   </div>
 
+  <!-- Modal de Logout -->
+  <div id="logout-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4" style="display: none;">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+      <div class="p-8">
+        <div class="flex justify-center mb-6">
+          <svg class="w-16 h-16 text-red-600" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+          </svg>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-900 text-center mb-3">Cerrar Sesión</h3>
+        <p class="text-gray-600 text-center mb-8 text-lg">¿Estás seguro de que deseas cerrar sesión?</p>
+        <div class="flex gap-4">
+          <button
+            onclick="closeLogoutModal()"
+            class="flex-1 px-6 py-3 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-900 font-bold transition-all duration-200"
+          >
+            Cancelar
+          </button>
+          <button
+            onclick="confirmLogout()"
+            class="flex-1 px-6 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold transition-all duration-200"
+          >
+            Cerrar Sesión
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
+    declare global {
+      interface Window {
+        showLogoutModal: () => void;
+        closeLogoutModal: () => void;
+        confirmLogout: () => void;
+        setActivePage: (pageName: string) => void;
+      }
+    }
+
+    // Menú hamburguesa
+    const menuToggle = document.getElementById('menu-toggle');
+    const sidebar = document.getElementById('sidebar');
+    const mobileOverlay = document.getElementById('mobile-overlay');
+
+    menuToggle?.addEventListener('click', () => {
+      sidebar?.classList.toggle('-translate-x-full');
+      mobileOverlay?.classList.toggle('hidden');
+    });
+
+    mobileOverlay?.addEventListener('click', () => {
+      sidebar?.classList.add('-translate-x-full');
+      mobileOverlay?.classList.add('hidden');
+    });
+
+    // Cerrar menú al hacer click en un link
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.addEventListener('click', () => {
+        const isMobile = window.innerWidth < 768;
+        if (isMobile) {
+          sidebar?.classList.add('-translate-x-full');
+          mobileOverlay?.classList.add('hidden');
+        }
+      });
+    });
+
     // Verificar autenticación
     document.addEventListener('DOMContentLoaded', () => {
       const token = localStorage.getItem('admin_token');
@@ -212,19 +296,47 @@ const { title } = Astro.props;
           }
         });
       }
+
+      // Event listener del modal al cargar
+      const logoutModal = document.getElementById('logout-modal');
+      if (logoutModal) {
+        logoutModal.addEventListener('click', (e: Event) => {
+          const target = e.target as HTMLElement;
+          if (target.id === 'logout-modal') {
+            closeLogoutModal();
+          }
+        });
+      }
+
+      // Funciones globales
+      window.showLogoutModal = showLogoutModal;
+      window.closeLogoutModal = closeLogoutModal;
+      window.confirmLogout = confirmLogout;
     });
 
-    // Logout
-    function handleLogout() {
-      if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-        localStorage.removeItem('admin_token');
-        localStorage.removeItem('admin_user');
-        window.location.href = '/admin-secret-login';
+    // Logout Modal
+    function showLogoutModal() {
+      const modal = document.getElementById('logout-modal');
+      if (modal) {
+        modal.classList.remove('hidden');
       }
     }
 
+    function closeLogoutModal() {
+      const modal = document.getElementById('logout-modal');
+      if (modal) {
+        modal.classList.add('hidden');
+      }
+    }
+
+    function confirmLogout() {
+      localStorage.removeItem('admin_token');
+      localStorage.removeItem('admin_user');
+      window.location.href = '/admin-secret-login';
+    }
+
     // Resaltar página activa
-    function setActivePage(pageName) {
+    function setActivePage(pageName: string) {
       document.querySelectorAll('.nav-link').forEach(link => {
         link.classList.remove('bg-gray-800', 'text-[#00aa45]');
         if (link.getAttribute('data-page') === pageName) {
@@ -238,9 +350,9 @@ const { title } = Astro.props;
 
     // Interceptar clicks en los links de navegación para actualizar estado sin recargar
     document.querySelectorAll('.nav-link').forEach(link => {
-      link.addEventListener('click', (e) => {
+      link.addEventListener('click', (e: Event) => {
         e.preventDefault();
-        const href = link.getAttribute('href');
+        const href = (link as HTMLAnchorElement).getAttribute('href');
         if (href) {
           window.history.pushState({}, '', href);
           // Disparar evento personalizado para que AdminDashboard se entere

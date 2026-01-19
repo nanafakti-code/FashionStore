@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { signInWithGoogle, signOut } from "@/lib/auth";
+import { signInWithGoogle } from "@/lib/auth";
 import { migrateLocalCartToDatabase } from "@/lib/cartMigration";
 
 interface AuthButtonsProps {

@@ -74,7 +74,7 @@ export default function AdminDashboard({ initialSection = 'dashboard' }: AdminDa
   const [categorias, setCategorias] = useState<Category[]>([]);
   const [marcas, setMarcas] = useState<any[]>([]);
   const [cupones, setCupones] = useState<any[]>([]);
-  const [envios, setEnvios] = useState<any[]>([]);
+  const [_envios, setEnvios] = useState<any[]>([]);
 
   useEffect(() => {
     loadStats();

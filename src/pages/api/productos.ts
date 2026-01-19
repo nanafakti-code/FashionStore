@@ -27,7 +27,7 @@ export const GET: APIRoute = async () => {
       );
     }
 
-    const productosFormato = (productos || []).map((p) => ({
+    const productosFormato = (productos || []).map((p: any) => ({
       id: p.id,
       nombre: p.nombre,
       slug: p.slug,

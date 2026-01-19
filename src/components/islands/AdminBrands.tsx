@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 interface Brand {
@@ -11,7 +11,7 @@ interface Brand {
   creada_en: string;
 }
 
-const AdminBrands: React.FC = () => {
+const AdminBrands = () => {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -119,7 +119,7 @@ const AdminBrands: React.FC = () => {
                   type="text"
                   placeholder="Ej: Apple"
                   value={formData.nombre}
-                  onChange={(e) => setFormData({...formData, nombre: e.target.value})}
+                  onChange={(e: any) => setFormData({...formData, nombre: e.target.value})}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </div>
@@ -129,7 +129,7 @@ const AdminBrands: React.FC = () => {
                   type="text"
                   placeholder="Ej: apple"
                   value={formData.slug}
-                  onChange={(e) => setFormData({...formData, slug: e.target.value})}
+                  onChange={(e: any) => setFormData({...formData, slug: e.target.value})}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </div>
@@ -138,7 +138,7 @@ const AdminBrands: React.FC = () => {
                 <textarea
                   placeholder="Información sobre la marca..."
                   value={formData.descripcion}
-                  onChange={(e) => setFormData({...formData, descripcion: e.target.value})}
+                  onChange={(e: any) => setFormData({...formData, descripcion: e.target.value})}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   rows={2}
                 />
@@ -149,7 +149,7 @@ const AdminBrands: React.FC = () => {
                   type="text"
                   placeholder="https://ejemplo.com/logo.png"
                   value={formData.logo_url}
-                  onChange={(e) => setFormData({...formData, logo_url: e.target.value})}
+                  onChange={(e: any) => setFormData({...formData, logo_url: e.target.value})}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </div>

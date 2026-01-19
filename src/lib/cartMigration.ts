@@ -71,7 +71,7 @@ export async function migrateLocalCartToDatabase(): Promise<void> {
               cantidad: item.quantity,
               talla: item.talla || null,
               color: item.color || null,
-              precio_unitario: item.price,
+              precio_unitario: (item as any).precio_unitario || (item as any).price || 0,
             });
         }
       } catch (error) {

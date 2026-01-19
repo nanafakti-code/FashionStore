@@ -121,7 +121,7 @@ export default function MiCuentaClient() {
     }
   };
 
-  const handleProfileSubmit = async (e: React.FormEvent) => {
+  const handleProfileSubmit = async (e: any) => {
     e.preventDefault();
     try {
       setProfileMessage(null);
@@ -161,7 +161,7 @@ export default function MiCuentaClient() {
     }
   };
 
-  const handlePasswordSubmit = async (e: React.FormEvent) => {
+  const handlePasswordSubmit = async (e: any) => {
     e.preventDefault();
     try {
       setPasswordMessage(null);

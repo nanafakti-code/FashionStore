@@ -5,7 +5,7 @@
  * Se actualiza reactivamente desde Supabase o localStorage
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { getCartForCurrentUser } from '@/lib/cartService';
 
 interface CartIconProps {
@@ -14,18 +14,24 @@ interface CartIconProps {
 
 export default function CartIcon({ className = '' }: CartIconProps) {
     const [itemCount, setItemCount] = useState(0);
-    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         loadCartCount();
 
-        // Actualizar cuando cambia el carrito
+        // Actualizar cuando cambia el carrito (ambos eventos)
         const handleCartUpdate = () => {
             loadCartCount();
         };
 
         window.addEventListener('cartUpdated', handleCartUpdate);
-        return () => window.removeEventListener('cartUpdated', handleCartUpdate);
+        window.addEventListener('authCartUpdated', handleCartUpdate);
+        window.addEventListener('guestCartUpdated', handleCartUpdate);
+        
+        return () => {
+            window.removeEventListener('cartUpdated', handleCartUpdate);
+            window.removeEventListener('authCartUpdated', handleCartUpdate);
+            window.removeEventListener('guestCartUpdated', handleCartUpdate);
+        };
     }, []);
 
     const loadCartCount = async () => {
@@ -35,8 +41,6 @@ export default function CartIcon({ className = '' }: CartIconProps) {
         } catch (error) {
             console.error('Error loading cart count:', error);
             setItemCount(0);
-        } finally {
-            setIsLoading(false);
         }
     };
 

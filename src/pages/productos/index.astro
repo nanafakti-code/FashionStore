@@ -31,7 +31,7 @@ const { data: categories } = await supabase
   .order('orden', { ascending: true });
 
 // Mapear productos al formato de componente
-const products = (allProducts || []).map((product) => ({
+const products = (allProducts || []).map((product: any) => ({
   id: product.id,
   name: product.nombre,
   slug: product.slug,
@@ -45,6 +45,7 @@ const products = (allProducts || []).map((product) => ({
   reviews: 245,
   categoryId: product.categoria_id,
   categoryName: product.categoria?.nombre,
+  stock: product.stock_total,
 }));
 ---
 
@@ -85,7 +86,7 @@ const products = (allProducts || []).map((product) => ({
 
             {products.length > 0 ? (
               <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {products.map((product) => (
+                {products.map((product: any) => (
                   <ProductCard
                     id={product.id}
                     name={product.name}
@@ -98,6 +99,7 @@ const products = (allProducts || []).map((product) => ({
                     rating={product.rating}
                     reviews={product.reviews}
                     slug={product.slug}
+                    stock={product.stock}
                   />
                 ))}
               </div>

@@ -1,0 +1,459 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Mis Pedidos | FashionStore">
+  <main class="min-h-screen bg-gradient-to-br from-[#f5f5f7] via-white to-[#f0fff6] py-12">
+    <div class="max-w-6xl mx-auto px-4">
+      {/* Header */}
+      <div class="mb-12">
+        <div class="inline-block mb-4">
+          <span class="bg-gradient-to-r from-[#00aa45] to-[#008a35] text-white px-4 py-1 rounded-full text-sm font-bold">Historial</span>
+        </div>
+        <h1 class="text-5xl font-black text-gray-900 mb-2">Mis Pedidos</h1>
+        <p class="text-lg text-gray-600">Historial completo de tus compras</p>
+      </div>
+
+      {/* Filtros */}
+      <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 mb-6 hover:shadow-lg transition">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              Estado del Pedido
+            </label>
+            <select id="filter-status" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00aa45]">
+              <option value="">Todos los estados</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="Pagado">Pagado</option>
+              <option value="Enviado">Enviado</option>
+              <option value="Entregado">Entregado</option>
+              <option value="Cancelado">Cancelado</option>
+              <option value="Devolucion_Solicitada">Devolución solicitada</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              Desde
+            </label>
+            <input type="date" id="filter-from" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00aa45]" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              Hasta
+            </label>
+            <input type="date" id="filter-to" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00aa45]" />
+          </div>
+
+          <div class="flex items-end">
+            <button id="filter-btn" class="w-full bg-gradient-to-r from-[#00aa45] to-[#009340] text-white py-2 rounded-lg font-bold hover:shadow-lg hover:from-[#009340] hover:to-[#007a2d] transition">
+              Filtrar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Orders List */}
+      <div id="orders-container" class="space-y-4">
+        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 text-center">
+          <svg class="w-16 h-16 text-gray-300 mx-auto mb-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+          <p class="text-gray-600 font-semibold">Cargando tus pedidos...</p>
+        </div>
+      </div>
+    </div>
+
+    {/* Modal de cancelación */}
+    <div id="cancel-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+        <h3 class="text-xl font-bold text-gray-900 mb-4">¿Cancelar pedido?</h3>
+        <p class="text-gray-600 mb-6">Esta acción no se puede deshacer. El importe será reembolsado a tu método de pago original en 5-7 días hábiles.</p>
+        <div class="flex gap-3">
+          <button id="cancel-modal-close" class="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-900 rounded-lg font-bold hover:bg-gray-50 transition-colors">
+            Volver
+          </button>
+          <button id="cancel-modal-confirm" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-colors">
+            Confirmar cancelación
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {/* Modal de devolución */}
+    <div id="return-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6">
+        <div class="text-center mb-6">
+          <div class="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-2">Solicitar Devolución</h3>
+        </div>
+
+        <div class="space-y-4 mb-6">
+          <div class="bg-gray-50 rounded-lg p-4">
+            <h4 class="font-bold text-gray-900 mb-2 flex items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+              Instrucciones de envío
+            </h4>
+            <p class="text-gray-600 text-sm">
+              Envía los artículos en su embalaje original a:<br/>
+              <strong class="text-gray-900">Calle de la Moda 123, Polígono Industrial, 28001 Madrid</strong>
+            </p>
+          </div>
+
+          <div class="bg-blue-50 rounded-lg p-4">
+            <h4 class="font-bold text-blue-900 mb-2 flex items-center gap-2">
+              📧 Confirmación por email
+            </h4>
+            <p class="text-blue-800 text-sm">
+              Hemos enviado un correo con la etiqueta de devolución a tu email registrado.
+            </p>
+          </div>
+
+          <div class="bg-green-50 rounded-lg p-4">
+            <h4 class="font-bold text-green-900 mb-2 flex items-center gap-2">
+              💰 Reembolso
+            </h4>
+            <p class="text-green-800 text-sm">
+              El reembolso se realizará en <strong>5-7 días hábiles</strong> tras la validación de los artículos devueltos.
+            </p>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Motivo de la devolución (opcional)</label>
+          <textarea id="return-reason" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Cuéntanos por qué deseas devolver el pedido..."></textarea>
+        </div>
+
+        <div class="flex gap-3">
+          <button id="return-modal-close" class="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-900 rounded-lg font-bold hover:bg-gray-50 transition-colors">
+            Cancelar
+          </button>
+          <button id="return-modal-confirm" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors">
+            Confirmar devolución
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {/* Modal de éxito */}
+    <div id="success-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-center">
+        <div class="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+          <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+        <h3 id="success-title" class="text-xl font-bold text-gray-900 mb-2">¡Operación completada!</h3>
+        <p id="success-message" class="text-gray-600 mb-6"></p>
+        <button id="success-modal-close" class="w-full px-4 py-2 bg-[#00aa45] text-white rounded-lg font-bold hover:bg-green-700 transition-colors">
+          Entendido
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    import { getCurrentUser } from "@/lib/auth";
+    import { supabase } from "@/lib/supabase";
+
+    let currentOrderId: string | null = null;
+    let allOrders: any[] = [];
+
+    async function loadOrders() {
+      try {
+        const user = await getCurrentUser();
+        if (!user) {
+          window.location.href = "/login?from=mis-pedidos";
+          return;
+        }
+
+        const { data: orders, error } = await supabase
+          .from("ordenes")
+          .select(`
+            *,
+            items_orden (
+              id,
+              producto_id,
+              producto_nombre,
+              producto_imagen,
+              cantidad,
+              precio_unitario,
+              talla,
+              color
+            )
+          `)
+          .eq("usuario_id", user.id)
+          .order("fecha_creacion", { ascending: false });
+
+        if (error) throw error;
+
+        allOrders = orders || [];
+        displayOrders(allOrders);
+      } catch (error) {
+        console.error("Error loading orders:", error);
+        document.getElementById("orders-container")!.innerHTML = `
+          <div class="bg-white rounded-xl shadow-lg p-8 text-center">
+            <p class="text-red-600 font-semibold">Error al cargar los pedidos</p>
+            <a href="/" class="text-[#00aa45] hover:underline mt-2 inline-block">Volver al inicio</a>
+          </div>
+        `;
+      }
+    }
+
+    function displayOrders(orders: any[]) {
+      const container = document.getElementById("orders-container");
+
+      if (orders.length === 0) {
+        container!.innerHTML = `
+          <div class="bg-white rounded-xl shadow-lg p-8 text-center">
+            <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m0 0l8 4m-8-4v10l8 4m0-10l8 4m-8-4v10l8-4m-8 4v10"></path>
+            </svg>
+            <p class="text-gray-600 font-semibold">No tienes pedidos aún</p>
+            <a href="/" class="text-[#00aa45] hover:underline mt-2 inline-block">Ver productos</a>
+          </div>
+        `;
+        return;
+      }
+
+      container!.innerHTML = orders.map((order: any) => `
+        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 hover:shadow-2xl transition">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 pb-4 border-b-2 border-gray-100">
+            <div>
+              <p class="text-xs text-gray-500 font-bold uppercase tracking-wide">Número de Pedido</p>
+              <p class="text-lg font-black text-gray-900 mt-1">${order.numero_orden || '#' + order.id.slice(0, 8).toUpperCase()}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500 font-bold uppercase tracking-wide">Fecha</p>
+              <p class="text-sm font-bold text-gray-900 mt-1">${new Date(order.fecha_creacion).toLocaleDateString("es-ES", { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500 font-bold uppercase tracking-wide">Total</p>
+              <p class="text-lg font-black text-[#00aa45] mt-1">${(order.total / 100).toFixed(2)}€</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500 font-bold uppercase tracking-wide">Estado</p>
+              <span class="inline-block px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(order.estado)} mt-1">
+                ${getStatusLabel(order.estado)}
+              </span>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <p class="text-sm font-bold text-gray-700 mb-3">Productos (${order.items_orden?.length || 0})</p>
+            <div class="space-y-2">
+              ${order.items_orden?.map((item: any) => `
+                <div class="flex justify-between items-center text-sm bg-gray-50 p-2 rounded-lg">
+                  <div class="flex items-center gap-3">
+                    <span class="bg-gray-200 px-2 py-0.5 rounded text-xs font-bold">x${item.cantidad}</span>
+                    <span class="text-gray-700">${item.producto_nombre}</span>
+                    ${item.talla ? `<span class="text-gray-500 text-xs">Talla: ${item.talla}</span>` : ''}
+                  </div>
+                  <span class="text-gray-900 font-bold">${((item.cantidad * item.precio_unitario) / 100).toFixed(2)}€</span>
+                </div>
+              `).join("") || '<p class="text-gray-500 text-sm">Sin detalles</p>'}
+            </div>
+          </div>
+
+          <div class="flex gap-3 flex-wrap">
+            ${order.estado === 'Pagado' ? `
+              <button 
+                onclick="openCancelModal('${order.id}')" 
+                class="flex-1 min-w-[140px] border-2 border-red-500 text-red-500 py-2 rounded-lg font-bold hover:bg-red-50 transition text-sm"
+              >
+                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                Cancelar Pedido
+              </button>
+            ` : ''}
+            ${order.estado === 'Entregado' ? `
+              <button 
+                onclick="openReturnModal('${order.id}')" 
+                class="flex-1 min-w-[140px] border-2 border-blue-500 text-blue-500 py-2 rounded-lg font-bold hover:bg-blue-50 transition text-sm"
+              >
+                ↩️ Solicitar Devolución
+              </button>
+            ` : ''}
+            ${order.estado === 'Enviado' ? `
+              <button class="flex-1 min-w-[140px] bg-purple-100 text-purple-700 py-2 rounded-lg font-bold text-sm cursor-default">
+                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+                En camino
+              </button>
+            ` : ''}
+            ${order.estado === 'Cancelado' ? `
+              <span class="flex-1 min-w-[140px] bg-red-100 text-red-700 py-2 rounded-lg font-bold text-sm text-center">
+                Pedido cancelado
+              </span>
+            ` : ''}
+            ${order.estado === 'Devolucion_Solicitada' ? `
+              <span class="flex-1 min-w-[140px] bg-amber-100 text-amber-700 py-2 rounded-lg font-bold text-sm text-center">
+                Devolución en proceso
+              </span>
+            ` : ''}
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function getStatusColor(status: string): string {
+      const colors: Record<string, string> = {
+        Pendiente: "bg-yellow-100 text-yellow-700",
+        Pagado: "bg-blue-100 text-blue-700",
+        Enviado: "bg-purple-100 text-purple-700",
+        Entregado: "bg-green-100 text-green-700",
+        Cancelado: "bg-red-100 text-red-700",
+        Devolucion_Solicitada: "bg-amber-100 text-amber-700",
+      };
+      return colors[status] || "bg-gray-100 text-gray-700";
+    }
+
+    function getStatusLabel(status: string): string {
+      const labels: Record<string, string> = {
+        Pendiente: "Pendiente",
+        Pagado: "Pagado",
+        Enviado: "Enviado",
+        Entregado: "Entregado",
+        Cancelado: "Cancelado",
+        Devolucion_Solicitada: "Devolución solicitada",
+      };
+      return labels[status] || status;
+    }
+
+    // Funciones de modales - Definir en window para que sean accesibles
+    (window as any).openCancelModal = function(orderId: string) {
+      currentOrderId = orderId;
+      document.getElementById("cancel-modal")!.classList.remove("hidden");
+    };
+
+    (window as any).openReturnModal = function(orderId: string) {
+      currentOrderId = orderId;
+      document.getElementById("return-modal")!.classList.remove("hidden");
+    };
+
+    function closeModals() {
+      document.getElementById("cancel-modal")!.classList.add("hidden");
+      document.getElementById("return-modal")!.classList.add("hidden");
+      document.getElementById("success-modal")!.classList.add("hidden");
+      currentOrderId = null;
+    }
+
+    function showSuccess(title: string, message: string) {
+      document.getElementById("success-title")!.textContent = title;
+      document.getElementById("success-message")!.textContent = message;
+      document.getElementById("success-modal")!.classList.remove("hidden");
+    }
+
+    // Cancelar pedido
+    async function cancelOrder() {
+      if (!currentOrderId) return;
+      
+      const confirmBtn = document.getElementById("cancel-modal-confirm") as HTMLButtonElement;
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = "Procesando...";
+
+      try {
+        const response = await fetch("/api/ordenes/cancel", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ordenId: currentOrderId })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          closeModals();
+          showSuccess("Pedido cancelado", "Tu pedido ha sido cancelado correctamente. El reembolso se procesará en 5-7 días hábiles.");
+          loadOrders();
+        } else {
+          alert("Error: " + result.message);
+        }
+      } catch (error) {
+        console.error("Error canceling order:", error);
+        alert("Error al cancelar el pedido");
+      } finally {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = "Confirmar cancelación";
+      }
+    }
+
+    // Solicitar devolución
+    async function requestReturn() {
+      if (!currentOrderId) return;
+      
+      const confirmBtn = document.getElementById("return-modal-confirm") as HTMLButtonElement;
+      const reason = (document.getElementById("return-reason") as HTMLTextAreaElement).value;
+      
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = "Procesando...";
+
+      try {
+        const response = await fetch("/api/ordenes/return", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ordenId: currentOrderId, motivo: reason })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          closeModals();
+          showSuccess(
+            "Devolución solicitada", 
+            `Tu solicitud de devolución ha sido registrada. Número de autorización: ${result.numeroAutorizacion}`
+          );
+          loadOrders();
+        } else {
+          alert("Error: " + result.message);
+        }
+      } catch (error) {
+        console.error("Error requesting return:", error);
+        alert("Error al solicitar la devolución");
+      } finally {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = "Confirmar devolución";
+      }
+    }
+
+    // Event listeners
+    document.getElementById("cancel-modal-close")?.addEventListener("click", closeModals);
+    document.getElementById("return-modal-close")?.addEventListener("click", closeModals);
+    document.getElementById("success-modal-close")?.addEventListener("click", () => {
+      closeModals();
+    });
+    document.getElementById("cancel-modal-confirm")?.addEventListener("click", cancelOrder);
+    document.getElementById("return-modal-confirm")?.addEventListener("click", requestReturn);
+
+    // Filtros
+    document.getElementById("filter-btn")?.addEventListener("click", () => {
+      const status = (document.getElementById("filter-status") as HTMLSelectElement).value;
+      const from = (document.getElementById("filter-from") as HTMLInputElement).value;
+      const to = (document.getElementById("filter-to") as HTMLInputElement).value;
+
+      let filtered = [...allOrders];
+
+      if (status) {
+        filtered = filtered.filter(o => o.estado === status);
+      }
+      if (from) {
+        filtered = filtered.filter(o => new Date(o.fecha_creacion) >= new Date(from));
+      }
+      if (to) {
+        filtered = filtered.filter(o => new Date(o.fecha_creacion) <= new Date(to + "T23:59:59"));
+      }
+
+      displayOrders(filtered);
+    });
+
+    // Cerrar modales con ESC
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeModals();
+    });
+
+    // Cargar pedidos al inicio
+    loadOrders();
+  </script>
+</BaseLayout>

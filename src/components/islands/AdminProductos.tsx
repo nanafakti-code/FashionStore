@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 interface Product {
@@ -26,7 +26,7 @@ interface Brand {
   nombre: string;
 }
 
-const AdminProductos: React.FC = () => {
+const AdminProductos = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -89,7 +89,7 @@ const AdminProductos: React.FC = () => {
           }
         });
         
-        productsWithImages = productsWithImages.map(p => ({
+        productsWithImages = productsWithImages.map((p: any) => ({
           ...p,
           imagen_url: imageMap[p.id] || p.imagen_url
         }));
@@ -127,8 +127,8 @@ const AdminProductos: React.FC = () => {
         nombre: formData.nombre,
         slug: generateSlug(formData.nombre),
         descripcion: formData.descripcion,
-        precio_venta: Math.round((formData.precio_venta || 0) * 100),
-        costo: Math.round((formData.costo || 0) * 100),
+        precio_venta: Math.round((parseFloat(formData.precio_venta as string) || 0) * 100),
+        costo: Math.round((parseFloat(formData.costo as string) || 0) * 100),
         stock_total: formData.stock_total || 0,
         categoria_id: formData.categoria_id || null,
         marca_id: formData.marca_id || null,
@@ -228,8 +228,8 @@ const AdminProductos: React.FC = () => {
     setFormData({
       nombre: '',
       descripcion: '',
-      precio_venta: 0,
-      costo: 0,
+      precio_venta: '' as any,
+      costo: '' as any,
       stock_total: '',
       imagen_url: '',
       categoria_id: '',
@@ -314,7 +314,7 @@ const AdminProductos: React.FC = () => {
             type="text"
             placeholder="Buscar por nombre o SKU..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e: any) => setSearchTerm(e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
           />
         </div>
@@ -329,7 +329,7 @@ const AdminProductos: React.FC = () => {
                   type="text"
                   placeholder="Ej: iPhone 15 Pro Max"
                   value={formData.nombre}
-                  onChange={(e) => setFormData({...formData, nombre: e.target.value})}
+                  onChange={(e: any) => setFormData({...formData, nombre: e.target.value})}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </div>
@@ -337,7 +337,7 @@ const AdminProductos: React.FC = () => {
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Categoría *</label>
                 <select
                   value={formData.categoria_id}
-                  onChange={(e) => setFormData({...formData, categoria_id: e.target.value})}
+                  onChange={(e: any) => setFormData({...formData, categoria_id: e.target.value})}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 >
                   <option value="">Seleccionar Categoría</option>
@@ -350,7 +350,7 @@ const AdminProductos: React.FC = () => {
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Marca *</label>
                 <select
                   value={formData.marca_id}
-                  onChange={(e) => setFormData({...formData, marca_id: e.target.value})}
+                  onChange={(e: any) => setFormData({...formData, marca_id: e.target.value})}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 >
                   <option value="">Seleccionar Marca</option>
@@ -377,7 +377,7 @@ const AdminProductos: React.FC = () => {
                   placeholder="Ej: 1399.99"
                   step="0.01"
                   value={formData.precio_venta}
-                  onChange={(e) => setFormData({...formData, precio_venta: e.target.value ? parseFloat(e.target.value) : ''})}
+                  onChange={(e: any) => setFormData({...formData, precio_venta: e.target.value ? (parseFloat(e.target.value) as any) : ''})}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </div>
@@ -388,7 +388,7 @@ const AdminProductos: React.FC = () => {
                   placeholder="Ej: 900.00"
                   step="0.01"
                   value={formData.costo}
-                  onChange={(e) => setFormData({...formData, costo: e.target.value ? parseFloat(e.target.value) : ''})}
+                  onChange={(e: any) => setFormData({...formData, costo: e.target.value ? (parseFloat(e.target.value) as any) : ''})}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </div>
@@ -398,7 +398,7 @@ const AdminProductos: React.FC = () => {
                   type="number"
                   placeholder="Ej: 50"
                   value={formData.stock_total}
-                  onChange={(e) => setFormData({...formData, stock_total: e.target.value ? parseInt(e.target.value) : ''})}
+                  onChange={(e: any) => setFormData({...formData, stock_total: e.target.value ? (parseInt(e.target.value) as any) : ''})}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </div>
@@ -408,7 +408,7 @@ const AdminProductos: React.FC = () => {
                   type="text"
                   placeholder="https://ejemplo.com/imagen.jpg"
                   value={formData.imagen_url}
-                  onChange={(e) => setFormData({...formData, imagen_url: e.target.value})}
+                  onChange={(e: any) => setFormData({...formData, imagen_url: e.target.value})}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </div>
@@ -418,7 +418,7 @@ const AdminProductos: React.FC = () => {
               <textarea
                 placeholder="Describe el producto en detalle..."
                 value={formData.descripcion}
-                onChange={(e) => setFormData({...formData, descripcion: e.target.value})}
+                onChange={(e: any) => setFormData({...formData, descripcion: e.target.value})}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 mb-4"
                 rows={4}
               />
@@ -494,9 +494,9 @@ const AdminProductos: React.FC = () => {
                       setFormData({
                         nombre: product.nombre,
                         descripcion: product.descripcion || '',
-                        precio_venta: product.precio_venta / 100,
-                        costo: (product.costo || 0) / 100,
-                        stock_total: product.stock_total,
+                        precio_venta: (product.precio_venta / 100) as any,
+                        costo: ((product.costo || 0) / 100) as any,
+                        stock_total: (product.stock_total as any) || '',
                         imagen_url: product.imagen_url || '',
                         categoria_id: product.categoria_id || '',
                         marca_id: product.marca_id || '',
