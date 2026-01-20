@@ -308,9 +308,41 @@ import Header from '@/components/Header.astro';
           guestInfo.classList.remove('hidden');
         }
 
-        // Limpiar carrito
-        localStorage.removeItem('cart');
+        // ============================================================
+        // LIMPIAR CARRITO
+        // ============================================================
+        console.log('Limpiando carrito después del pedido...');
+        
+        // Claves de carrito a limpiar
+        const cartKeys = [
+          'fashionstore_guest_cart',  // Carrito invitado actual
+          'fashionstore_cart',        // Alternativa
+          'cart',                     // Posible clave antigua
+          'guest_cart',               // Otra alternativa
+          'sb-spzvtjybxpaxpnpfxbqv-auth-token' // Sesión (para referencia)
+        ];
+        
+        // Limpiar todas las claves de carrito de localStorage
+        cartKeys.forEach(key => {
+          if (localStorage.getItem(key)) {
+            console.log(`Eliminando: ${key}`);
+            localStorage.removeItem(key);
+          }
+        });
+        
+        // Limpiar sessionStorage también
+        if (typeof sessionStorage !== 'undefined') {
+          cartKeys.forEach(key => {
+            if (sessionStorage.getItem(key)) {
+              console.log(`Eliminando de sessionStorage: ${key}`);
+              sessionStorage.removeItem(key);
+            }
+          });
+        }
+        
+        // Disparar evento para actualizar UI del carrito
         window.dispatchEvent(new Event('cartUpdated'));
+        console.log('✓ Carrito limpiado correctamente');
 
       } catch (error) {
         console.error('Error:', error);
