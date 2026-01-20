@@ -78,7 +78,7 @@ function getTransporter(): Transporter {
 }
 
 // Función base de envío
-async function sendEmail(options: EmailOptions): Promise<boolean> {
+export async function sendEmail(options: EmailOptions): Promise<boolean> {
   try {
     const transport = getTransporter();
     
