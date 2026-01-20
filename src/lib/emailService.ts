@@ -31,6 +31,7 @@ interface OrderData {
   numero_orden: string;
   email: string;
   nombre: string;
+  telefono?: string;
   items: OrderItem[];
   subtotal: number;
   impuestos: number;
@@ -51,6 +52,11 @@ interface EmailOptions {
   subject: string;
   html: string;
   text?: string;
+  attachments?: Array<{
+    filename: string;
+    content: Buffer;
+    contentType: string;
+  }>;
 }
 
 // Crear transporter
@@ -76,15 +82,25 @@ async function sendEmail(options: EmailOptions): Promise<boolean> {
   try {
     const transport = getTransporter();
     
-    await transport.sendMail({
+    const mailOptions: any = {
       from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
       to: options.to,
       subject: options.subject,
       html: options.html,
       text: options.text || '',
-    });
+    };
+
+    // Añadir adjuntos si existen
+    if (options.attachments && options.attachments.length > 0) {
+      mailOptions.attachments = options.attachments;
+    }
+
+    await transport.sendMail(mailOptions);
     
     console.log(`[EMAIL] Enviado a ${options.to}: ${options.subject}`);
+    if (options.attachments) {
+      console.log(`[EMAIL] Adjuntos: ${options.attachments.map(a => a.filename).join(', ')}`);
+    }
     return true;
   } catch (error) {
     console.error('[EMAIL] Error enviando:', error);
@@ -158,12 +174,44 @@ function generateItemsHTML(items: OrderItem[]): string {
   `).join('');
 }
 
-// ============================================================
-// 1. EMAIL DE CONFIRMACIÓN DE COMPRA (CLIENTE)
-// ============================================================
+/**
+ * 1. EMAIL DE CONFIRMACIÓN DE COMPRA (CLIENTE)
+ */
 
 export async function sendOrderConfirmationEmail(order: OrderData): Promise<boolean> {
-  const html = `
+  try {
+    // Importar el servicio de factura
+    const { generateInvoicePDF } = await import('./invoiceService');
+
+    // Generar PDF de factura
+    let pdfBuffer: Buffer | undefined;
+    try {
+      pdfBuffer = await generateInvoicePDF({
+        numero_orden: order.numero_orden,
+        fecha: new Date().toISOString(),
+        nombre_cliente: order.nombre,
+        email_cliente: order.email,
+        telefono_cliente: order.telefono || undefined,
+        direccion: order.direccion,
+        items: order.items.map(item => ({
+          nombre: item.nombre,
+          cantidad: item.cantidad,
+          precio_unitario: item.precio_unitario,
+          talla: item.talla,
+          color: item.color,
+        })),
+        subtotal: order.subtotal,
+        descuento: order.descuento,
+        impuestos: order.impuestos,
+        total: order.total,
+      });
+      console.log('[EMAIL] PDF de factura generado correctamente');
+    } catch (pdfError) {
+      console.error('[EMAIL] Error generando PDF:', pdfError);
+      // Continuar sin PDF si hay error
+    }
+
+    const html = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -280,11 +328,25 @@ export async function sendOrderConfirmationEmail(order: OrderData): Promise<bool
 </html>
   `;
 
-  return sendEmail({
-    to: order.email,
-    subject: `Pedido confirmado: ${order.numero_orden}`,
-    html,
-  });
+    // Enviar email con PDF adjunto
+    return sendEmail({
+      to: order.email,
+      subject: `Pedido confirmado: ${order.numero_orden}`,
+      html,
+      attachments: pdfBuffer
+        ? [
+            {
+              filename: `Factura_${order.numero_orden}.pdf`,
+              content: pdfBuffer,
+              contentType: 'application/pdf',
+            },
+          ]
+        : undefined,
+    });
+  } catch (error) {
+    console.error('[EMAIL] Error en sendOrderConfirmationEmail:', error);
+    return false;
+  }
 }
 
 // ============================================================
