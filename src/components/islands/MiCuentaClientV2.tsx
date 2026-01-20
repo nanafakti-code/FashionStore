@@ -53,6 +53,23 @@ interface Order {
   items?: OrderItem[];
 }
 
+interface Direccion {
+  id: string;
+  usuario_id: string;
+  tipo: 'Envío' | 'Facturación' | 'Ambas';
+  nombre_destinatario: string;
+  calle: string;
+  numero: string;
+  piso?: string;
+  codigo_postal: string;
+  ciudad: string;
+  provincia: string;
+  pais: string;
+  es_predeterminada: boolean;
+  creada_en?: string;
+  actualizada_en?: string;
+}
+
 // ============================================================
 // COMPONENTE PRINCIPAL
 // ============================================================
@@ -60,12 +77,33 @@ interface Order {
 export default function MiCuentaClientV2() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [direcciones, setDirecciones] = useState<Direccion[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState("perfil");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showReturnModal, setShowReturnModal] = useState(false);
   const [returnReason, setReturnReason] = useState("");
   const [returnSubmitting, setReturnSubmitting] = useState(false);
+  
+  // Estado para formulario de direcciones
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<Direccion | null>(null);
+  const [addressFormData, setAddressFormData] = useState<Partial<Direccion>>({
+    tipo: 'Envío',
+    nombre_destinatario: '',
+    calle: '',
+    numero: '',
+    piso: '',
+    codigo_postal: '',
+    ciudad: '',
+    provincia: '',
+    pais: 'España',
+    es_predeterminada: false
+  });
+  const [addressMessage, setAddressMessage] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   const [profileMessage, setProfileMessage] = useState<{
     type: "success" | "error";
@@ -151,6 +189,19 @@ export default function MiCuentaClientV2() {
         console.error("Error loading orders:", ordersError);
       } else {
         setOrders((ordersData as Order[]) || []);
+      }
+
+      // Load addresses from direcciones table
+      const { data: addressesData, error: addressesError } = await supabase
+        .from("direcciones")
+        .select("*")
+        .eq("usuario_id", user.id)
+        .order("es_predeterminada", { ascending: false });
+
+      if (addressesError) {
+        console.error("Error loading addresses:", addressesError);
+      } else {
+        setDirecciones((addressesData as Direccion[]) || []);
       }
     } catch (error) {
       console.error("Error loading user data:", error);
@@ -339,6 +390,205 @@ export default function MiCuentaClientV2() {
   };
 
   // ============================================================
+  // DIRECCIONES CRUD
+  // ============================================================
+
+  const resetAddressForm = () => {
+    setAddressFormData({
+      tipo: 'Envío',
+      nombre_destinatario: '',
+      calle: '',
+      numero: '',
+      piso: '',
+      codigo_postal: '',
+      ciudad: '',
+      provincia: '',
+      pais: 'España',
+      es_predeterminada: false
+    });
+    setEditingAddress(null);
+    setShowAddressForm(false);
+  };
+
+  const handleEditAddress = (address: Direccion) => {
+    setEditingAddress(address);
+    setAddressFormData({
+      tipo: address.tipo,
+      nombre_destinatario: address.nombre_destinatario,
+      calle: address.calle,
+      numero: address.numero,
+      piso: address.piso || '',
+      codigo_postal: address.codigo_postal,
+      ciudad: address.ciudad,
+      provincia: address.provincia,
+      pais: address.pais,
+      es_predeterminada: address.es_predeterminada
+    });
+    setShowAddressForm(true);
+  };
+
+  const handleSaveAddress = async () => {
+    if (!userData) return;
+
+    // Validar campos requeridos
+    if (!addressFormData.nombre_destinatario || !addressFormData.calle || 
+        !addressFormData.numero || !addressFormData.codigo_postal || 
+        !addressFormData.ciudad || !addressFormData.provincia) {
+      setAddressMessage({
+        type: "error",
+        message: "Por favor, completa todos los campos obligatorios."
+      });
+      return;
+    }
+
+    try {
+      // Si es predeterminada, quitar la marca de las demás
+      if (addressFormData.es_predeterminada) {
+        await supabase
+          .from("direcciones")
+          .update({ es_predeterminada: false })
+          .eq("usuario_id", userData.id);
+      }
+
+      if (editingAddress) {
+        // Actualizar dirección existente
+        const { error } = await supabase
+          .from("direcciones")
+          .update({
+            tipo: addressFormData.tipo,
+            nombre_destinatario: addressFormData.nombre_destinatario,
+            calle: addressFormData.calle,
+            numero: addressFormData.numero,
+            piso: addressFormData.piso || null,
+            codigo_postal: addressFormData.codigo_postal,
+            ciudad: addressFormData.ciudad,
+            provincia: addressFormData.provincia,
+            pais: addressFormData.pais,
+            es_predeterminada: addressFormData.es_predeterminada,
+            actualizada_en: new Date().toISOString()
+          })
+          .eq("id", editingAddress.id);
+
+        if (error) throw error;
+
+        setAddressMessage({
+          type: "success",
+          message: "Dirección actualizada correctamente."
+        });
+      } else {
+        // Crear nueva dirección
+        const { error } = await supabase
+          .from("direcciones")
+          .insert({
+            usuario_id: userData.id,
+            tipo: addressFormData.tipo,
+            nombre_destinatario: addressFormData.nombre_destinatario,
+            calle: addressFormData.calle,
+            numero: addressFormData.numero,
+            piso: addressFormData.piso || null,
+            codigo_postal: addressFormData.codigo_postal,
+            ciudad: addressFormData.ciudad,
+            provincia: addressFormData.provincia,
+            pais: addressFormData.pais,
+            es_predeterminada: addressFormData.es_predeterminada
+          });
+
+        if (error) throw error;
+
+        setAddressMessage({
+          type: "success",
+          message: "Dirección guardada correctamente."
+        });
+      }
+
+      // Recargar direcciones
+      const { data: addressesData } = await supabase
+        .from("direcciones")
+        .select("*")
+        .eq("usuario_id", userData.id)
+        .order("es_predeterminada", { ascending: false });
+
+      setDirecciones((addressesData as Direccion[]) || []);
+      resetAddressForm();
+
+      // Limpiar mensaje después de 3 segundos
+      setTimeout(() => setAddressMessage(null), 3000);
+    } catch (error: any) {
+      console.error("Error saving address:", error);
+      setAddressMessage({
+        type: "error",
+        message: error.message || "Error al guardar la dirección."
+      });
+    }
+  };
+
+  const handleDeleteAddress = async (addressId: string) => {
+    if (!confirm("¿Estás seguro de que quieres eliminar esta dirección?")) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("direcciones")
+        .delete()
+        .eq("id", addressId);
+
+      if (error) throw error;
+
+      setDirecciones(direcciones.filter(d => d.id !== addressId));
+      setAddressMessage({
+        type: "success",
+        message: "Dirección eliminada correctamente."
+      });
+
+      setTimeout(() => setAddressMessage(null), 3000);
+    } catch (error: any) {
+      console.error("Error deleting address:", error);
+      setAddressMessage({
+        type: "error",
+        message: error.message || "Error al eliminar la dirección."
+      });
+    }
+  };
+
+  const handleSetDefaultAddress = async (addressId: string) => {
+    if (!userData) return;
+
+    try {
+      // Quitar predeterminada de todas
+      await supabase
+        .from("direcciones")
+        .update({ es_predeterminada: false })
+        .eq("usuario_id", userData.id);
+
+      // Marcar la seleccionada como predeterminada
+      await supabase
+        .from("direcciones")
+        .update({ es_predeterminada: true })
+        .eq("id", addressId);
+
+      // Actualizar estado local
+      setDirecciones(direcciones.map(d => ({
+        ...d,
+        es_predeterminada: d.id === addressId
+      })));
+
+      setAddressMessage({
+        type: "success",
+        message: "Dirección predeterminada actualizada."
+      });
+
+      setTimeout(() => setAddressMessage(null), 3000);
+    } catch (error: any) {
+      console.error("Error setting default address:", error);
+      setAddressMessage({
+        type: "error",
+        message: error.message || "Error al actualizar la dirección."
+      });
+    }
+  };
+
+  // ============================================================
   // HELPERS
   // ============================================================
 
@@ -506,6 +756,32 @@ export default function MiCuentaClientV2() {
                 ></path>
               </svg>
               Cambiar Contrasena
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveSection("direcciones");
+                setSelectedOrder(null);
+              }}
+              className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition flex items-center gap-2 ${
+                activeSection === "direcciones"
+                  ? "bg-[#f0fff6] text-[#00aa45] border-l-4 border-[#00aa45]"
+                  : "text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                  clipRule="evenodd"
+                ></path>
+              </svg>
+              Mis Direcciones
+              {direcciones.length > 0 && (
+                <span className="ml-auto bg-[#00aa45] text-white text-xs px-2 py-0.5 rounded-full">
+                  {direcciones.length}
+                </span>
+              )}
             </button>
 
             <button
@@ -953,6 +1229,326 @@ export default function MiCuentaClientV2() {
                 Cambiar Contrasena
               </button>
             </form>
+          </div>
+        )}
+
+        {/* ============================================================ */}
+        {/* MIS DIRECCIONES */}
+        {/* ============================================================ */}
+        {activeSection === "direcciones" && (
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+            <h2 className="text-2xl font-black text-gray-900 mb-8 flex items-center gap-3 pb-4 border-b-2 border-gray-100">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00aa45] to-[#008a35] flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                    clipRule="evenodd"
+                  ></path>
+                </svg>
+              </div>
+              Mis Direcciones
+            </h2>
+
+            {addressMessage && (
+              <div
+                className={`text-sm p-4 rounded-xl border-l-4 flex items-center gap-3 mb-6 ${
+                  addressMessage.type === "success"
+                    ? "bg-green-50 text-green-600 border-green-500"
+                    : "bg-red-50 text-red-600 border-red-500"
+                }`}
+              >
+                <span>{addressMessage.message}</span>
+              </div>
+            )}
+
+            {/* Botón para añadir nueva dirección */}
+            {!showAddressForm && (
+              <button
+                onClick={() => {
+                  resetAddressForm();
+                  setShowAddressForm(true);
+                }}
+                className="mb-6 bg-gradient-to-r from-[#00aa45] to-[#009340] text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg transition duration-200 flex items-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Añadir Nueva Dirección
+              </button>
+            )}
+
+            {/* Formulario de dirección */}
+            {showAddressForm && (
+              <div className="bg-gray-50 rounded-xl p-6 mb-6 border border-gray-200">
+                <h3 className="text-lg font-bold text-gray-900 mb-4">
+                  {editingAddress ? "Editar Dirección" : "Nueva Dirección"}
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Nombre del destinatario *
+                    </label>
+                    <input
+                      type="text"
+                      value={addressFormData.nombre_destinatario || ''}
+                      onInput={(e) => setAddressFormData({
+                        ...addressFormData,
+                        nombre_destinatario: (e.target as HTMLInputElement).value
+                      })}
+                      placeholder="Nombre completo"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Tipo de dirección
+                    </label>
+                    <select
+                      value={addressFormData.tipo || 'Envío'}
+                      onChange={(e) => setAddressFormData({
+                        ...addressFormData,
+                        tipo: (e.target as HTMLSelectElement).value as 'Envío' | 'Facturación' | 'Ambas'
+                      })}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
+                    >
+                      <option value="Envío">Envío</option>
+                      <option value="Facturación">Facturación</option>
+                      <option value="Ambas">Ambas</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Calle *
+                    </label>
+                    <input
+                      type="text"
+                      value={addressFormData.calle || ''}
+                      onInput={(e) => setAddressFormData({
+                        ...addressFormData,
+                        calle: (e.target as HTMLInputElement).value
+                      })}
+                      placeholder="Nombre de la calle"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Número *
+                    </label>
+                    <input
+                      type="text"
+                      value={addressFormData.numero || ''}
+                      onInput={(e) => setAddressFormData({
+                        ...addressFormData,
+                        numero: (e.target as HTMLInputElement).value
+                      })}
+                      placeholder="Número"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Piso / Puerta (opcional)
+                    </label>
+                    <input
+                      type="text"
+                      value={addressFormData.piso || ''}
+                      onInput={(e) => setAddressFormData({
+                        ...addressFormData,
+                        piso: (e.target as HTMLInputElement).value
+                      })}
+                      placeholder="Ej: 2º A"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Código Postal *
+                    </label>
+                    <input
+                      type="text"
+                      value={addressFormData.codigo_postal || ''}
+                      onInput={(e) => setAddressFormData({
+                        ...addressFormData,
+                        codigo_postal: (e.target as HTMLInputElement).value
+                      })}
+                      placeholder="Código postal"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Ciudad *
+                    </label>
+                    <input
+                      type="text"
+                      value={addressFormData.ciudad || ''}
+                      onInput={(e) => setAddressFormData({
+                        ...addressFormData,
+                        ciudad: (e.target as HTMLInputElement).value
+                      })}
+                      placeholder="Ciudad"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Provincia *
+                    </label>
+                    <input
+                      type="text"
+                      value={addressFormData.provincia || ''}
+                      onInput={(e) => setAddressFormData({
+                        ...addressFormData,
+                        provincia: (e.target as HTMLInputElement).value
+                      })}
+                      placeholder="Provincia"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      País
+                    </label>
+                    <input
+                      type="text"
+                      value={addressFormData.pais || 'España'}
+                      onInput={(e) => setAddressFormData({
+                        ...addressFormData,
+                        pais: (e.target as HTMLInputElement).value
+                      })}
+                      placeholder="País"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={addressFormData.es_predeterminada || false}
+                        onChange={(e) => setAddressFormData({
+                          ...addressFormData,
+                          es_predeterminada: (e.target as HTMLInputElement).checked
+                        })}
+                        className="w-5 h-5 text-[#00aa45] border-gray-300 rounded focus:ring-[#00aa45]"
+                      />
+                      <span className="text-sm font-medium text-gray-700">
+                        Usar como dirección predeterminada
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 mt-6">
+                  <button
+                    onClick={resetAddressForm}
+                    className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleSaveAddress}
+                    className="flex-1 bg-gradient-to-r from-[#00aa45] to-[#009340] text-white py-3 rounded-xl font-bold hover:shadow-lg transition duration-200"
+                  >
+                    {editingAddress ? "Actualizar" : "Guardar"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Lista de direcciones */}
+            {direcciones.length === 0 && !showAddressForm ? (
+              <div className="text-center py-12 text-gray-500">
+                <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                <p className="text-lg font-medium">No tienes direcciones guardadas</p>
+                <p className="text-sm mt-1">Añade una dirección para agilizar tus compras</p>
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {direcciones.map((direccion) => (
+                  <div
+                    key={direccion.id}
+                    className={`border rounded-xl p-5 transition ${
+                      direccion.es_predeterminada
+                        ? "border-[#00aa45] bg-green-50"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="font-bold text-gray-900">
+                            {direccion.nombre_destinatario}
+                          </span>
+                          <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">
+                            {direccion.tipo}
+                          </span>
+                          {direccion.es_predeterminada && (
+                            <span className="text-xs px-2 py-1 rounded-full bg-[#00aa45] text-white">
+                              Predeterminada
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-gray-600 text-sm">
+                          {direccion.calle}, {direccion.numero}
+                          {direccion.piso && `, ${direccion.piso}`}
+                        </p>
+                        <p className="text-gray-600 text-sm">
+                          {direccion.codigo_postal} {direccion.ciudad}, {direccion.provincia}
+                        </p>
+                        <p className="text-gray-600 text-sm">{direccion.pais}</p>
+                      </div>
+
+                      <div className="flex gap-2">
+                        {!direccion.es_predeterminada && (
+                          <button
+                            onClick={() => handleSetDefaultAddress(direccion.id)}
+                            className="text-gray-400 hover:text-[#00aa45] p-2 rounded-lg hover:bg-gray-100 transition"
+                            title="Establecer como predeterminada"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                            </svg>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleEditAddress(direccion)}
+                          className="text-gray-400 hover:text-blue-500 p-2 rounded-lg hover:bg-gray-100 transition"
+                          title="Editar"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteAddress(direccion.id)}
+                          className="text-gray-400 hover:text-red-500 p-2 rounded-lg hover:bg-gray-100 transition"
+                          title="Eliminar"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

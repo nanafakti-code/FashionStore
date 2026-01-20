@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getCartForCurrentUser, updateCartItemQuantity, removeFromCart, clearCart } from '@/lib/cartService';
+import { getCartForCurrentUser, updateCartItemQuantity, removeFromCart, clearCart, cleanupExpiredGuestCartItems } from '@/lib/cartService';
 import { cleanupExpiredReservations } from '@/lib/reservationService';
 import type { CartItem } from '@/lib/cartService';
 import CouponInput from './CouponInput';
@@ -48,25 +48,34 @@ export default function Cart() {
       setCartItems(prev => {
         const updated = prev.map(item => ({
           ...item,
-          expires_in_seconds: Math.max(0, (item.expires_in_seconds || 0) - 1)
+          expires_in_seconds: item.expires_in_seconds !== undefined && item.expires_in_seconds > 0 
+            ? item.expires_in_seconds - 1 
+            : item.expires_in_seconds
         }));
         
-        // Verificar items expirados
-        const expiredItems = updated.filter(item => item.expires_in_seconds === 0 && item.expires_in_seconds !== undefined);
+        // Verificar items expirados (expires_in_seconds llegó a 0)
+        const expiredItems = updated.filter(item => 
+          item.expires_in_seconds !== undefined && item.expires_in_seconds <= 0
+        );
+        
         if (expiredItems.length > 0) {
-          // Eliminar items expirados
+          console.log(`[Cart] Items expirados detectados:`, expiredItems.map(i => i.id));
+          // Eliminar items expirados del carrito
           expiredItems.forEach(item => {
             removeItem(item.id);
           });
+          // Recargar carrito después de eliminar
+          loadCart();
         }
         
         return updated;
       });
     }, 1000);
 
-    // Limpiar reservas expiradas cada 30 segundos
+    // Limpiar reservas expiradas y carrito invitado cada 30 segundos
     const cleanupInterval = setInterval(() => {
       cleanupExpiredReservations();
+      cleanupExpiredGuestCartItems(); // Limpiar items expirados del carrito invitado
     }, 30000);
 
     return () => {
@@ -82,6 +91,9 @@ export default function Cart() {
     setIsLoading(true);
     setError(null);
     try {
+      // Limpiar items expirados del carrito invitado antes de cargar
+      cleanupExpiredGuestCartItems();
+      
       const cart = await getCartForCurrentUser();
       
       // Validar que cart es un array

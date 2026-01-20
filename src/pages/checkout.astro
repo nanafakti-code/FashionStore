@@ -1,6 +1,7 @@
 ---
 import Layout from '@/layouts/Layout.astro';
 import Header from '@/components/Header.astro';
+import CheckoutAddressSelector from '@/components/islands/CheckoutAddressSelector';
 ---
 
 <Layout title="Checkout - FashionStore">
@@ -48,22 +49,22 @@ import Header from '@/components/Header.astro';
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Nombre *</label>
-                    <input type="text" placeholder="Tu nombre" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                    <input type="text" id="input-nombre" placeholder="Tu nombre" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Apellidos *</label>
-                    <input type="text" placeholder="Tus apellidos" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                    <input type="text" id="input-apellidos" placeholder="Tus apellidos" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
                   </div>
                 </div>
 
                 <div class="mt-4">
                   <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
-                  <input type="email" placeholder="tu@correo.com" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                  <input type="email" id="input-email" placeholder="tu@correo.com" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
                 </div>
 
                 <div class="mt-4">
                   <label class="block text-sm font-medium text-gray-700 mb-2">Teléfono *</label>
-                  <input type="tel" placeholder="Tu teléfono" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                  <input type="tel" id="input-telefono" placeholder="Tu teléfono" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
                 </div>
               </div>
 
@@ -71,31 +72,49 @@ import Header from '@/components/Header.astro';
               <div class="bg-white p-6 rounded-lg shadow">
                 <h2 class="text-2xl font-bold mb-4">Dirección de Entrega</h2>
                 
+                <!-- Selector de direcciones guardadas -->
+                <CheckoutAddressSelector client:load />
+                
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Calle y número *</label>
-                  <input type="text" placeholder="Calle y número" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Calle *</label>
+                  <input type="text" id="input-calle" placeholder="Calle y número" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Número *</label>
+                    <input type="text" id="input-numero" placeholder="Número" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Piso / Puerta</label>
+                    <input type="text" id="input-piso" placeholder="Ej: 2º A" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Código Postal *</label>
+                    <input type="text" id="input-cp" placeholder="Código Postal" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                  </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Ciudad *</label>
-                    <input type="text" placeholder="Ciudad" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                    <input type="text" id="input-ciudad" placeholder="Ciudad" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Código Postal *</label>
-                    <input type="text" placeholder="Código Postal" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Provincia *</label>
+                    <input type="text" id="input-provincia" placeholder="Provincia" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
                   </div>
                 </div>
 
                 <div class="mt-4">
                   <label class="block text-sm font-medium text-gray-700 mb-2">País *</label>
-                  <select required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent">
+                  <select id="input-pais" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent">
                     <option value="">Selecciona un país</option>
-                    <option value="ES">España</option>
-                    <option value="FR">Francia</option>
-                    <option value="IT">Italia</option>
-                    <option value="PT">Portugal</option>
-                    <option value="DE">Alemania</option>
+                    <option value="España">España</option>
+                    <option value="Francia">Francia</option>
+                    <option value="Italia">Italia</option>
+                    <option value="Portugal">Portugal</option>
+                    <option value="Alemania">Alemania</option>
                   </select>
                 </div>
               </div>
@@ -279,6 +298,71 @@ import Header from '@/components/Header.astro';
     let cartData = [];
     let currentSession = null;
 
+    // Obtener datos del perfil del usuario autenticado
+    async function getUserProfile(accessToken, userId) {
+      try {
+        console.log('Obteniendo perfil del usuario...');
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/usuarios?id=eq.${userId}&select=*`, {
+          method: 'GET',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          console.error('Error obteniendo perfil:', response.status);
+          return null;
+        }
+
+        const data = await response.json();
+        console.log('Perfil del usuario:', data);
+        return data && data.length > 0 ? data[0] : null;
+      } catch (error) {
+        console.error('Error obteniendo perfil:', error);
+        return null;
+      }
+    }
+
+    // Auto-rellenar formulario con datos del usuario
+    function fillFormWithUserData(profile, email) {
+      console.log('Rellenando formulario con datos del usuario...');
+      
+      // Email del usuario autenticado
+      const inputEmail = document.getElementById('input-email');
+      if (inputEmail && email) {
+        inputEmail.value = email;
+      }
+      
+      if (!profile) {
+        console.log('No hay perfil, solo se rellena el email');
+        return;
+      }
+
+      // Datos personales
+      const inputNombre = document.getElementById('input-nombre');
+      const inputApellidos = document.getElementById('input-apellidos');
+      const inputTelefono = document.getElementById('input-telefono');
+      
+      if (inputNombre && profile.nombre) inputNombre.value = profile.nombre;
+      if (inputApellidos && profile.apellidos) inputApellidos.value = profile.apellidos;
+      if (inputTelefono && profile.telefono) inputTelefono.value = profile.telefono;
+      
+      // Dirección de entrega
+      const inputCalle = document.getElementById('input-calle');
+      const inputCiudad = document.getElementById('input-ciudad');
+      const inputCp = document.getElementById('input-cp');
+      const inputPais = document.getElementById('input-pais');
+      
+      if (inputCalle && profile.direccion) inputCalle.value = profile.direccion;
+      if (inputCiudad && profile.ciudad) inputCiudad.value = profile.ciudad;
+      if (inputCp && profile.codigo_postal) inputCp.value = profile.codigo_postal;
+      if (inputPais && profile.pais) inputPais.value = profile.pais;
+      
+      console.log('✓ Formulario rellenado automáticamente');
+    }
+
     // INICIALIZAR
     async function initCheckout() {
       console.log('=== INICIANDO CHECKOUT ===');
@@ -307,6 +391,16 @@ import Header from '@/components/Header.astro';
             </svg>
             <span>Sesión iniciada como: <strong>${currentSession.user.email}</strong></span>
           `;
+          
+          // Auto-rellenar formulario con datos del usuario
+          try {
+            const profile = await getUserProfile(currentSession.access_token, currentSession.user.id);
+            fillFormWithUserData(profile, currentSession.user.email);
+          } catch (error) {
+            console.error('Error al cargar perfil para auto-rellenar:', error);
+            // Al menos rellenar el email
+            fillFormWithUserData(null, currentSession.user.email);
+          }
         }
       }
 
@@ -405,18 +499,15 @@ import Header from '@/components/Header.astro';
           payButton.textContent = 'Procesando...';
 
           try {
-            const formInputs = document.querySelectorAll('#checkout-form input, #checkout-form select');
-            const nombre = formInputs[0]?.value.trim();
-            const apellidos = formInputs[1]?.value.trim();
-            const emailInput = document.querySelector('#checkout-form input[type="email"]');
-            const email = emailInput?.value.trim();
-            const telefonoInput = document.querySelector('#checkout-form input[type="tel"]');
-            const telefono = telefonoInput?.value.trim();
-            const calle = formInputs[4]?.value.trim();
-            const ciudad = formInputs[5]?.value.trim();
-            const codigoPostal = formInputs[6]?.value.trim();
-            const paisSelect = document.querySelector('#checkout-form select');
-            const pais = paisSelect?.value;
+            // Leer valores del formulario usando los IDs
+            const nombre = document.getElementById('input-nombre')?.value.trim();
+            const apellidos = document.getElementById('input-apellidos')?.value.trim();
+            const email = document.getElementById('input-email')?.value.trim();
+            const telefono = document.getElementById('input-telefono')?.value.trim();
+            const calle = document.getElementById('input-calle')?.value.trim();
+            const ciudad = document.getElementById('input-ciudad')?.value.trim();
+            const codigoPostal = document.getElementById('input-cp')?.value.trim();
+            const pais = document.getElementById('input-pais')?.value;
 
             const items = cartData.map(item => ({
               producto_id: item.product_id || item.id,

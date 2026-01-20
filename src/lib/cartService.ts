@@ -43,6 +43,7 @@ export interface GuestCartItem {
   color?: string;
   precio_unitario: number;
   product_image?: string;
+  created_at?: number; // Timestamp de creación (para expiración en 10 min)
 }
 
 // =====================================================
@@ -162,11 +163,51 @@ function saveGuestCart(items: GuestCartItem[]): void {
 }
 
 /**
- * Limpia localStorage del carrito invitado
+ * Limpia localStorage y sessionStorage del carrito invitado
  */
 function clearGuestCartStorage(): void {
   if (!LOCAL_STORAGE_AVAILABLE) return;
+  console.log('[clearGuestCartStorage] Limpiando carrito invitado de localStorage y sessionStorage');
   localStorage.removeItem(GUEST_CART_KEY);
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.removeItem(GUEST_CART_KEY);
+  }
+  // Disparar evento para actualizar UI
+  window.dispatchEvent(new Event('guestCartUpdated'));
+}
+
+/**
+ * Limpia items expirados del carrito invitado (10 minutos = 600000 ms)
+ */
+export function cleanupExpiredGuestCartItems(): void {
+  if (!LOCAL_STORAGE_AVAILABLE) return;
+  
+  try {
+    const cart = getGuestCart();
+    const now = Date.now();
+    const EXPIRATION_TIME = 10 * 60 * 1000; // 10 minutos en milisegundos
+    
+    // Filtrar items no expirados
+    const activeItems = cart.filter(item => {
+      const createdAt = item.created_at || now; // Si no tiene fecha, es reciente
+      const expiresAt = createdAt + EXPIRATION_TIME;
+      const isExpired = now > expiresAt;
+      
+      if (isExpired) {
+        console.log(`Item expirado eliminado: ${item.product_id} (creado hace ${Math.round((now - createdAt) / 1000)}s)`);
+      }
+      
+      return !isExpired;
+    });
+    
+    // Si hay cambios, guardar el carrito actualizado
+    if (activeItems.length !== cart.length) {
+      console.log(`Limpieza de carrito invitado: ${cart.length} → ${activeItems.length} items`);
+      saveGuestCart(activeItems);
+    }
+  } catch (error) {
+    console.error('Error cleaning up expired guest cart items:', error);
+  }
 }
 
 // =====================================================
@@ -383,11 +424,33 @@ export async function clearAuthenticatedCart(): Promise<boolean> {
 /**
  * Obtiene el carrito invitado del localStorage
  */
-export function getGuestCartItems(): GuestCartItem[] {
+export function getGuestCartItems(): CartItem[] {
   console.log('Obteniendo items del carrito invitado...');
   const items = getGuestCart();
-  console.log(`Se obtuvieron ${items.length} items del carrito invitado`, items);
-  return items;
+  const now = Date.now();
+  const EXPIRATION_TIME = 10 * 60 * 1000; // 10 minutos en milisegundos
+  
+  // Mapear items invitados a CartItem (agregar id sintético y expires_in_seconds)
+  const mappedItems: CartItem[] = items.map(item => {
+    const id = `${item.product_id}_${item.talla || 'sin-talla'}_${item.color || 'sin-color'}`; // ID sintético único
+    const createdAt = item.created_at || now;
+    const expiresAt = createdAt + EXPIRATION_TIME;
+    const expiresInSeconds = Math.max(0, Math.floor((expiresAt - now) / 1000));
+    
+    return {
+      id,
+      product_id: item.product_id,
+      product_name: item.product_name,
+      quantity: item.quantity,
+      talla: item.talla,
+      color: item.color,
+      precio_unitario: item.precio_unitario,
+      product_image: item.product_image,
+      expires_in_seconds: expiresInSeconds, // Tiempo restante igual que usuarios autenticados
+    };
+  });
+  console.log(`Se obtuvieron ${mappedItems.length} items del carrito invitado`, mappedItems);
+  return mappedItems;
 }
 
 /**
@@ -404,6 +467,8 @@ export function addToGuestCart(
 ): boolean {
   try {
     const cart = getGuestCart();
+    console.log(`[addToGuestCart] Agregando: ${productId}, talla: ${talla || 'N/A'}, color: ${color || 'N/A'}`);
+    console.log(`[addToGuestCart] Carrito actual:`, cart);
     
     // Buscar si el producto ya existe con las mismas características
     const existingIndex = cart.findIndex(
@@ -413,14 +478,18 @@ export function addToGuestCart(
         item.color === color
     );
 
+    console.log(`[addToGuestCart] Existe en index: ${existingIndex}`);
+
     if (existingIndex >= 0 && existingIndex < cart.length) {
-      // Actualizar cantidad
+      // Actualizar cantidad (mantener el created_at original)
       const existingItem = cart[existingIndex];
       if (existingItem) {
+        console.log(`[addToGuestCart] Item existe, actualizar cantidad de ${existingItem.quantity} a ${existingItem.quantity + quantity}`);
         existingItem.quantity += quantity;
       }
     } else {
-      // Añadir nuevo item
+      // Añadir nuevo item con timestamp de creación
+      console.log(`[addToGuestCart] Item no existe, añadiendo nuevo`);
       cart.push({
         product_id: productId,
         product_name: productName,
@@ -429,10 +498,12 @@ export function addToGuestCart(
         color,
         precio_unitario: price,
         product_image: image,
+        created_at: Date.now(), // Timestamp para expiración en 10 minutos
       });
     }
 
     saveGuestCart(cart);
+    console.log(`[addToGuestCart] Carrito guardado:`, cart);
     return true;
   } catch (error) {
     console.error('Error adding to guest cart:', error);
@@ -588,7 +659,19 @@ export async function updateCartItem(
   if (user) {
     return updateAuthenticatedCartItem(itemId, quantity);
   } else {
-    return updateGuestCartItem(itemId, quantity, talla, color);
+    // Para carrito invitado, itemId es sintético: "product_id_talla_color"
+    const cart = getGuestCart();
+    const item = cart.find(i => {
+      const id = `${i.product_id}_${i.talla || 'sin-talla'}_${i.color || 'sin-color'}`;
+      return id === itemId;
+    });
+    
+    if (!item) {
+      console.warn(`Item no encontrado para actualizar: ${itemId}`);
+      return false;
+    }
+    
+    return updateGuestCartItem(item.product_id, quantity, item.talla, item.color);
   }
 }
 
@@ -601,8 +684,20 @@ export async function removeFromCart(itemId: string): Promise<boolean> {
   if (user) {
     return removeFromAuthenticatedCart(itemId);
   } else {
-    // Para carrito invitado, itemId es product_id
-    return removeFromGuestCart(itemId);
+    // Para carrito invitado, itemId es sintético: "product_id_talla_color"
+    // Necesitamos extraer los componentes
+    const cart = getGuestCart();
+    const item = cart.find(i => {
+      const id = `${i.product_id}_${i.talla || 'sin-talla'}_${i.color || 'sin-color'}`;
+      return id === itemId;
+    });
+    
+    if (!item) {
+      console.warn(`Item no encontrado en carrito invitado: ${itemId}`);
+      return false;
+    }
+    
+    return removeFromGuestCart(item.product_id, item.talla, item.color);
   }
 }
 
