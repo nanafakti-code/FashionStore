@@ -80,6 +80,13 @@ function getTransporter(): Transporter {
 // Función base de envío
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
   try {
+    console.log('\n[EMAIL] ========== ENVIANDO EMAIL ==========');
+    console.log(`[EMAIL] Para: ${options.to}`);
+    console.log(`[EMAIL] Asunto: ${options.subject}`);
+    console.log(`[EMAIL] SMTP_USER configurado: ${SMTP_USER ? '✓' : '✗'}`);
+    console.log(`[EMAIL] SMTP_PASS configurado: ${SMTP_PASS ? '✓' : '✗'}`);
+    console.log(`[EMAIL] SMTP_PASS longitud: ${SMTP_PASS ? SMTP_PASS.length : 0} caracteres`);
+    
     const transport = getTransporter();
     
     const mailOptions: any = {
@@ -93,17 +100,23 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
     // Añadir adjuntos si existen
     if (options.attachments && options.attachments.length > 0) {
       mailOptions.attachments = options.attachments;
-    }
-
-    await transport.sendMail(mailOptions);
-    
-    console.log(`[EMAIL] Enviado a ${options.to}: ${options.subject}`);
-    if (options.attachments) {
       console.log(`[EMAIL] Adjuntos: ${options.attachments.map(a => a.filename).join(', ')}`);
     }
+
+    console.log('[EMAIL] Intentando enviar...');
+    const info = await transport.sendMail(mailOptions);
+    console.log(`[EMAIL] ✅ Enviado exitosamente`);
+    console.log(`[EMAIL] Response: ${info.response}`);
+    console.log('[EMAIL] ========== FIN ==========\n');
     return true;
   } catch (error) {
-    console.error('[EMAIL] Error enviando:', error);
+    console.error('[EMAIL] ❌ ERROR ENVIANDO EMAIL:');
+    console.error(`[EMAIL] Tipo de error: ${error instanceof Error ? error.name : typeof error}`);
+    console.error(`[EMAIL] Mensaje: ${error instanceof Error ? error.message : String(error)}`);
+    if (error instanceof Error && error.stack) {
+      console.error(`[EMAIL] Stack: ${error.stack}`);
+    }
+    console.error('[EMAIL] ========== FIN ERROR ==========\n');
     return false;
   }
 }
