@@ -75,6 +75,32 @@ export const GET: APIRoute = async (context) => {
       );
     }
 
+    // 4.5 ACTUALIZAR ESTADO A "PAGADO" SI STRIPE CONFIRMA PAGO
+    // (Por si el webhook no se ejecutó aún)
+    if (order.estado !== 'Pagado' && stripeSession.payment_status === 'paid') {
+      console.log(`[ORDER-BY-SESSION] Actualizando estado del pedido a PAGADO...`);
+      
+      const { error: updateError } = await supabase
+        .from('ordenes')
+        .update({
+          estado: 'Pagado',
+          stripe_payment_intent: stripeSession.payment_intent as string,
+          fecha_pago: new Date().toISOString(),
+          actualizado_en: new Date().toISOString(),
+        })
+        .eq('id', orderId);
+
+      if (updateError) {
+        console.error('[ORDER-BY-SESSION] Error actualizando estado:', updateError);
+        // No lanzar error, solo loguear - el pedido ya está pagado en Stripe
+      } else {
+        console.log(`[ORDER-BY-SESSION] ✅ Pedido actualizado a PAGADO: ${order.numero_orden}`);
+        // Actualizar el objeto order con el nuevo estado
+        order.estado = 'Pagado';
+        order.fecha_pago = new Date().toISOString();
+      }
+    }
+
     // 5. Obtener items del pedido
     const { data: items, error: itemsError } = await supabase
       .from('items_orden')
