@@ -31,6 +31,7 @@ const webhookSecret = import.meta.env.STRIPE_WEBHOOK_SECRET || '';
 
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
+const ADMIN_EMAIL = import.meta.env.ADMIN_EMAIL || 'admin@fashionstore.com';
 
 // ============================================================
 // TIPOS
@@ -65,21 +66,31 @@ interface OrderItem {
 
 export const POST: APIRoute = async (context) => {
   try {
+    console.log('\n[WEBHOOK] ================================================');
+    console.log('[WEBHOOK] 🔔 WEBHOOK RECIBIDO');
+    console.log('[WEBHOOK] ================================================\n');
+    
     // ============================================================
     // 1. VALIDAR FIRMA DEL WEBHOOK
     // ============================================================
     const body = await context.request.text();
     const signature = context.request.headers.get('stripe-signature');
 
+    console.log(`[WEBHOOK] Body length: ${body.length} bytes`);
+    console.log(`[WEBHOOK] Signature presente: ${signature ? '✓' : '✗'}`);
+    console.log(`[WEBHOOK] STRIPE_WEBHOOK_SECRET configurado: ${webhookSecret ? '✓' : '✗'}`);
+
     if (!signature) {
-      console.error('[WEBHOOK] No signature provided');
+      console.error('[WEBHOOK] ❌ No signature provided');
       return new Response(JSON.stringify({ error: 'No signature' }), { status: 400 });
     }
 
     let event: Stripe.Event;
     try {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret) as Stripe.Event;
-      console.log(`[WEBHOOK] ✅ Firma validada - Evento: ${event.type} (${event.id})`);
+      console.log(`[WEBHOOK] ✅ Firma validada`);
+      console.log(`[WEBHOOK] Tipo de evento: ${event.type}`);
+      console.log(`[WEBHOOK] ID evento: ${event.id}`);
     } catch (err: any) {
       console.error('[WEBHOOK] ❌ Error validando firma:', err.message);
       return new Response(
@@ -91,27 +102,32 @@ export const POST: APIRoute = async (context) => {
     // ============================================================
     // 2. PROCESAR EVENTOS
     // ============================================================
+    console.log('[WEBHOOK] Procesando evento...\n');
 
     switch (event.type) {
       case 'checkout.session.completed':
+        console.log('[WEBHOOK] 📦 EVENTO: Checkout completado');
         await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
         break;
 
       case 'charge.dispute.created':
+        console.log('[WEBHOOK] ⚠️ EVENTO: Disputa creada');
         await handleChargeDispute(event.data.object as Stripe.Dispute);
         break;
 
       case 'charge.failed':
+        console.log('[WEBHOOK] ❌ EVENTO: Pago fallido');
         await handleChargeFailed(event.data.object as Stripe.Charge);
         break;
 
       default:
-        console.log(`[WEBHOOK] Evento no procesado: ${event.type}`);
+        console.log(`[WEBHOOK] ⏭️ EVENTO NO PROCESADO: ${event.type}`);
     }
 
     // ============================================================
     // 3. RESPONDER A STRIPE
     // ============================================================
+    console.log('[WEBHOOK] ✅ Respondiendo a Stripe con 200 OK\n');
     return new Response(
       JSON.stringify({
         received: true,
@@ -231,7 +247,10 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     }
 
     // ========== ENVIAR EMAIL AL CLIENTE ==========
+    console.log('\n[WEBHOOK] === ENVIANDO EMAILS ===');
     const clientEmail = order.email_cliente;
+    console.log(`[WEBHOOK] Email del cliente: ${clientEmail}`);
+    
     const emailSent = await sendOrderConfirmationEmail({
       numero_orden: order.numero_orden,
       email: clientEmail,
@@ -247,12 +266,14 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     });
 
     if (emailSent) {
-      console.log(`✅ Email de confirmación enviado a: ${clientEmail}`);
+      console.log(`[WEBHOOK] ✅ Email de confirmación enviado a: ${clientEmail}`);
     } else {
-      console.error(`❌ Fallo al enviar email a: ${clientEmail}`);
+      console.error(`[WEBHOOK] ❌ Fallo al enviar email a: ${clientEmail}`);
     }
 
     // ========== ENVIAR NOTIFICACIÓN AL ADMIN ==========
+    console.log(`[WEBHOOK] Email del admin: ${ADMIN_EMAIL}`);
+    
     const adminEmailSent = await sendAdminNotificationEmail({
       type: 'new_order',
       order_number: order.numero_orden,
@@ -263,7 +284,9 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     });
 
     if (adminEmailSent) {
-      console.log(`✅ Notificación enviada al administrador`);
+      console.log(`[WEBHOOK] ✅ Email de admin enviado a: ${ADMIN_EMAIL}`);
+    } else {
+      console.error(`[WEBHOOK] ❌ Fallo al enviar email de admin a: ${ADMIN_EMAIL}`);
     }
 
     console.log(`[WEBHOOK] === ✅ COMPLETADO: ${order.numero_orden} ===\n`);
