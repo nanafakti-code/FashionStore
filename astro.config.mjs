@@ -61,10 +61,6 @@ export default defineConfig({
 
     // Vite configuration
     vite: {
-        server: {
-            middlewareMode: true,
-            allowedHosts: 'all',
-        },
         optimizeDeps: {
             exclude: ['@astrojs/preact'],
         },
