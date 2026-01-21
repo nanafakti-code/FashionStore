@@ -14,77 +14,100 @@ import type { Database } from './database.types';
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
-console.log('🔍 DEBUG Supabase:');
-console.log('  supabaseUrl:', supabaseUrl ? '✅ Presente' : '❌ Faltante');
-console.log('  supabaseAnonKey:', supabaseAnonKey ? '✅ Presente' : '❌ Faltante');
-console.log('  PROD:', import.meta.env.PROD);
-
-// En desarrollo, permitir valores placeholder
+// Log detallado para debugging en producción
 const isProduction = import.meta.env.PROD;
-const isConfigured = supabaseUrl && 
-                     supabaseAnonKey && 
-                     !supabaseUrl.includes('placeholder') &&
-                     !supabaseAnonKey.includes('placeholder');
 
-if (!isConfigured && isProduction) {
-    throw new Error(
-        'Missing Supabase environment variables. Please check your .env file.'
+console.log('=== SUPABASE CONFIG DEBUG ===');
+console.log('Environment:', isProduction ? 'PRODUCTION' : 'DEVELOPMENT');
+console.log('PUBLIC_SUPABASE_URL:', supabaseUrl ? `${supabaseUrl.substring(0, 30)}...` : 'NOT SET');
+console.log('PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? `${supabaseAnonKey.substring(0, 20)}...` : 'NOT SET');
+
+// Validar configuración
+const isConfigured = Boolean(
+    supabaseUrl && 
+    supabaseAnonKey && 
+    supabaseUrl.includes('supabase.co') &&
+    supabaseAnonKey.length > 50
+);
+
+console.log('Supabase configured:', isConfigured);
+console.log('=============================');
+
+if (!isConfigured) {
+    console.error(
+        '❌ SUPABASE NOT CONFIGURED - Variables de entorno faltantes o inválidas.\n' +
+        'Asegúrate de configurar en Coolify:\n' +
+        '  - PUBLIC_SUPABASE_URL\n' +
+        '  - PUBLIC_SUPABASE_ANON_KEY'
     );
 }
-
-console.warn(
-    `⚠️ Supabase ${isConfigured ? 'configurado' : 'NO CONFIGURADO'} - Solo rutas públicas funcionarán`
-);
 
 // =====================================================
 // CLIENTE SUPABASE
 // =====================================================
 
-// Mock client para desarrollo sin Supabase
+// Mock client para desarrollo sin Supabase - DEVUELVE ERROR EN PRODUCCIÓN
 class MockSupabaseClient {
+    private mockError = { message: 'SUPABASE_NOT_CONFIGURED: Variables de entorno no configuradas en Coolify', code: 'ENV_MISSING' };
+    
     from() {
+        const self = this;
         return {
             select: () => ({
                 eq: () => ({
                     eq: () => ({
                         limit: () => ({
-                            data: [],
-                            error: null,
+                            single: () => ({ data: null, error: self.mockError }),
+                            data: null,
+                            error: self.mockError,
                         }),
-                        data: [],
-                        error: null,
+                        single: () => ({ data: null, error: self.mockError }),
+                        data: null,
+                        error: self.mockError,
                     }),
                     limit: () => ({
-                        data: [],
-                        error: null,
+                        single: () => ({ data: null, error: self.mockError }),
+                        data: null,
+                        error: self.mockError,
                     }),
-                    data: [],
-                    error: null,
+                    single: () => ({ data: null, error: self.mockError }),
+                    order: () => ({ data: null, error: self.mockError }),
+                    data: null,
+                    error: self.mockError,
                 }),
                 order: () => ({
-                    data: [],
-                    error: null,
+                    data: null,
+                    error: self.mockError,
                 }),
                 limit: () => ({
-                    data: [],
-                    error: null,
+                    single: () => ({ data: null, error: self.mockError }),
+                    data: null,
+                    error: self.mockError,
                 }),
-                data: [],
-                error: null,
+                single: () => ({ data: null, error: self.mockError }),
+                data: null,
+                error: self.mockError,
             }),
+            insert: () => ({ data: null, error: self.mockError }),
+            update: () => ({ eq: () => ({ data: null, error: self.mockError }) }),
+            delete: () => ({ eq: () => ({ data: null, error: self.mockError }) }),
         };
     }
 
     auth = {
         getUser: async () => ({
             data: { user: null },
-            error: null,
+            error: { message: 'Supabase no configurado' },
+        }),
+        getSession: async () => ({
+            data: { session: null },
+            error: { message: 'Supabase no configurado' },
         }),
         signUp: async () => ({
             data: null,
             error: new Error('Supabase no configurado'),
         }),
-        signIn: async () => ({
+        signInWithPassword: async () => ({
             data: null,
             error: new Error('Supabase no configurado'),
         }),
@@ -92,8 +115,22 @@ class MockSupabaseClient {
             data: null,
             error: null,
         }),
+        onAuthStateChange: () => ({
+            data: { subscription: { unsubscribe: () => {} } },
+        }),
+    };
+
+    storage = {
+        from: () => ({
+            getPublicUrl: () => ({ data: { publicUrl: '' } }),
+            upload: async () => ({ data: null, error: { message: 'Supabase no configurado' } }),
+            remove: async () => ({ data: null, error: { message: 'Supabase no configurado' } }),
+        }),
     };
 }
+
+// Variable para saber si está configurado (exportada para uso externo)
+export const isSupabaseConfigured = isConfigured;
 
 /**
  * Cliente Supabase para uso en cliente (browser)

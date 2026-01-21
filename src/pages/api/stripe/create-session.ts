@@ -207,9 +207,9 @@ export const POST: APIRoute = async (context) => {
       mode: 'payment',
       customer_email: userEmail,
       success_url:
-        `${import.meta.env.PUBLIC_SITE_URL || 'http://localhost:4321'}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+        `${import.meta.env.APP_URL || import.meta.env.PUBLIC_SITE_URL || 'http://localhost:4321'}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url:
-        `${import.meta.env.PUBLIC_SITE_URL || 'http://localhost:4321'}/checkout/cancel`,
+        `${import.meta.env.APP_URL || import.meta.env.PUBLIC_SITE_URL || 'http://localhost:4321'}/checkout/cancel`,
 
       // ⭐ METADATA CRÍTICA ⭐
       metadata: {
@@ -247,13 +247,30 @@ export const POST: APIRoute = async (context) => {
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('[CREATE-SESSION] ❌ Error:', error);
+    console.error('[CREATE-SESSION] ❌ Error completo:', error);
+    
+    // Detectar tipo de error
+    let errorMessage = 'Error al crear la sesión de pago';
+    let errorDetails = 'Unknown error';
+    
+    if (error instanceof Error) {
+      errorDetails = error.message;
+      
+      // Errores específicos de Stripe
+      if (error.message.includes('Invalid API Key')) {
+        errorMessage = 'Error de configuración de Stripe';
+        errorDetails = 'La clave de API de Stripe es inválida';
+      } else if (error.message.includes('No such')) {
+        errorMessage = 'Error de Stripe';
+      }
+    }
+    
     return new Response(
       JSON.stringify({
-        error: 'Error al crear la sesión de pago',
-        details: error instanceof Error ? error.message : 'Unknown error',
+        error: errorMessage,
+        details: errorDetails,
       }),
-      { status: 500 }
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 };

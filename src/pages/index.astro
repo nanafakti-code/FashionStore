@@ -3,30 +3,78 @@ import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import ProductCard from "@/components/ProductCard.astro";
 import HeroImage from "@/components/islands/HeroImage";
-import { supabase } from "@/lib/supabase";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 // ============================================
 // TRAER DATOS DE SUPABASE
 // ============================================
 
-// Obtener productos destacados de la BD
-const { data: productsFromDB, error: productsError } = await supabase
-  .from('productos')
-  .select(`
-    id, 
-    nombre, 
-    slug, 
-    precio_venta, 
-    precio_original, 
-    descripcion, 
-    stock_total, 
-    destacado,
-    categoria_id,
-    imagenes_producto(url)
-  `)
-  .eq('destacado', true)
-  .eq('activo', true)
-  .limit(8);
+// Variables para diagnóstico
+let loadError: string | null = null;
+let productsFromDB: any[] | null = null;
+let productsError: any = null;
+
+console.log('=== INDEX: Iniciando carga de productos ===');
+console.log('Supabase configurado:', isSupabaseConfigured);
+
+try {
+  // Obtener productos destacados de la BD
+  const result = await supabase
+    .from('productos')
+    .select(`
+      id, 
+      nombre, 
+      slug, 
+      precio_venta, 
+      precio_original, 
+      descripcion, 
+      stock_total, 
+      destacado,
+      categoria_id,
+      imagenes_producto(url)
+    `)
+    .eq('destacado', true)
+    .eq('activo', true)
+    .limit(8);
+  
+  productsFromDB = result.data;
+  productsError = result.error;
+
+  // Si no hay productos destacados, obtener los primeros 8 activos
+  if (!productsFromDB || productsFromDB.length === 0) {
+    console.warn('No hay productos destacados, obteniendo productos activos...');
+    const fallbackResult = await supabase
+      .from('productos')
+      .select(`
+        id, 
+        nombre, 
+        slug, 
+        precio_venta, 
+        precio_original, 
+        descripcion, 
+        stock_total, 
+        destacado,
+        categoria_id,
+        imagenes_producto(url)
+      `)
+      .eq('activo', true)
+      .limit(8);
+    
+    productsFromDB = fallbackResult.data;
+    if (fallbackResult.error && !productsError) {
+      productsError = fallbackResult.error;
+    }
+  }
+
+  if (productsError) {
+    loadError = productsError.message || JSON.stringify(productsError);
+    console.error('Error de Supabase:', loadError);
+  }
+
+} catch (err: any) {
+  loadError = err.message || 'Error desconocido al cargar productos';
+  console.error('Excepción al cargar productos:', err);
+}
 
 // Obtener categorías de la BD
 const { data: categoriesFromDB } = await supabase
@@ -57,6 +105,12 @@ await Promise.all(
 // MAPEAR DATOS A FORMATO DE COMPONENTE
 // ============================================
 
+// Mostrar info de depuración
+console.log('=== INDEX: Resultados ===');
+console.log('Productos encontrados:', productsFromDB?.length || 0);
+console.log('Error de carga:', loadError || 'ninguno');
+console.log('Categorías:', categoriesFromDB?.length || 0);
+
 // Mapear productos
 const featuredProducts = (productsFromDB || []).map((product: any) => ({
   id: product.id,
@@ -65,7 +119,7 @@ const featuredProducts = (productsFromDB || []).map((product: any) => ({
   price: product.precio_venta,
   originalPrice: product.precio_original,
   description: product.descripcion,
-  image: product.imagenes_producto?.[0]?.url || 'https://via.placeholder.com/500x700?text=' + product.nombre,
+  image: product.imagenes_producto?.[0]?.url || 'https://via.placeholder.com/500x700?text=' + encodeURIComponent(product.nombre || 'Producto'),
   badge: product.precio_original && product.precio_venta < product.precio_original ? "Oferta" : null,
   badge_color: "bg-[#e2ff7a]",
   condition: "Excelente estado",
@@ -74,12 +128,14 @@ const featuredProducts = (productsFromDB || []).map((product: any) => ({
   stock: product.stock_total,
 }));
 
-// Mapear categorías con imágenes de productos
+// Variable para mostrar error en UI
+const hasError = Boolean(loadError);
+const errorMessage = loadError;
 
-// Fallback si hay error o no hay datos
-if (productsError || !productsFromDB || productsFromDB.length === 0) {
-  console.warn('Error obteniendo productos:', productsError);
-}
+// Log final
+console.log('=== INDEX: Renderizado ===');
+console.log('hasError:', hasError);
+console.log('featuredProducts count:', featuredProducts.length);
 ---
 
 <Layout title="TechStore - Electrónica Reacondicionada">
@@ -246,7 +302,21 @@ if (productsError || !productsFromDB || productsFromDB.length === 0) {
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-4xl sm:text-5xl font-black italic text-gray-900 mb-12">Productos Destacados</h2>
         
-        {featuredProducts.length > 0 ? (
+        {hasError ? (
+          <div class="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
+            <div class="text-red-500 mb-4">
+              <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold text-red-800 mb-2">Error al cargar productos</h3>
+            <p class="text-red-600 mb-4">{errorMessage}</p>
+            <p class="text-sm text-red-500">Revisa la configuración de Supabase en el servidor.</p>
+            <a href="/api/health" target="_blank" class="inline-block mt-4 text-red-700 underline hover:no-underline">
+              Ver diagnóstico del sistema
+            </a>
+          </div>
+        ) : featuredProducts.length > 0 ? (
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {featuredProducts.map((product: any) => (
               <ProductCard 
@@ -266,8 +336,17 @@ if (productsError || !productsFromDB || productsFromDB.length === 0) {
             ))}
           </div>
         ) : (
-          <div class="text-center py-12">
-            <p class="text-gray-600 text-lg">Cargando productos...</p>
+          <div class="text-center py-12 bg-yellow-50 border border-yellow-200 rounded-xl">
+            <div class="text-yellow-500 mb-4">
+              <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold text-yellow-800 mb-2">No hay productos disponibles</h3>
+            <p class="text-yellow-600">No se encontraron productos en la base de datos.</p>
+            <a href="/api/health" target="_blank" class="inline-block mt-4 text-yellow-700 underline hover:no-underline">
+              Verificar estado del sistema
+            </a>
           </div>
         )}
       </div>
