@@ -5,7 +5,7 @@
   "description": "E-commerce premium de moda masculina con Astro 5.0, Tailwind CSS y Supabase",
   "scripts": {
     "dev": "astro dev",
-    "start": "astro build && node ./dist/server/entry.mjs",
+    "start": "node ./dist/server/entry.mjs",
     "build": "astro check && astro build",
     "preview": "astro preview",
     "astro": "astro",
