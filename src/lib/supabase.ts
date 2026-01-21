@@ -14,6 +14,11 @@ import type { Database } from './database.types';
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
+console.log('🔍 DEBUG Supabase:');
+console.log('  supabaseUrl:', supabaseUrl ? '✅ Presente' : '❌ Faltante');
+console.log('  supabaseAnonKey:', supabaseAnonKey ? '✅ Presente' : '❌ Faltante');
+console.log('  PROD:', import.meta.env.PROD);
+
 // En desarrollo, permitir valores placeholder
 const isProduction = import.meta.env.PROD;
 const isConfigured = supabaseUrl && 
