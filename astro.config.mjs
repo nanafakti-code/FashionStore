@@ -40,13 +40,7 @@ export default defineConfig({
     server: {
         port: 4321,
         host: true, // Permite acceso desde la red local
-        allowedHosts: [
-            'localhost',
-            '127.0.0.1',
-            'fashionstorerbv.victoriafp.online',
-            'gcwss8kss08o8cswwgg0ws8s.victoriafp.online',
-            '*.victoriafp.online',
-        ],
+        allowedHosts: 'all', // Permitir todos los hosts (importante para Colify)
     },
 
     // Optimizaciones de build
