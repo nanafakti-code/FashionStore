@@ -44,6 +44,8 @@ export default defineConfig({
             'localhost',
             '127.0.0.1',
             'fashionstorerbv.victoriafp.online',
+            'gcwss8kss08o8cswwgg0ws8s.victoriafp.online',
+            '*.victoriafp.online',
         ],
     },
 
