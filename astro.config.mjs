@@ -39,8 +39,7 @@ export default defineConfig({
     // Configuración de servidor de desarrollo
     server: {
         port: 4321,
-        host: true, // Permite acceso desde la red local
-        allowedHosts: 'all', // Permitir todos los hosts (importante para Colify)
+        host: true,
     },
 
     // Optimizaciones de build
