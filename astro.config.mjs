@@ -40,6 +40,11 @@ export default defineConfig({
     server: {
         port: 4321,
         host: true, // Permite acceso desde la red local
+        allowedHosts: [
+            'localhost',
+            '127.0.0.1',
+            'fashionstorerbv.victoriafp.online',
+        ],
     },
 
     // Optimizaciones de build
