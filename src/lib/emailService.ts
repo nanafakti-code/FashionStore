@@ -9,13 +9,21 @@ import nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
 
 // Configuración SMTP
-const SMTP_HOST = 'smtp.gmail.com';
-const SMTP_PORT = 587;
-const SMTP_USER = import.meta.env.SMTP_USER || 'fashionstore@gmail.com';
-const SMTP_PASS = import.meta.env.SMTP_PASS || 'qmec xtfw dsoq inbi';
-const ADMIN_EMAIL = import.meta.env.ADMIN_EMAIL || 'admin@fashionstore.com';
+const SMTP_HOST = import.meta.env.SMTP_HOST || process.env.SMTP_HOST || 'smtp.gmail.com';
+const SMTP_PORT = parseInt(import.meta.env.SMTP_PORT || process.env.SMTP_PORT || '587');
+const SMTP_USER = import.meta.env.SMTP_USER || process.env.SMTP_USER;
+const SMTP_PASS = import.meta.env.SMTP_PASS || process.env.SMTP_PASS;
+const ADMIN_EMAIL = import.meta.env.ADMIN_EMAIL || process.env.ADMIN_EMAIL;
 const FROM_NAME = 'FashionStore';
-const FROM_EMAIL = SMTP_USER;
+const FROM_EMAIL = SMTP_USER || 'noreply@fashionstore.com';
+
+// Log de configuración
+console.log('[EmailService] Configuración SMTP:');
+console.log('  SMTP_HOST:', SMTP_HOST);
+console.log('  SMTP_PORT:', SMTP_PORT);
+console.log('  SMTP_USER:', SMTP_USER ? `${SMTP_USER.substring(0, 5)}...` : 'NOT SET');
+console.log('  SMTP_PASS:', SMTP_PASS ? '***' : 'NOT SET');
+console.log('  ADMIN_EMAIL:', ADMIN_EMAIL || 'NOT SET');
 
 // Interfaces
 interface OrderItem {
@@ -83,9 +91,18 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
     console.log('\n[EMAIL] ========== ENVIANDO EMAIL ==========');
     console.log(`[EMAIL] Para: ${options.to}`);
     console.log(`[EMAIL] Asunto: ${options.subject}`);
-    console.log(`[EMAIL] SMTP_USER configurado: ${SMTP_USER ? '✓' : '✗'}`);
-    console.log(`[EMAIL] SMTP_PASS configurado: ${SMTP_PASS ? '✓' : '✗'}`);
-    console.log(`[EMAIL] SMTP_PASS longitud: ${SMTP_PASS ? SMTP_PASS.length : 0} caracteres`);
+    
+    // Validar configuración
+    if (!SMTP_USER || !SMTP_PASS) {
+      console.error('[EMAIL] ❌ Credenciales SMTP no configuradas');
+      console.error('[EMAIL] SMTP_USER:', SMTP_USER ? 'SET' : 'NOT SET');
+      console.error('[EMAIL] SMTP_PASS:', SMTP_PASS ? 'SET' : 'NOT SET');
+      return false;
+    }
+    
+    console.log(`[EMAIL] SMTP_USER: ${SMTP_USER}`);
+    console.log(`[EMAIL] SMTP_PASS: ***`);
+    console.log(`[EMAIL] SMTP_PASS longitud: ${SMTP_PASS.length} caracteres`);
     
     const transport = getTransporter();
     
