@@ -62,6 +62,9 @@ export default defineConfig({
     vite: {
         server: {
             allowedHosts: 'all',
+            fs: {
+                strict: false,
+            },
         },
         optimizeDeps: {
             exclude: ['@astrojs/preact'],
