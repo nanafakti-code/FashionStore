@@ -12,7 +12,7 @@ import node from '@astrojs/node';
 // https://astro.build/config
 export default defineConfig({
     // Site URL para desarrollo local
-    site: 'http://localhost:4321/',
+    site: process.env.APP_URL || 'http://localhost:4321/',
 
     // Modo servidor: SSR por defecto, usa export const prerender = true para SSG
     // En Astro 5.0, 'hybrid' fue removido. Usamos 'server' y marcamos páginas estáticas con prerender
