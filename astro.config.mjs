@@ -20,7 +20,9 @@ export default defineConfig({
     
     // Adaptador para Node.js (producción)
     adapter: node({
-        mode: 'standalone'
+        mode: 'standalone',
+        host: '0.0.0.0',
+        port: 3000,
     }),
 
     // Integraciones
