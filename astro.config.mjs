@@ -75,4 +75,5 @@ export default defineConfig({
             noExternal: ['@supabase/supabase-js'],
         },
     },
+    // Deploy trigger: 2026-01-23 10:35
 });
