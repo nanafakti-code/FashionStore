@@ -235,15 +235,33 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     if (order.usuario_id) {
       console.log(`\n[WEBHOOK] 🛒 Limpiando carrito para usuario: ${order.usuario_id}`);
       
-      const { error: cartError } = await supabase
-        .from('carrito')
+      // Intentar primero con cart_items (estructura actual)
+      let cartCleared = false;
+      
+      const { error: cartItemsError } = await supabase
+        .from('cart_items')
         .delete()
-        .eq('usuario_id', order.usuario_id);
+        .eq('user_id', order.usuario_id);
 
-      if (cartError) {
-        console.error('[WEBHOOK] ⚠️ Error limpiando carrito:', cartError);
+      if (!cartItemsError) {
+        console.log(`[WEBHOOK] ✅ cart_items limpiado correctamente`);
+        cartCleared = true;
       } else {
-        console.log(`[WEBHOOK] ✅ Carrito limpiado correctamente`);
+        console.log('[WEBHOOK] cart_items no disponible, intentando carrito...');
+      }
+      
+      // Fallback a tabla 'carrito' si existe
+      if (!cartCleared) {
+        const { error: cartError } = await supabase
+          .from('carrito')
+          .delete()
+          .eq('usuario_id', order.usuario_id);
+
+        if (!cartError) {
+          console.log(`[WEBHOOK] ✅ Carrito limpiado correctamente`);
+        } else {
+          console.error('[WEBHOOK] ⚠️ Error limpiando carrito:', cartError);
+        }
       }
     }
 

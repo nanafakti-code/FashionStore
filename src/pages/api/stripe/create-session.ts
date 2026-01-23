@@ -161,33 +161,66 @@ export const POST: APIRoute = async (context) => {
     // 3. CREAR ITEMS DEL PEDIDO EN BD
     // ============================================================
     console.log('[CREATE-SESSION] Creando items del pedido...');
+    console.log('[CREATE-SESSION] Items a insertar:', JSON.stringify(items, null, 2));
+
+    let insertedItems = 0;
+    const itemErrors: string[] = [];
 
     for (const item of items) {
+      // Validar que el item tenga los campos requeridos
+      if (!item.producto_id) {
+        console.error('[CREATE-SESSION] Item sin producto_id:', item);
+        itemErrors.push(`Item sin producto_id: ${JSON.stringify(item)}`);
+        continue;
+      }
+
+      const itemData = {
+        orden_id: order.id,
+        producto_id: item.producto_id,
+        producto_nombre: item.nombre || 'Producto',
+        producto_imagen: item.imagen || null,
+        cantidad: item.cantidad || 1,
+        talla: item.talla || null,
+        color: item.color || null,
+        precio_unitario: item.precio_unitario || 0,
+        subtotal: (item.precio_unitario || 0) * (item.cantidad || 1),
+      };
+
+      console.log(`[CREATE-SESSION] Insertando item:`, itemData);
+
       const { error: itemError } = await supabase
         .from('items_orden')
-        .insert({
-          orden_id: order.id,
-          producto_id: item.producto_id,
-          producto_nombre: item.nombre,
-          producto_imagen: item.imagen || null,
-          cantidad: item.cantidad,
-          talla: item.talla || null,
-          color: item.color || null,
-          precio_unitario: item.precio_unitario,
-          subtotal: item.precio_unitario * item.cantidad,
-        });
+        .insert(itemData);
 
       if (itemError) {
         console.error('[CREATE-SESSION] Error creando item:', itemError);
+        itemErrors.push(`Error en ${item.producto_id}: ${itemError.message}`);
+      } else {
+        insertedItems++;
       }
     }
 
-    console.log(`[CREATE-SESSION] ✅ ${items.length} items creados`);
+    console.log(`[CREATE-SESSION] ✅ ${insertedItems}/${items.length} items creados`);
+    if (itemErrors.length > 0) {
+      console.warn('[CREATE-SESSION] Errores en items:', itemErrors);
+    }
 
     // ============================================================
     // 4. CREAR SESIÓN EN STRIPE (con order_id en metadata)
     // ============================================================
     console.log('[CREATE-SESSION] Creando sesión de Stripe...');
+
+    // Preparar items de forma compacta para metadata (límite 500 chars por valor)
+    const itemsSummary = items.map(i => ({
+      id: i.producto_id,
+      q: i.cantidad
+    }));
+    
+    // Si el JSON es demasiado largo, solo guardar IDs
+    let itemsMetadata = JSON.stringify(itemsSummary);
+    if (itemsMetadata.length > 400) {
+      itemsMetadata = items.map(i => i.producto_id).join(',').substring(0, 400);
+    }
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -212,18 +245,20 @@ export const POST: APIRoute = async (context) => {
         `${import.meta.env.APP_URL || import.meta.env.PUBLIC_SITE_URL || 'http://localhost:4321'}/checkout/cancel`,
 
       // ⭐ METADATA CRÍTICA ⭐
+      // Nota: Cada valor de metadata tiene límite de 500 caracteres
       metadata: {
         order_id: order.id, // ← CAMPO CRÍTICO para webhook
         numero_orden: numeroOrden,
         user_id: userId || '',
         is_guest: isGuest ? 'true' : 'false',
         email: userEmail,
-        nombre: nombre || '',
-        telefono: telefono || '',
-        direccion: direccion ? JSON.stringify(direccion) : '',
+        nombre: (nombre || '').substring(0, 100),
+        telefono: (telefono || '').substring(0, 50),
+        direccion: direccion ? JSON.stringify(direccion).substring(0, 400) : '',
         descuento: descuento.toString(),
         cupon_id: cuponId || '',
-        items: JSON.stringify(items),
+        items_count: items.length.toString(),
+        items: itemsMetadata,
       },
     });
 
