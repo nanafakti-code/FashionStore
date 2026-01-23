@@ -309,23 +309,22 @@ import Header from '@/components/Header.astro';
         }
 
         // ============================================================
-        // LIMPIAR CARRITO
+        // LIMPIAR CARRITO (SIN ELIMINAR EL TOKEN DE AUTH)
         // ============================================================
         console.log('Limpiando carrito después del pedido...');
         
-        // Claves de carrito a limpiar
+        // Claves de carrito a limpiar (NO eliminar el token de auth)
         const cartKeys = [
           'fashionstore_guest_cart',  // Carrito invitado actual
           'fashionstore_cart',        // Alternativa
           'cart',                     // Posible clave antigua
-          'guest_cart',               // Otra alternativa
-          'sb-spzvtjybxpaxpnpfxbqv-auth-token' // Sesión (para referencia)
+          'guest_cart'                // Otra alternativa
         ];
         
         // Limpiar todas las claves de carrito de localStorage
         cartKeys.forEach(key => {
           if (localStorage.getItem(key)) {
-            console.log(`Eliminando: ${key}`);
+            console.log(`Eliminando carrito: ${key}`);
             localStorage.removeItem(key);
           }
         });
