@@ -2,6 +2,7 @@
  * ADMIN LOGIN API ENDPOINT
  * ========================
  * Procesa las solicitudes de login del panel de administración
+ * Con soporte para CSRF token
  */
 
 import type { APIRoute } from 'astro';
@@ -13,6 +14,7 @@ export const POST: APIRoute = async (context) => {
     
     let username = '';
     let password = '';
+    let csrfToken = '';
     
     // Obtener datos del formulario o URLSearchParams
     const contentType = context.request.headers.get('content-type');
@@ -21,16 +23,19 @@ export const POST: APIRoute = async (context) => {
       const formData = await context.request.formData();
       username = formData.get('username')?.toString().trim() || '';
       password = formData.get('password')?.toString().trim() || '';
+      csrfToken = formData.get('_astro_csrf')?.toString().trim() || '';
     } else {
       // URLSearchParams o text
       const body = await context.request.text();
       const params = new URLSearchParams(body);
       username = params.get('username')?.toString().trim() || '';
       password = params.get('password')?.toString().trim() || '';
+      csrfToken = params.get('_astro_csrf')?.toString().trim() || '';
     }
 
     console.log('[ADMIN-LOGIN-API] Username:', username);
     console.log('[ADMIN-LOGIN-API] Content-Type:', contentType);
+    console.log('[ADMIN-LOGIN-API] CSRF Token provided:', !!csrfToken);
 
     // Validaciones
     if (!username) {
