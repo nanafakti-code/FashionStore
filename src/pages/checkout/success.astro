@@ -309,55 +309,93 @@ import Header from '@/components/Header.astro';
         }
 
         // ============================================================
-        // LIMPIAR CARRITO (SIN ELIMINAR EL TOKEN DE AUTH)
+        // LIMPIAR CARRITO COMPLETAMENTE
         // ============================================================
-        console.log('Limpiando carrito después del pedido...');
+        console.log('[SUCCESS] Iniciando limpieza de carrito...');
         
-        // Claves de carrito a limpiar (NO eliminar el token de auth)
-        const cartKeys = [
-          'fashionstore_guest_cart',  // Carrito invitado actual
-          'fashionstore_cart',        // Alternativa
-          'cart',                     // Posible clave antigua
-          'guest_cart'                // Otra alternativa
-        ];
-        
-        // Limpiar todas las claves de carrito de localStorage
-        cartKeys.forEach(key => {
-          if (localStorage.getItem(key)) {
-            console.log(`Eliminando carrito: ${key}`);
-            localStorage.removeItem(key);
+        try {
+          // 1. Si el usuario está autenticado, limpiar BD mediante endpoint
+          if (order.usuario_id) {
+            console.log(`[SUCCESS] Limpiando carrito en BD para usuario: ${order.usuario_id}`);
+            
+            const clearCartResponse = await fetch('/api/cart/clear', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                userId: order.usuario_id,
+              }),
+            });
+            
+            if (clearCartResponse.ok) {
+              console.log('[SUCCESS] ✅ Carrito limpiado en BD');
+            } else {
+              console.warn('[SUCCESS] ⚠️ No se pudo limpiar carrito en BD:', await clearCartResponse.json());
+            }
           }
-        });
-        
-        // Limpiar sessionStorage también
-        if (typeof sessionStorage !== 'undefined') {
+          
+          // 2. Limpiar localStorage de todos modos
+          const cartKeys = [
+            'fashionstore_guest_cart',
+            'fashionstore_cart',
+            'cart',
+            'guest_cart',
+            'currentCart',
+            'cartItems'
+          ];
+          
           cartKeys.forEach(key => {
-            if (sessionStorage.getItem(key)) {
-              console.log(`Eliminando de sessionStorage: ${key}`);
-              sessionStorage.removeItem(key);
+            if (localStorage.getItem(key)) {
+              console.log(`[SUCCESS] Eliminando localStorage: ${key}`);
+              localStorage.removeItem(key);
             }
           });
-        }
-        
-        // Disparar evento para actualizar UI del carrito
-        window.dispatchEvent(new Event('cartUpdated'));
-        window.dispatchEvent(new CustomEvent('cart-updated', { detail: { items: [], total: 0 } }));
-        
-        // Forzar actualización del icono del carrito
-        const cartCountElements = document.querySelectorAll('[data-cart-count]');
-        cartCountElements.forEach(el => {
-          el.textContent = '0';
-          el.classList.add('hidden');
-        });
-        
-        console.log('✓ Carrito limpiado correctamente');
-        
-        // Mostrar mensaje si se enviaron emails
-        if (data.emailsSent) {
-          console.log('✓ Emails de confirmación enviados');
-        }
-        if (data.cartCleared) {
-          console.log('✓ Carrito limpiado en base de datos');
+          
+          // 3. Limpiar sessionStorage
+          if (typeof sessionStorage !== 'undefined') {
+            cartKeys.forEach(key => {
+              if (sessionStorage.getItem(key)) {
+                console.log(`[SUCCESS] Eliminando sessionStorage: ${key}`);
+                sessionStorage.removeItem(key);
+              }
+            });
+          }
+          
+          // 4. Actualizar estado global y UI
+          console.log('[SUCCESS] Disparando eventos de actualización de carrito...');
+          
+          // Evento estándar
+          window.dispatchEvent(new Event('cartUpdated'));
+          window.dispatchEvent(new Event('cart:cleared'));
+          
+          // Evento personalizado con detalles
+          window.dispatchEvent(new CustomEvent('cart-updated', { 
+            detail: { items: [], total: 0, cleared: true } 
+          }));
+          
+          // Forzar actualización visual del icono del carrito
+          const cartCountElements = document.querySelectorAll('[data-cart-count]');
+          cartCountElements.forEach(el => {
+            el.textContent = '0';
+            el.classList.add('hidden');
+          });
+          
+          // Actualizar botón del carrito si existe
+          const cartButtons = document.querySelectorAll('[data-cart-button], .cart-button, [aria-label*="Carrito"]');
+          cartButtons.forEach(btn => {
+            const badge = btn.querySelector('[data-cart-badge]');
+            if (badge) {
+              badge.textContent = '0';
+              badge.classList.add('hidden');
+            }
+          });
+          
+          console.log('[SUCCESS] ✅ Carrito limpiado completamente');
+          
+        } catch (error) {
+          console.error('[SUCCESS] Error limpiando carrito:', error);
+          // No lanzar error, continuar de todas formas
         }
 
       } catch (error) {

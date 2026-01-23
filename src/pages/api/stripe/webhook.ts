@@ -233,17 +233,18 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
     // ========== LIMPIAR CARRITO ==========
     if (order.usuario_id) {
-      await supabase
-        .from('cart_items')
+      console.log(`\n[WEBHOOK] 🛒 Limpiando carrito para usuario: ${order.usuario_id}`);
+      
+      const { error: cartError } = await supabase
+        .from('carrito')
         .delete()
-        .eq('user_id', order.usuario_id);
+        .eq('usuario_id', order.usuario_id);
 
-      await supabase
-        .from('cart_reservations')
-        .delete()
-        .eq('user_id', order.usuario_id);
-
-      console.log(`✅ Carrito limpiado para usuario: ${order.usuario_id}`);
+      if (cartError) {
+        console.error('[WEBHOOK] ⚠️ Error limpiando carrito:', cartError);
+      } else {
+        console.log(`[WEBHOOK] ✅ Carrito limpiado correctamente`);
+      }
     }
 
     // ========== ENVIAR EMAIL AL CLIENTE ==========
