@@ -2,40 +2,53 @@
  * ADMIN LOGIN API ENDPOINT
  * ========================
  * Procesa las solicitudes de login del panel de administración
- * Con soporte para CSRF token
+ * Soporta tanto GET como POST para evitar problemas de CSRF
  */
 
 import type { APIRoute } from 'astro';
 import { validateAdminCredentials, createAdminSessionToken } from '@/lib/admin-auth';
 
 export const POST: APIRoute = async (context) => {
+  return handleLogin(context);
+};
+
+export const GET: APIRoute = async (context) => {
+  // También permitir GET para evitar problemas de CSRF
+  return handleLogin(context);
+};
+
+async function handleLogin(context: any) {
   try {
-    console.log('[ADMIN-LOGIN-API] POST request received');
+    console.log('[ADMIN-LOGIN-API] Request received');
     
     let username = '';
     let password = '';
-    let csrfToken = '';
     
-    // Obtener datos del formulario o URLSearchParams
-    const contentType = context.request.headers.get('content-type');
+    // Obtener datos del query string o body
+    const url = new URL(context.request.url);
     
-    if (contentType?.includes('form-data')) {
-      const formData = await context.request.formData();
-      username = formData.get('username')?.toString().trim() || '';
-      password = formData.get('password')?.toString().trim() || '';
-      csrfToken = formData.get('_astro_csrf')?.toString().trim() || '';
-    } else {
-      // URLSearchParams o text
-      const body = await context.request.text();
-      const params = new URLSearchParams(body);
-      username = params.get('username')?.toString().trim() || '';
-      password = params.get('password')?.toString().trim() || '';
-      csrfToken = params.get('_astro_csrf')?.toString().trim() || '';
+    // Intentar primero con query string
+    username = url.searchParams.get('username')?.trim() || '';
+    password = url.searchParams.get('password')?.trim() || '';
+    
+    // Si no hay en query string, intentar con body
+    if (!username || !password) {
+      const contentType = context.request.headers.get('content-type');
+      
+      if (contentType?.includes('form-data')) {
+        const formData = await context.request.formData();
+        username = formData.get('username')?.toString().trim() || '';
+        password = formData.get('password')?.toString().trim() || '';
+      } else if (context.request.method === 'POST') {
+        const body = await context.request.text();
+        const params = new URLSearchParams(body);
+        username = params.get('username')?.toString().trim() || '';
+        password = params.get('password')?.toString().trim() || '';
+      }
     }
 
     console.log('[ADMIN-LOGIN-API] Username:', username);
-    console.log('[ADMIN-LOGIN-API] Content-Type:', contentType);
-    console.log('[ADMIN-LOGIN-API] CSRF Token provided:', !!csrfToken);
+    console.log('[ADMIN-LOGIN-API] Method:', context.request.method);
 
     // Validaciones
     if (!username) {
@@ -119,4 +132,4 @@ export const POST: APIRoute = async (context) => {
       }
     );
   }
-};
+}
