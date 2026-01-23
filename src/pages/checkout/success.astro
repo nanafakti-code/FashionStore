@@ -341,7 +341,24 @@ import Header from '@/components/Header.astro';
         
         // Disparar evento para actualizar UI del carrito
         window.dispatchEvent(new Event('cartUpdated'));
+        window.dispatchEvent(new CustomEvent('cart-updated', { detail: { items: [], total: 0 } }));
+        
+        // Forzar actualización del icono del carrito
+        const cartCountElements = document.querySelectorAll('[data-cart-count]');
+        cartCountElements.forEach(el => {
+          el.textContent = '0';
+          el.classList.add('hidden');
+        });
+        
         console.log('✓ Carrito limpiado correctamente');
+        
+        // Mostrar mensaje si se enviaron emails
+        if (data.emailsSent) {
+          console.log('✓ Emails de confirmación enviados');
+        }
+        if (data.cartCleared) {
+          console.log('✓ Carrito limpiado en base de datos');
+        }
 
       } catch (error) {
         console.error('Error:', error);
