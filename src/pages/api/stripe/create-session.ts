@@ -211,7 +211,7 @@ export const POST: APIRoute = async (context) => {
     console.log('[CREATE-SESSION] Creando sesión de Stripe...');
 
     // Preparar items de forma compacta para metadata (límite 500 chars por valor)
-    const itemsSummary = items.map(i => ({
+    const itemsSummary = items.map((i: any) => ({
       id: i.producto_id,
       q: i.cantidad
     }));
@@ -219,7 +219,7 @@ export const POST: APIRoute = async (context) => {
     // Si el JSON es demasiado largo, solo guardar IDs
     let itemsMetadata = JSON.stringify(itemsSummary);
     if (itemsMetadata.length > 400) {
-      itemsMetadata = items.map(i => i.producto_id).join(',').substring(0, 400);
+      itemsMetadata = items.map((i: any) => i.producto_id).join(',').substring(0, 400);
     }
 
     const session = await stripe.checkout.sessions.create({
