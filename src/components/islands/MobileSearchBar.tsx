@@ -7,7 +7,7 @@ export default function MobileSearchBar() {
   const handleSearch = (e: JSX.TargetedEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (searchTerm.trim()) {
-      window.location.href = `/buscar?q=${encodeURIComponent(searchTerm)}`;
+      window.location.href = `/productos?q=${encodeURIComponent(searchTerm)}`;
     }
   };
 
@@ -18,8 +18,8 @@ export default function MobileSearchBar() {
   };
 
   return (
-    <form onSubmit={handleSearch} className="md:hidden px-4 py-3 bg-gray-50">
-      <div className="flex gap-2">
+    <form onSubmit={handleSearch} className="md:hidden px-4 py-3 bg-gray-50 border-t border-gray-200">
+      <div className="flex gap-2 items-center">
         <input
           type="text"
           placeholder="Busca productos..."

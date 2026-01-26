@@ -135,6 +135,7 @@ export const GET: APIRoute = async (context) => {
             nombre: item.producto_nombre,
             cantidad: item.cantidad,
             precio_unitario: item.precio_unitario / 100,
+            precio_original: item.precio_original ? item.precio_original / 100 : undefined,
             talla: item.talla,
             color: item.color,
             imagen: item.producto_imagen,

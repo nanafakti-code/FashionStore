@@ -30,6 +30,7 @@ interface OrderItem {
   nombre: string;
   cantidad: number;
   precio_unitario: number;
+  precio_original?: number;
   imagen?: string;
   talla?: string;
   color?: string;
@@ -91,7 +92,7 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
     console.log('\n[EMAIL] ========== ENVIANDO EMAIL ==========');
     console.log(`[EMAIL] Para: ${options.to}`);
     console.log(`[EMAIL] Asunto: ${options.subject}`);
-    
+
     // Validar configuración
     if (!SMTP_USER || !SMTP_PASS) {
       console.error('[EMAIL] ❌ Credenciales SMTP no configuradas');
@@ -99,13 +100,13 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
       console.error('[EMAIL] SMTP_PASS:', SMTP_PASS ? 'SET' : 'NOT SET');
       return false;
     }
-    
+
     console.log(`[EMAIL] SMTP_USER: ${SMTP_USER}`);
     console.log(`[EMAIL] SMTP_PASS: ***`);
     console.log(`[EMAIL] SMTP_PASS longitud: ${SMTP_PASS.length} caracteres`);
-    
+
     const transport = getTransporter();
-    
+
     const mailOptions: any = {
       from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
       to: options.to,
@@ -172,7 +173,7 @@ const baseStyles = `
 `;
 
 function formatPrice(cents: number): string {
-  return (cents / 100).toFixed(2) + ' €';
+  return (cents / 100).toFixed(2) + ' EUR';
 }
 
 function generateItemsHTML(items: OrderItem[]): string {
@@ -193,6 +194,11 @@ function generateItemsHTML(items: OrderItem[]): string {
                 ${item.talla ? ` | Talla: ${item.talla}` : ''}
                 ${item.color ? ` | Color: ${item.color}` : ''}
               </div>
+              ${item.precio_original && item.precio_original > item.precio_unitario ? `
+              <div style="color: #166534; font-size: 13px; margin-top: 4px;">
+                <span style="text-decoration: line-through; color: #a1a1aa;">Precio original: ${formatPrice(item.precio_original)}</span>
+              </div>
+              ` : ''}
             </td>
             <td style="text-align: right; font-weight: 600; color: #1a1a1a; vertical-align: top;">
               ${formatPrice(item.precio_unitario * item.cantidad)}
@@ -258,6 +264,7 @@ export async function sendOrderConfirmationEmail(order: OrderData): Promise<bool
           <tr>
             <td style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); padding: 40px; text-align: center;">
               <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">FashionStore</h1>
+              <p style="color: rgba(255,255,255,0.8); margin: 8px 0 0; font-size: 14px;">Tu compra ha sido confirmada</p>
             </td>
           </tr>
           
@@ -273,56 +280,59 @@ export async function sendOrderConfirmationEmail(order: OrderData): Promise<bool
                 </div>
               </div>
               
-              <h2 style="text-align: center; color: #1a1a1a; margin: 0 0 8px; font-size: 24px;">Pedido confirmado</h2>
-              <p style="text-align: center; color: #71717a; margin: 0 0 32px;">Gracias por tu compra, ${order.nombre}</p>
+              <h2 style="text-align: center; color: #1a1a1a; margin: 0 0 8px; font-size: 24px;">¡Pedido confirmado!</h2>
+              <p style="text-align: center; color: #71717a; margin: 0 0 32px; font-size: 16px;">Gracias por tu compra, <strong>${order.nombre}</strong>. Tu pedido está siendo procesado.</p>
               
-              <!-- Order Number -->
-              <div style="background: #f4f4f5; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 32px;">
-                <div style="color: #71717a; font-size: 14px; margin-bottom: 4px;">Número de pedido</div>
-                <div style="font-size: 24px; font-weight: 700; color: #1a1a1a;">${order.numero_orden}</div>
+              <!-- Order Number - Destacado -->
+              <div style="background: linear-gradient(135deg, #00aa45 0%, #008a35 100%); padding: 24px; border-radius: 8px; text-align: center; margin-bottom: 32px; color: #ffffff;">
+                <div style="font-size: 12px; opacity: 0.9;">Número de pedido</div>
+                <div style="font-size: 28px; font-weight: 700; letter-spacing: 2px; margin-top: 8px;">${order.numero_orden}</div>
               </div>
               
-              <!-- Items -->
-              <h3 style="color: #1a1a1a; margin: 0 0 16px; font-size: 18px;">Productos</h3>
+              <!-- Items Section -->
+              <h3 style="color: #1a1a1a; margin: 32px 0 16px; font-size: 18px; border-bottom: 2px solid #00aa45; padding-bottom: 8px;">Productos Pedidos</h3>
               <table width="100%" cellpadding="0" cellspacing="0">
                 ${generateItemsHTML(order.items)}
               </table>
               
-              <!-- Totals -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 24px;">
-                <tr>
-                  <td style="padding: 8px 0; color: #71717a;">Subtotal</td>
-                  <td style="padding: 8px 0; text-align: right; color: #1a1a1a;">${formatPrice(order.subtotal)}</td>
-                </tr>
-                ${order.descuento > 0 ? `
-                <tr>
-                  <td style="padding: 8px 0; color: #166534;">Descuento</td>
-                  <td style="padding: 8px 0; text-align: right; color: #166534;">-${formatPrice(order.descuento)}</td>
-                </tr>
-                ` : ''}
-                <tr>
-                  <td style="padding: 8px 0; color: #71717a;">Envío</td>
-                  <td style="padding: 8px 0; text-align: right; color: #1a1a1a;">${order.envio > 0 ? formatPrice(order.envio) : 'Gratis'}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; color: #71717a;">Impuestos</td>
-                  <td style="padding: 8px 0; text-align: right; color: #1a1a1a;">${formatPrice(order.impuestos)}</td>
-                </tr>
-                <tr>
-                  <td colspan="2"><hr style="border: none; border-top: 2px solid #1a1a1a; margin: 16px 0 8px;" /></td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; font-size: 18px; font-weight: 700; color: #1a1a1a;">Total</td>
-                  <td style="padding: 8px 0; text-align: right; font-size: 18px; font-weight: 700; color: #1a1a1a;">${formatPrice(order.total)}</td>
-                </tr>
-              </table>
+              <!-- Totals Section -->
+              <div style="margin-top: 32px; background: #f4f4f5; padding: 24px; border-radius: 8px;">
+                <h3 style="color: #1a1a1a; margin: 0 0 16px; font-size: 14px; font-weight: 600;">Resumen de pago</h3>
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="padding: 8px 0; color: #71717a; border-bottom: 1px solid #e4e4e7;">Subtotal</td>
+                    <td style="padding: 8px 0; text-align: right; color: #1a1a1a; border-bottom: 1px solid #e4e4e7; font-weight: 600;">${formatPrice(order.subtotal)}</td>
+                  </tr>
+                  ${order.descuento > 0 ? `
+                  <tr>
+                    <td style="padding: 8px 0; color: #166534; border-bottom: 1px solid #e4e4e7;">Descuento aplicado</td>
+                    <td style="padding: 8px 0; text-align: right; color: #166534; border-bottom: 1px solid #e4e4e7; font-weight: 600;">-${formatPrice(order.descuento)}</td>
+                  </tr>
+                  ` : ''}
+                  <tr>
+                    <td style="padding: 8px 0; color: #71717a; border-bottom: 1px solid #e4e4e7;">Gastos de envío</td>
+                    <td style="padding: 8px 0; text-align: right; color: #1a1a1a; border-bottom: 1px solid #e4e4e7; font-weight: 600;">${order.envio > 0 ? formatPrice(order.envio) : 'Gratis'}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #71717a;">IVA (21%)</td>
+                    <td style="padding: 8px 0; text-align: right; color: #1a1a1a; font-weight: 600;">${formatPrice(order.impuestos)}</td>
+                  </tr>
+                  <tr>
+                    <td colspan="2"><hr style="border: none; border-top: 2px solid #00aa45; margin: 12px 0;" /></td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 0; font-size: 16px; font-weight: 700; color: #1a1a1a;">Total pagado</td>
+                    <td style="padding: 12px 0; text-align: right; font-size: 20px; font-weight: 700; color: #00aa45;">${formatPrice(order.total)}</td>
+                  </tr>
+                </table>
+              </div>
               
               ${order.direccion ? `
               <!-- Shipping Address -->
-              <div style="background: #f4f4f5; padding: 20px; border-radius: 8px; margin-top: 32px;">
-                <h4 style="color: #1a1a1a; margin: 0 0 12px; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Dirección de envío</h4>
-                <p style="color: #52525b; margin: 0; line-height: 1.6;">
-                  ${order.nombre}<br>
+              <div style="margin-top: 32px; border-left: 4px solid #00aa45; padding-left: 16px;">
+                <h3 style="color: #1a1a1a; margin: 0 0 12px; font-size: 14px; font-weight: 600;">Dirección de envío</h3>
+                <p style="color: #52525b; margin: 0; line-height: 1.8;">
+                  <strong>${order.nombre}</strong><br>
                   ${order.direccion.calle || ''}<br>
                   ${order.direccion.codigo_postal || ''} ${order.direccion.ciudad || ''}<br>
                   ${order.direccion.pais || 'España'}
@@ -330,12 +340,34 @@ export async function sendOrderConfirmationEmail(order: OrderData): Promise<bool
               </div>
               ` : ''}
               
+              <!-- Timeline/Next Steps -->
+              <div style="margin-top: 32px; background: #f0fdf4; padding: 24px; border-radius: 8px;">
+                <h3 style="color: #166534; margin: 0 0 16px; font-size: 14px; font-weight: 600;">¿Qué sucede ahora?</h3>
+                <div style="color: #166534; font-size: 14px; line-height: 2;">
+                  <div>✓ Tu pago ha sido procesado</div>
+                  <div>✓ Preparamos tu pedido en 24 horas</div>
+                  <div>✓ Te enviaremos el código de seguimiento</div>
+                  <div>✓ Recibe tu compra en 2-3 días laborales</div>
+                </div>
+              </div>
+              
               <!-- CTA -->
               <div style="text-align: center; margin-top: 32px;">
-                <a href="${import.meta.env.SITE_URL || 'http://localhost:4321'}/mis-pedidos" 
-                   style="display: inline-block; background: #00aa45; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600;">
-                  Ver mis pedidos
+                <a href="${import.meta.env.SITE_URL || 'http://localhost:4321'}/mi-cuenta" 
+                   style="display: inline-block; background: #00aa45; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                  Seguimiento de pedido
                 </a>
+              </div>
+              
+              <!-- Support Info -->
+              <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e4e4e7; text-align: center;">
+                <p style="color: #71717a; margin: 0 0 8px; font-size: 14px;">¿Tienes preguntas?</p>
+                <p style="margin: 0; color: #1a1a1a;">
+                  <strong>Email:</strong> <a href="mailto:soporte@fashionstore.com" style="color: #00aa45; text-decoration: none;">soporte@fashionstore.com</a>
+                </p>
+                <p style="margin: 8px 0 0; color: #1a1a1a;">
+                  <strong>Teléfono:</strong> <a href="tel:+34912345678" style="color: #00aa45; text-decoration: none;">+34 912 345 678</a>
+                </p>
               </div>
             </td>
           </tr>
@@ -343,9 +375,10 @@ export async function sendOrderConfirmationEmail(order: OrderData): Promise<bool
           <!-- Footer -->
           <tr>
             <td style="background: #f4f4f5; padding: 32px; text-align: center;">
-              <p style="color: #71717a; margin: 0 0 8px; font-size: 14px;">¿Tienes alguna pregunta?</p>
-              <a href="mailto:soporte@fashionstore.com" style="color: #00aa45; text-decoration: none; font-weight: 500;">soporte@fashionstore.com</a>
-              <p style="color: #a1a1aa; margin: 24px 0 0; font-size: 12px;">
+              <p style="color: #71717a; margin: 0 0 8px; font-size: 12px;">
+                Este email contiene tu factura de compra adjunta en PDF
+              </p>
+              <p style="color: #a1a1aa; margin: 0; font-size: 11px;">
                 &copy; ${new Date().getFullYear()} FashionStore. Todos los derechos reservados.
               </p>
             </td>
@@ -365,12 +398,12 @@ export async function sendOrderConfirmationEmail(order: OrderData): Promise<bool
       html,
       attachments: pdfBuffer
         ? [
-            {
-              filename: `Factura_${order.numero_orden}.pdf`,
-              content: pdfBuffer,
-              contentType: 'application/pdf',
-            },
-          ]
+          {
+            filename: `Factura_${order.numero_orden}.pdf`,
+            content: pdfBuffer,
+            contentType: 'application/pdf',
+          },
+        ]
         : undefined,
     });
   } catch (error) {
@@ -395,70 +428,112 @@ export async function sendNewSaleNotificationEmail(order: OrderData): Promise<bo
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f5; padding: 40px 20px;">
     <tr>
       <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="background: #ffffff; border-radius: 12px; overflow: hidden;">
+        <table width="600" cellpadding="0" cellspacing="0" style="background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
           <!-- Header -->
           <tr>
-            <td style="background: #166534; padding: 32px; text-align: center;">
-              <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Nueva Venta Recibida</h1>
+            <td style="background: linear-gradient(135deg, #166534 0%, #147028 100%); padding: 32px; text-align: center;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 700;">🛒 Nueva Venta Recibida</h1>
+              <p style="color: rgba(255,255,255,0.8); margin: 8px 0 0; font-size: 14px;">Pedido confirmado y pagado</p>
             </td>
           </tr>
           
           <!-- Content -->
           <tr>
             <td style="padding: 32px;">
-              <table width="100%" cellpadding="0" cellspacing="0">
+              <!-- Pedido Info -->
+              <div style="background: #dcfce7; border-left: 4px solid #166534; padding: 16px; border-radius: 4px; margin-bottom: 24px;">
+                <p style="color: #166534; margin: 0; font-weight: 600; font-size: 16px;">Pedido #${order.numero_orden}</p>
+              </div>
+              
+              <!-- Cliente Info -->
+              <h3 style="color: #1a1a1a; margin: 0 0 12px; font-size: 14px; font-weight: 600;">Información del Cliente</h3>
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 24px;">
                 <tr>
-                  <td style="padding: 12px 0;">
-                    <strong>Pedido:</strong> ${order.numero_orden}
+                  <td style="padding: 8px 0; color: #71717a; width: 40%;">Nombre:</td>
+                  <td style="padding: 8px 0; color: #1a1a1a; font-weight: 600;">${order.nombre}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #71717a;">Email:</td>
+                  <td style="padding: 8px 0; color: #1a1a1a;">
+                    <a href="mailto:${order.email}" style="color: #00aa45; text-decoration: none;">${order.email}</a>
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding: 12px 0;">
-                    <strong>Cliente:</strong> ${order.nombre} (${order.email})
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding: 12px 0;">
-                    <strong>Tipo:</strong> 
+                  <td style="padding: 8px 0; color: #71717a;">Tipo cliente:</td>
+                  <td style="padding: 8px 0;">
                     <span style="display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; ${order.is_guest ? 'background: #fef3c7; color: #92400e;' : 'background: #dbeafe; color: #1e40af;'}">
-                      ${order.is_guest ? 'Invitado' : 'Registrado'}
+                      ${order.is_guest ? '👤 Invitado' : '👤 Registrado'}
                     </span>
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding: 12px 0;">
-                    <strong>Fecha:</strong> ${new Date().toLocaleString('es-ES')}
-                  </td>
+                  <td style="padding: 8px 0; color: #71717a;">Fecha/Hora:</td>
+                  <td style="padding: 8px 0; color: #1a1a1a;">${new Date().toLocaleString('es-ES')}</td>
                 </tr>
               </table>
               
-              <hr style="border: none; border-top: 1px solid #e4e4e7; margin: 24px 0;" />
+              <hr style="border: none; border-top: 1px solid #e4e4e7; margin: 24px 0;">
               
-              <h3 style="margin: 0 0 16px;">Productos (${order.items.length})</h3>
-              <table width="100%" cellpadding="0" cellspacing="0" style="background: #f4f4f5; border-radius: 8px;">
+              <!-- Productos -->
+              <h3 style="color: #1a1a1a; margin: 0 0 16px; font-size: 14px; font-weight: 600;">Productos Ordenados (${order.items.length})</h3>
+              <table width="100%" cellpadding="0" cellspacing="0" style="background: #f4f4f5; border-radius: 8px; margin-bottom: 24px;">
                 ${order.items.map(item => `
                 <tr>
-                  <td style="padding: 12px;">
-                    ${item.nombre} x${item.cantidad}
+                  <td style="padding: 12px; border-bottom: 1px solid #e4e4e7;">
+                    <div style="font-weight: 600; color: #1a1a1a;">${item.nombre}</div>
+                    <div style="font-size: 12px; color: #71717a; margin-top: 4px;">Cantidad: ${item.cantidad}${item.talla ? ` | Talla: ${item.talla}` : ''}${item.color ? ` | Color: ${item.color}` : ''}</div>
                   </td>
-                  <td style="padding: 12px; text-align: right; font-weight: 600;">
+                  <td style="padding: 12px; text-align: right; border-bottom: 1px solid #e4e4e7; font-weight: 600; color: #1a1a1a;">
                     ${formatPrice(item.precio_unitario * item.cantidad)}
                   </td>
                 </tr>
                 `).join('')}
               </table>
               
-              <div style="background: #166534; color: #ffffff; padding: 20px; border-radius: 8px; margin-top: 24px; text-align: center;">
-                <div style="font-size: 14px; opacity: 0.9;">Total de la venta</div>
-                <div style="font-size: 32px; font-weight: 700;">${formatPrice(order.total)}</div>
+              <!-- Totales -->
+              <div style="background: #f4f4f5; padding: 20px; border-radius: 8px; margin-bottom: 24px;">
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="padding: 8px 0; color: #71717a;">Subtotal:</td>
+                    <td style="padding: 8px 0; text-align: right; color: #1a1a1a; font-weight: 600;">${formatPrice(order.subtotal)}</td>
+                  </tr>
+                  ${order.descuento > 0 ? `
+                  <tr>
+                    <td style="padding: 8px 0; color: #166534;">Descuento:</td>
+                    <td style="padding: 8px 0; text-align: right; color: #166534; font-weight: 600;">-${formatPrice(order.descuento)}</td>
+                  </tr>
+                  ` : ''}
+                  <tr>
+                    <td style="padding: 8px 0; color: #71717a;">Envío:</td>
+                    <td style="padding: 8px 0; text-align: right; color: #1a1a1a; font-weight: 600;">${order.envio > 0 ? formatPrice(order.envio) : 'Gratis'}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #71717a;">IVA:</td>
+                    <td style="padding: 8px 0; text-align: right; color: #1a1a1a; font-weight: 600;">${formatPrice(order.impuestos)}</td>
+                  </tr>
+                  <tr style="border-top: 2px solid #00aa45; padding-top: 12px;">
+                    <td style="padding: 12px 0; font-size: 16px; font-weight: 700; color: #1a1a1a;">TOTAL PAGADO:</td>
+                    <td style="padding: 12px 0; text-align: right; font-size: 18px; font-weight: 700; color: #166534;">${formatPrice(order.total)}</td>
+                  </tr>
+                </table>
               </div>
               
-              <div style="text-align: center; margin-top: 24px;">
-                <a href="${import.meta.env.SITE_URL || 'http://localhost:4321'}/admin" 
-                   style="display: inline-block; background: #1a1a1a; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500;">
-                  Ver en panel de administración
+              <!-- CTA -->
+              <div style="text-align: center;">
+                <a href="${import.meta.env.PUBLIC_SITE_URL || 'http://localhost:4321'}/admin/pedidos" 
+                   style="display: inline-block; background: #1a1a1a; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: 600;">
+                  📋 Ver Pedido en Admin
                 </a>
               </div>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="background: #f4f4f5; padding: 24px; text-align: center;">
+              <p style="color: #a1a1aa; margin: 0; font-size: 11px;">
+                Este es un email automático del sistema. &copy; ${new Date().getFullYear()} FashionStore.
+              </p>
             </td>
           </tr>
         </table>
@@ -583,6 +658,7 @@ export async function sendOrderStatusUpdateEmail(
 // 4. EMAIL DE CÓDIGO DE DESCUENTO (NEWSLETTER)
 // ============================================================
 
+
 export async function sendWelcomeDiscountEmail(email: string, codigo: string): Promise<boolean> {
   const html = `
 <!DOCTYPE html>
@@ -644,6 +720,233 @@ export async function sendWelcomeDiscountEmail(email: string, codigo: string): P
     html,
   });
 }
+
+// ============================================================
+// 6. EMAIL DE BIENVENIDA PARA NUEVOS USUARIOS
+// ============================================================
+
+interface WelcomeProduct {
+  nombre: string;
+  precio_venta: number;
+  precio_original?: number;
+  imagen?: string;
+  descripcion?: string;
+}
+
+export async function sendWelcomeEmail(
+  email: string,
+  nombre: string,
+  productos: WelcomeProduct[] = []
+): Promise<boolean> {
+  // Generar HTML de productos dinámicamente
+  const productosHTML = productos.length > 0
+    ? productos.map((producto, index) => {
+      const descuento = producto.precio_original
+        ? Math.round(((producto.precio_original - producto.precio_venta) / producto.precio_original) * 100)
+        : 0;
+
+      // Emojis por defecto si no hay imagen
+      const emojis = ['📱', '💻', '⌚', '🎧', '📷', '🖥️'];
+      const emoji = emojis[index % emojis.length];
+
+      return `
+                <!-- Product ${index + 1} -->
+                <tr>
+                  <td style="padding: 16px 0; ${index < productos.length - 1 ? 'border-bottom: 1px solid #e4e4e7;' : ''}">
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td width="100" style="vertical-align: top;">
+                          ${producto.imagen
+          ? `<img src="${producto.imagen}" alt="${producto.nombre}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 12px; background: #f4f4f5;" />`
+          : `<div style="width: 100px; height: 100px; background: linear-gradient(135deg, #f4f4f5 0%, #e4e4e7 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                <span style="font-size: 40px;">${emoji}</span>
+                              </div>`
+        }
+                        </td>
+                        <td style="padding-left: 16px; vertical-align: top;">
+                          <div style="font-weight: 700; color: #1a1a1a; margin-bottom: 6px; font-size: 16px;">${producto.nombre}</div>
+                          <div style="color: #71717a; font-size: 14px; margin-bottom: 8px;">${producto.descripcion || 'Producto destacado'}</div>
+                          <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 18px; font-weight: 700; color: #00aa45;">${formatPrice(producto.precio_venta)}</span>
+                            ${producto.precio_original && producto.precio_original > producto.precio_venta
+          ? `<span style="font-size: 14px; color: #a1a1aa; text-decoration: line-through;">${formatPrice(producto.precio_original)}</span>
+                                 <span style="background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;">-${descuento}%</span>`
+          : ''
+        }
+                          </div>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>`;
+    }).join('')
+    : `
+                <!-- Productos por defecto si no se proporcionan -->
+                <tr>
+                  <td style="padding: 16px 0; border-bottom: 1px solid #e4e4e7;">
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td width="100" style="vertical-align: top;">
+                          <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #f4f4f5 0%, #e4e4e7 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 40px;">📱</span>
+                          </div>
+                        </td>
+                        <td style="padding-left: 16px; vertical-align: top;">
+                          <div style="font-weight: 700; color: #1a1a1a; margin-bottom: 6px; font-size: 16px;">Productos Destacados</div>
+                          <div style="color: #71717a; font-size: 14px; margin-bottom: 8px;">Descubre nuestras mejores ofertas</div>
+                          <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 18px; font-weight: 700; color: #00aa45;">Desde 99€</span>
+                          </div>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>`;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>¡Bienvenido a FashionStore!</title>
+</head>
+<body style="font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f5;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f5; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+          <!-- Header -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); padding: 48px; text-align: center;">
+              <h1 style="color: #ffffff; margin: 0 0 8px; font-size: 32px; font-weight: 700; letter-spacing: -0.5px;">
+                Fashion<span style="color: #00aa45;">Store</span>
+              </h1>
+              <p style="color: rgba(255,255,255,0.8); margin: 0; font-size: 16px;">Tu destino para la moda</p>
+            </td>
+          </tr>
+          
+          <!-- Welcome Message -->
+          <tr>
+            <td style="padding: 48px;">
+              <!-- Welcome Icon -->
+              <div style="text-align: center; margin-bottom: 32px;">
+                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #00aa45 0%, #009340 100%); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                </div>
+              </div>
+              
+              <h2 style="text-align: center; color: #1a1a1a; margin: 0 0 16px; font-size: 28px; font-weight: 700;">
+                ¡Bienvenido, ${nombre}!
+              </h2>
+              
+              <p style="text-align: center; color: #52525b; margin: 0 0 32px; font-size: 16px; line-height: 1.6;">
+                Estamos encantados de tenerte en <strong>FashionStore</strong>. Has dado el primer paso para descubrir las mejores ofertas en electrónica y moda.
+              </p>
+              
+              <!-- Special Offers Section -->
+              <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); padding: 32px; border-radius: 12px; margin-bottom: 32px; border: 2px solid #00aa45;">
+                <h3 style="color: #166534; margin: 0 0 20px; font-size: 20px; font-weight: 700; text-align: center;">
+                  🎁 Ofertas Especiales para Ti
+                </h3>
+                
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="padding: 12px 0; border-bottom: 1px solid rgba(22, 101, 52, 0.2);">
+                      <div style="display: flex; align-items: center;">
+                        <span style="font-size: 24px; margin-right: 12px;">✓</span>
+                        <span style="color: #166534; font-size: 15px; font-weight: 600;">Envío gratis en pedidos superiores a 50€</span>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 0; border-bottom: 1px solid rgba(22, 101, 52, 0.2);">
+                      <div style="display: flex; align-items: center;">
+                        <span style="font-size: 24px; margin-right: 12px;">✓</span>
+                        <span style="color: #166534; font-size: 15px; font-weight: 600;">Devoluciones gratis durante 30 días</span>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 0; border-bottom: 1px solid rgba(22, 101, 52, 0.2);">
+                      <div style="display: flex; align-items: center;">
+                        <span style="font-size: 24px; margin-right: 12px;">✓</span>
+                        <span style="color: #166534; font-size: 15px; font-weight: 600;">Acceso exclusivo a ofertas flash</span>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 0;">
+                      <div style="display: flex; align-items: center;">
+                        <span style="font-size: 24px; margin-right: 12px;">✓</span>
+                        <span style="color: #166534; font-size: 15px; font-weight: 600;">Productos refurbished con garantía</span>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+              
+              <!-- Featured Products -->
+              <h3 style="color: #1a1a1a; margin: 0 0 24px; font-size: 22px; font-weight: 700; text-align: center; border-bottom: 3px solid #00aa45; padding-bottom: 12px;">
+                🔥 Productos Destacados
+              </h3>
+              
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 32px;">
+                ${productosHTML}
+              </table>
+              
+              <!-- CTA Button -->
+              <div style="text-align: center; margin-top: 40px;">
+                <a href="${import.meta.env.SITE_URL || 'http://localhost:4321'}" 
+                   style="display: inline-block; background: linear-gradient(135deg, #00aa45 0%, #009340 100%); color: #ffffff; padding: 18px 48px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 18px; box-shadow: 0 4px 12px rgba(0, 170, 69, 0.3);">
+                  🛍️ Explorar Productos
+                </a>
+              </div>
+              
+              <!-- Support Info -->
+              <div style="margin-top: 40px; padding-top: 32px; border-top: 2px solid #e4e4e7; text-align: center;">
+                <p style="color: #71717a; margin: 0 0 16px; font-size: 15px; font-weight: 600;">¿Necesitas ayuda?</p>
+                <p style="margin: 0 0 8px; color: #1a1a1a; font-size: 14px;">
+                  <strong>Email:</strong> <a href="mailto:soporte@fashionstore.com" style="color: #00aa45; text-decoration: none;">soporte@fashionstore.com</a>
+                </p>
+                <p style="margin: 0; color: #1a1a1a; font-size: 14px;">
+                  <strong>Teléfono:</strong> <a href="tel:+34912345678" style="color: #00aa45; text-decoration: none;">+34 912 345 678</a>
+                </p>
+              </div>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="background: #f4f4f5; padding: 32px; text-align: center;">
+              <p style="color: #71717a; margin: 0 0 8px; font-size: 13px;">
+                Gracias por unirte a nuestra comunidad de más de 10,000 clientes satisfechos
+              </p>
+              <p style="color: #a1a1aa; margin: 0; font-size: 11px;">
+                &copy; ${new Date().getFullYear()} FashionStore. Todos los derechos reservados.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+
+  return sendEmail({
+    to: email,
+    subject: `¡Bienvenido a FashionStore, ${nombre}! 🎉`,
+    html,
+  });
+}
+
+
+
 
 // ============================================================
 // 5. EMAIL DE SOLICITUD DE DEVOLUCIÓN

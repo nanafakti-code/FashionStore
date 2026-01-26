@@ -141,7 +141,7 @@ export default function MiCuentaClientV2() {
 
       if (userError || !user) {
         console.error("No user authenticated:", userError);
-        window.location.href = "/login";
+        window.location.href = "/";
         return;
       }
 

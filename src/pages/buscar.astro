@@ -1,241 +1,131 @@
 ---
-import BaseLayout from '@/layouts/BaseLayout.astro';
+import Layout from '@/layouts/Layout.astro';
 import ProductCard from '@/components/ProductCard.astro';
-
-// Datos de productos
-const allProducts = [
-  {
-    id: 1,
-    name: 'iPhone 13 Pro',
-    category: 'electronics',
-    price: 799,
-    originalPrice: 1099,
-    image: 'https://images.pexels.com/photos/699122/pexels-photo-699122.jpeg?auto=compress&cs=tinysrgb&w=500&h=500&fit=crop',
-    discount: 27,
-    rating: 4.8,
-    reviews: 128,
-    condition: 'Excelente',
-    badge: 'Más Vendido'
-  },
-  {
-    id: 2,
-    name: 'Samsung Galaxy S21',
-    category: 'electronics',
-    price: 599,
-    originalPrice: 899,
-    image: 'https://images.pexels.com/photos/788946/pexels-photo-788946.jpeg?auto=compress&cs=tinysrgb&w=500&h=500&fit=crop',
-    discount: 33,
-    rating: 4.7,
-    reviews: 95,
-    condition: 'Muy bueno',
-    badge: null
-  },
-  {
-    id: 3,
-    name: 'MacBook Air M1',
-    category: 'electronics',
-    price: 899,
-    originalPrice: 1299,
-    image: 'https://images.pexels.com/photos/18105/pexels-photo.jpeg?auto=compress&cs=tinysrgb&w=500&h=500&fit=crop',
-    discount: 31,
-    rating: 4.9,
-    reviews: 156,
-    condition: 'Excelente',
-    badge: 'Más Vendido'
-  },
-  {
-    id: 4,
-    name: 'Zapatillas Nike Air',
-    category: 'fashion',
-    price: 89,
-    originalPrice: 150,
-    image: 'https://images.pexels.com/photos/2529157/pexels-photo-2529157.jpeg?auto=compress&cs=tinysrgb&w=500&h=500&fit=crop',
-    discount: 41,
-    rating: 4.6,
-    reviews: 78,
-    condition: 'Muy bueno',
-    badge: null
-  },
-  {
-    id: 5,
-    name: 'Reloj Smartwatch',
-    category: 'electronics',
-    price: 199,
-    originalPrice: 299,
-    image: 'https://images.pexels.com/photos/437037/pexels-photo-437037.jpeg?auto=compress&cs=tinysrgb&w=500&h=500&fit=crop',
-    discount: 33,
-    rating: 4.5,
-    reviews: 62,
-    condition: 'Excelente',
-    badge: null
-  },
-  {
-    id: 6,
-    name: 'Cámara Canon EOS',
-    category: 'electronics',
-    price: 649,
-    originalPrice: 999,
-    image: 'https://images.pexels.com/photos/606941/pexels-photo-606941.jpeg?auto=compress&cs=tinysrgb&w=500&h=500&fit=crop',
-    discount: 35,
-    rating: 4.8,
-    reviews: 103,
-    condition: 'Muy bueno',
-    badge: 'Más Vendido'
-  },
-  {
-    id: 7,
-    name: 'Auriculares Sony',
-    category: 'electronics',
-    price: 249,
-    originalPrice: 349,
-    image: 'https://images.pexels.com/photos/3394650/pexels-photo-3394650.jpeg?auto=compress&cs=tinysrgb&w=500&h=500&fit=crop',
-    discount: 29,
-    rating: 4.7,
-    reviews: 87,
-    condition: 'Excelente',
-    badge: null
-  },
-  {
-    id: 8,
-    name: 'iPad Pro 12.9',
-    category: 'electronics',
-    price: 749,
-    originalPrice: 1099,
-    image: 'https://images.pexels.com/photos/546822/pexels-photo-546822.jpeg?auto=compress&cs=tinysrgb&w=500&h=500&fit=crop',
-    discount: 32,
-    rating: 4.9,
-    reviews: 142,
-    condition: 'Excelente',
-    badge: 'Más Vendido'
-  },
-  {
-    id: 9,
-    name: 'Chaqueta Leather',
-    category: 'fashion',
-    price: 129,
-    originalPrice: 249,
-    image: 'https://images.pexels.com/photos/1055691/pexels-photo-1055691.jpeg?auto=compress&cs=tinysrgb&w=500&h=500&fit=crop',
-    discount: 48,
-    rating: 4.6,
-    reviews: 54,
-    condition: 'Muy bueno',
-    badge: null
-  },
-  {
-    id: 10,
-    name: 'Jeans Premium',
-    category: 'fashion',
-    price: 59,
-    originalPrice: 120,
-    image: 'https://images.pexels.com/photos/1055691/pexels-photo-1055691.jpeg?auto=compress&cs=tinysrgb&w=500&h=500&fit=crop',
-    discount: 51,
-    rating: 4.4,
-    reviews: 41,
-    condition: 'Bueno',
-    badge: null
-  },
-  {
-    id: 11,
-    name: 'Sofá moderno',
-    category: 'home',
-    price: 399,
-    originalPrice: 799,
-    image: 'https://images.pexels.com/photos/1350789/pexels-photo-1350789.jpeg?auto=compress&cs=tinysrgb&w=500&h=500&fit=crop',
-    discount: 50,
-    rating: 4.7,
-    reviews: 68,
-    condition: 'Muy bueno',
-    badge: null
-  },
-  {
-    id: 12,
-    name: 'Lámpara LED',
-    category: 'home',
-    price: 49,
-    originalPrice: 99,
-    image: 'https://images.unsplash.com/photo-1565182999555-e6debc666030?w=500&h=500&fit=crop',
-    discount: 51,
-    rating: 4.5,
-    reviews: 33,
-    condition: 'Excelente',
-    badge: null
-  }
-];
+import { supabase } from '@/lib/supabase';
 
 // Obtener parámetro de búsqueda
 const query = new URL(Astro.request.url).searchParams.get('q') || '';
 
-// Filtrar productos
-const searchResults = allProducts.filter(product => 
-  product.name.toLowerCase().includes(query.toLowerCase()) ||
-  product.category.toLowerCase().includes(query.toLowerCase())
-);
+let searchResults: any[] = [];
+let totalResults = 0;
+
+if (query.trim()) {
+  try {
+    // Buscar en la BD
+    const { data: products, error } = await supabase
+      .from('productos')
+      .select('*')
+      .or(`nombre.ilike.%${query}%,descripcion.ilike.%${query}%,categoria.ilike.%${query}%`)
+      .eq('estado', 'activo')
+      .limit(50);
+
+    if (error) {
+      console.error('Error fetching products:', error);
+      searchResults = [];
+    } else {
+      searchResults = products || [];
+      totalResults = searchResults.length;
+    }
+  } catch (err) {
+    console.error('Search error:', err);
+    searchResults = [];
+  }
+}
 
 const hasResults = searchResults.length > 0;
 ---
 
-<BaseLayout title={`Búsqueda: ${query} - FashionStore`}>
+<Layout title={`Búsqueda: ${query} - FashionStore`}>
   <div class="min-h-screen bg-white">
-    {/* Header Section */}
-    <div class="bg-gray-50 border-b border-gray-200 py-6">
+    {/* Header Section - Mejorado */}
+    <div class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200 py-8">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 class="text-3xl font-black italic mb-2">
-          Resultados de búsqueda
-        </h1>
-        <p class="text-gray-600">
-          {query ? (
-            <>
-              <span class="font-semibold">"{query}"</span>
-              <span class="ml-2">
-                {hasResults 
-                  ? `${searchResults.length} producto${searchResults.length !== 1 ? 's' : ''} encontrado${searchResults.length !== 1 ? 's' : ''}` 
-                  : 'No se encontraron productos'}
-              </span>
-            </>
-          ) : (
-            'Ingresa un término de búsqueda'
-          )}
-        </p>
+        <div class="flex items-start justify-between">
+          <div>
+            <h1 class="text-4xl font-black italic text-gray-900 mb-2">
+              Resultados de búsqueda
+            </h1>
+            {query && (
+              <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-[#00aa45] shadow-sm">
+                  <svg class="w-5 h-5 text-[#00aa45]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <span class="font-semibold text-gray-900">"{query}"</span>
+                </div>
+                <div class="px-4 py-2 bg-[#00aa45] text-white rounded-lg font-semibold">
+                  {hasResults ? (
+                    <span>{totalResults} {totalResults === 1 ? 'producto' : 'productos'}</span>
+                  ) : (
+                    <span>Sin resultados</span>
+                  )}
+                </div>
+              </div>
+            )}
+            {!query && (
+              <p class="text-gray-600 text-lg">Ingresa un término de búsqueda para encontrar productos</p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
 
     {/* Results Section */}
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       {hasResults ? (
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {searchResults.map(product => (
-            <ProductCard
-              slug={String(product.id)}
-              name={product.name}
-              price={product.price}
-              originalPrice={product.originalPrice}
-              image={product.image}
-              rating={product.rating}
-              reviews={product.reviews}
-              condition={product.condition}
-              badge={product.badge ?? undefined}
-            />
-          ))}
-        </div>
+        <>
+          <div class="mb-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-6">
+              Mostrando {totalResults} {totalResults === 1 ? 'producto' : 'productos'} coincidentes
+            </h2>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {searchResults.map(product => (
+              <ProductCard
+                slug={product.slug || String(product.id)}
+                name={product.nombre}
+                price={product.precio}
+                originalPrice={product.precio_original}
+                image={product.imagen_principal || 'https://via.placeholder.com/500'}
+                rating={product.rating || 4.5}
+                reviews={product.resenas || 0}
+                condition={product.condicion || 'Muy bueno'}
+                badge={product.badge || undefined}
+              />
+            ))}
+          </div>
+        </>
       ) : (
-        <div class="text-center py-12">
-          <div class="text-6xl mb-4">🔍</div>
-          <h2 class="text-2xl font-bold text-gray-900 mb-2">
-            No se encontraron productos
+        <div class="text-center py-20">
+          <div class="mb-8">
+            <svg class="w-40 h-40 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <h2 class="text-3xl font-bold text-gray-900 mb-3">
+            {query ? 'No se encontraron productos' : 'Comienza tu búsqueda'}
           </h2>
-          <p class="text-gray-600 mb-6">
-            Intenta con otras palabras clave o explora nuestras categorías
+          <p class="text-gray-600 text-lg mb-8 max-w-md mx-auto">
+            {query 
+              ? `No encontramos productos que coincidan con "${query}". Intenta con otras palabras clave.`
+              : 'Usa la barra de búsqueda para encontrar los productos que deseas.'}
           </p>
           <div class="flex gap-4 justify-center flex-wrap">
-            <a href="/" class="bg-[#00aa45] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#009340] transition">
+            <a href="/" class="inline-flex items-center gap-2 bg-[#00aa45] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#009340] transition duration-200 shadow-lg">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9m-9 11l4-4m0 0l4 4m-4-4v4" />
+              </svg>
               Ir al inicio
             </a>
-            <a href="/productos" class="border-2 border-[#00aa45] text-[#00aa45] px-6 py-3 rounded-lg font-semibold hover:bg-[#f5f5f7] transition">
-              Ver todos los productos
+            <a href="/categoria/smartphones" class="inline-flex items-center gap-2 border-2 border-[#00aa45] text-[#00aa45] px-8 py-3 rounded-lg font-semibold hover:bg-[#f0f9f7] transition duration-200">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+              Explorar categorías
             </a>
           </div>
         </div>
       )}
     </div>
   </div>
-</BaseLayout>
+</Layout>

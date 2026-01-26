@@ -7,7 +7,7 @@ export default function SearchBar() {
   const handleSearch = (e: JSX.TargetedEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (searchTerm.trim()) {
-      window.location.href = `/buscar?q=${encodeURIComponent(searchTerm)}`;
+      window.location.href = `/productos?q=${encodeURIComponent(searchTerm)}`;
     }
   };
 

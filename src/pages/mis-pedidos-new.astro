@@ -168,7 +168,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
       try {
         const user = await getCurrentUser();
         if (!user) {
-          window.location.href = "/login?from=mis-pedidos";
+          window.location.href = "/";
           return;
         }
 

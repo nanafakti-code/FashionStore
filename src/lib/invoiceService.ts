@@ -11,6 +11,7 @@ interface InvoiceItem {
   nombre: string;
   cantidad: number;
   precio_unitario: number;
+  precio_original?: number;
   talla?: string;
   color?: string;
 }
@@ -64,24 +65,24 @@ export function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
       // ============================================================
       // HEADER - LOGO Y DATOS EMPRESA
       // ============================================================
-      doc.fontSize(20).font('Helvetica-Bold').text('FASHIONSTORE', { align: 'left' });
-      doc.fontSize(10).font('Helvetica').fillColor('#666666');
-      doc.text('FashionStore.com', { align: 'left' });
-      doc.text('Email: info@fashionstore.com', { align: 'left' });
-      doc.text('Teléfono: +34 912 345 678', { align: 'left' });
+      doc.fontSize(24).font('Helvetica-Bold').fillColor('#166534').text('FASHIONSTORE', { align: 'left' });
+      doc.fontSize(9).font('Helvetica').fillColor('#666666');
+      doc.text('📍 Tienda Online de Moda', { align: 'left' });
+      doc.text('📧 info@fashionstore.com | 📱 +34 912 345 678', { align: 'left' });
+      doc.text('🌐 www.fashionstore.com', { align: 'left' });
 
-      // Línea separadora
-      doc.moveTo(40, doc.y + 10).lineTo(550, doc.y + 10).stroke('#cccccc');
-      doc.moveDown();
+      // Línea separadora decorativa
+      doc.moveTo(40, doc.y + 10).lineTo(550, doc.y + 10).stroke('#166534');
+      doc.moveDown(0.5);
 
       // ============================================================
       // TÍTULO Y NÚMERO DE FACTURA
       // ============================================================
-      doc.fontSize(16).font('Helvetica-Bold').fillColor('#000000');
+      doc.fontSize(18).font('Helvetica-Bold').fillColor('#000000');
       doc.text('FACTURA', { align: 'center' });
-      doc.moveDown(0.5);
+      doc.moveDown(0.3);
       doc.fontSize(10).font('Helvetica').fillColor('#666666').text(
-        `Factura: ${data.numero_orden} | Fecha: ${new Date(data.fecha).toLocaleDateString('es-ES')}`,
+        `Factura: ${data.numero_orden} | Fecha: ${new Date(data.fecha).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}`,
         { align: 'center' }
       );
       doc.moveDown();
@@ -124,13 +125,14 @@ export function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
       const col3 = 420;
       const col4 = 500;
 
+      doc.fontSize(10).font('Helvetica-Bold').fillColor('#166534');
       doc.text('Producto', col1, tableTop);
       doc.text('Cantidad', col2, tableTop);
       doc.text('P.U.', col3, tableTop, { align: 'right' });
       doc.text('Total', col4, tableTop, { align: 'right' });
 
       // Línea separadora
-      doc.moveTo(40, doc.y + 5).lineTo(550, doc.y + 5).stroke('#cccccc');
+      doc.moveTo(40, doc.y + 5).lineTo(550, doc.y + 5).stroke('#166534');
       doc.moveDown();
 
       // Datos tabla
@@ -139,19 +141,21 @@ export function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
       data.items.forEach((item) => {
         const itemTotal = (item.precio_unitario * item.cantidad) / 100;
         const unitPrice = (item.precio_unitario / 100).toFixed(2);
+        const hasDiscount = item.precio_original && item.precio_original > item.precio_unitario;
+        const originalPrice = item.precio_original ? (item.precio_original / 100).toFixed(2) : null;
 
         const itemText = `${item.nombre}${item.talla ? ` (${item.talla})` : ''}${
           item.color ? ` - ${item.color}` : ''
-        }`;
+        }${hasDiscount ? `\n(Original: ${originalPrice} EUR)` : ''}`;
 
         doc.text(itemText, col1, doc.y, { width: col2 - col1 - 10 });
         doc.text(item.cantidad.toString(), col2, doc.y - doc.heightOfString(itemText), {
           align: 'center',
         });
-        doc.text(unitPrice + ' €', col3, doc.y - doc.heightOfString(itemText), {
+        doc.text(unitPrice + ' EUR', col3, doc.y - doc.heightOfString(itemText), {
           align: 'right',
         });
-        doc.text(itemTotal.toFixed(2) + ' €', col4, doc.y - doc.heightOfString(itemText), {
+        doc.text(itemTotal.toFixed(2) + ' EUR', col4, doc.y - doc.heightOfString(itemText), {
           align: 'right',
         });
 
@@ -175,24 +179,24 @@ export function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
 
       doc.fillColor('#666666');
       doc.text('Subtotal:', summaryX);
-      doc.text(subtotal + ' €', 480, doc.y - 10, { align: 'right' });
+      doc.text(subtotal + ' EUR', 480, doc.y - 10, { align: 'right' });
 
       if (data.descuento > 0) {
         doc.moveDown();
         doc.text('Descuento:', summaryX);
         doc.fillColor('#16a34a');
-        doc.text('-' + descuento + ' €', 480, doc.y - 10, { align: 'right' });
+        doc.text('-' + descuento + ' EUR', 480, doc.y - 10, { align: 'right' });
         doc.fillColor('#666666');
       }
 
       doc.moveDown();
       doc.text('IVA (21%):', summaryX);
-      doc.text(impuestos + ' €', 480, doc.y - 10, { align: 'right' });
+      doc.text(impuestos + ' EUR', 480, doc.y - 10, { align: 'right' });
 
       doc.moveDown();
       doc.font('Helvetica-Bold').fillColor('#000000').fontSize(11);
       doc.text('TOTAL:', summaryX);
-      doc.text(total + ' €', 480, doc.y - 10, { align: 'right' });
+      doc.text(total + ' EUR', 480, doc.y - 10, { align: 'right' });
 
       doc.moveDown(2);
 

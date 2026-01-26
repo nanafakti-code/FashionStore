@@ -57,6 +57,30 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
               },
             ]);
           if (insertError) throw insertError;
+
+          // Enviar email de bienvenida (no bloquear registro si falla)
+          try {
+            console.log('[REGISTRO] Enviando email de bienvenida...');
+            const response = await fetch('/api/welcome-email', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                email,
+                nombre,
+              }),
+            });
+
+            if (response.ok) {
+              console.log('[REGISTRO] ✅ Email de bienvenida enviado');
+            } else {
+              console.warn('[REGISTRO] ⚠️ No se pudo enviar el email de bienvenida');
+            }
+          } catch (emailError) {
+            console.error('[REGISTRO] Error al enviar email de bienvenida:', emailError);
+            // No lanzar error, el registro ya fue exitoso
+          }
         }
 
         setSuccessMessage("¡Cuenta creada! Revisa tu correo para confirmar.");
@@ -68,7 +92,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         setGenero("");
         setFechaNacimiento("");
         setIsSignUp(false);
-        
+
         // Limpiar el mensaje de éxito después de 5 segundos
         setTimeout(() => {
           setSuccessMessage("");
@@ -86,7 +110,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     } catch (err: any) {
       // Traducir errores al español
       let errorMessage = err.message || "Error en la autenticación";
-      
+
       if (errorMessage.includes("row-level security policy")) {
         errorMessage = "Error de permisos. Por favor, intenta más tarde.";
       } else if (errorMessage.includes("Email not confirmed")) {
@@ -108,7 +132,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
       } else if (errorMessage.toLowerCase().includes("not authorized")) {
         errorMessage = "No tienes permiso para realizar esta acción";
       }
-      
+
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -125,220 +149,230 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         onClick={onClose}
       ></div>
 
-      {/* Modal */}
-      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl z-50 w-full max-w-sm mx-4 px-8 py-10 max-h-[90vh] overflow-y-auto">
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 text-2xl transition"
-        >
-          ✕
-        </button>
-
-        {/* Logo */}
-        <div className="flex justify-center mb-8">
-          <div className="text-2xl font-black tracking-tight">
-            Fashion<span className="text-[#00aa45]">Store</span>
-          </div>
-        </div>
-
-        {/* Title */}
-        <h1 className="text-3xl font-black text-center mb-2 text-gray-900">
-          {isSignUp ? "Crea tu cuenta" : "Bienvenido"}
-        </h1>
-        
-        <p className="text-center text-gray-600 mb-8 text-sm">
-          {isSignUp ? "Únete a nuestra comunidad" : "Accede con tu cuenta"}
-        </p>
-
-        {/* Social Auth Buttons */}
-        <div className="space-y-3 mb-6">
-          <AuthButtons onSuccess={onClose} />
-        </div>
-
-        {/* Divider */}
-        <div className="flex items-center my-6">
-          <div className="flex-1 border-t border-gray-200"></div>
-          <span className="px-3 text-gray-400 text-xs font-medium">O</span>
-          <div className="flex-1 border-t border-gray-200"></div>
-        </div>
-
-        {/* Email & Password Form */}
-        <form onSubmit={handleEmailAuth} className={`space-y-4 ${successMessage ? "opacity-50 pointer-events-none" : ""}`}>
-          {/* Error Message */}
-          {error && (
-            <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-200">
-              {error}
-            </div>
-          )}
-
-          {/* Success Message */}
-          {successMessage && (
-            <div className="bg-green-50 text-green-600 text-sm p-4 rounded-lg border border-green-200 flex items-center gap-2">
-              <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <span>{successMessage}</span>
-            </div>
-          )}
-
-          {/* Email Input */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Correo Electrónico *</label>
-            <input
-              type="email"
-              placeholder="tu@correo.com"
-              value={email}
-              onChange={(e: any) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
-              required
-            />
-          </div>
-
-          {/* Signup Fields */}
-          {isSignUp && (
-            <>
-              {/* Nombre */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Nombre *</label>
-                <input
-                  type="text"
-                  placeholder="Tu nombre"
-                  value={nombre}
-                  onChange={(e: any) => setNombre(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
-                  required
-                />
-              </div>
-
-              {/* Apellidos */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Apellidos *</label>
-                <input
-                  type="text"
-                  placeholder="Tus apellidos"
-                  value={apellidos}
-                  onChange={(e: any) => setApellidos(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
-                  required
-                />
-              </div>
-
-              {/* Teléfono */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Teléfono</label>
-                <input
-                  type="tel"
-                  placeholder="Ej: +34 600 123 456"
-                  value={telefono}
-                  onChange={(e: any) => setTelefono(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
-                />
-              </div>
-
-              {/* Género */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Género</label>
-                <select
-                  value={genero}
-                  onChange={(e: any) => setGenero(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
-                >
-                  <option value="">Selecciona tu género</option>
-                  <option value="Masculino">Masculino</option>
-                  <option value="Femenino">Femenino</option>
-                  <option value="Otro">Otro</option>
-                </select>
-              </div>
-
-              {/* Fecha de nacimiento */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Fecha de Nacimiento</label>
-                <input
-                  type="date"
-                  value={fechaNacimiento}
-                  onChange={(e: any) => setFechaNacimiento(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
-                />
-              </div>
-            </>
-          )}
-
-          {/* Password Input */}
-          <div className="relative">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Contraseña *</label>
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder={isSignUp ? "Crea una contraseña" : "Tu contraseña"}
-              value={password}
-              onChange={(e: any) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
-              required
-            />
+      {/* Modal Container - Scrollable on mobile without visible scrollbar */}
+      <div className="fixed inset-0 z-50 overflow-y-auto p-4 pointer-events-none scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <style>{`
+          .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+        <div className="flex items-center justify-center min-h-full">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm px-6 py-8 sm:px-8 sm:py-10 relative pointer-events-auto">
+            {/* Close Button */}
             <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-10 text-gray-500 hover:text-gray-700 transition-colors p-1"
+              onClick={onClose}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg p-2 transition font-bold text-xl w-8 h-8 flex items-center justify-center z-10"
+              aria-label="Cerrar"
             >
-              {showPassword ? (
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                  <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-              ) : (
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                  <line x1="1" y1="1" x2="23" y2="23"></line>
-                </svg>
-              )}
+              ✕
             </button>
+
+            {/* Logo */}
+            <div className="flex justify-center mb-8">
+              <div className="text-2xl font-black tracking-tight">
+                Fashion<span className="text-[#00aa45]">Store</span>
+              </div>
+            </div>
+
+            {/* Title */}
+            <h1 className="text-3xl font-black text-center mb-2 text-gray-900">
+              {isSignUp ? "Crea tu cuenta" : "Bienvenido"}
+            </h1>
+
+            <p className="text-center text-gray-600 mb-8 text-sm">
+              {isSignUp ? "Únete a nuestra comunidad" : "Accede con tu cuenta"}
+            </p>
+
+            {/* Social Auth Buttons */}
+            <div className="space-y-3 mb-6">
+              <AuthButtons onSuccess={onClose} />
+            </div>
+
+            {/* Divider */}
+            <div className="flex items-center my-6">
+              <div className="flex-1 border-t border-gray-200"></div>
+              <span className="px-3 text-gray-400 text-xs font-medium">O</span>
+              <div className="flex-1 border-t border-gray-200"></div>
+            </div>
+
+            {/* Email & Password Form */}
+            <form onSubmit={handleEmailAuth} className={`space-y-4 pointer-events-auto ${successMessage ? "opacity-50 pointer-events-none" : ""}`}>
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-200">
+                  {error}
+                </div>
+              )}
+
+              {/* Success Message */}
+              {successMessage && (
+                <div className="bg-green-50 text-green-600 text-sm p-4 rounded-lg border border-green-200 flex items-center gap-2">
+                  <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>{successMessage}</span>
+                </div>
+              )}
+
+              {/* Email Input */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Correo Electrónico *</label>
+                <input
+                  type="email"
+                  placeholder="tu@correo.com"
+                  value={email}
+                  onChange={(e: any) => setEmail(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
+                  required
+                />
+              </div>
+
+              {/* Signup Fields */}
+              {isSignUp && (
+                <>
+                  {/* Nombre */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Nombre *</label>
+                    <input
+                      type="text"
+                      placeholder="Tu nombre"
+                      value={nombre}
+                      onChange={(e: any) => setNombre(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
+                      required
+                    />
+                  </div>
+
+                  {/* Apellidos */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Apellidos *</label>
+                    <input
+                      type="text"
+                      placeholder="Tus apellidos"
+                      value={apellidos}
+                      onChange={(e: any) => setApellidos(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
+                      required
+                    />
+                  </div>
+
+                  {/* Teléfono */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Teléfono</label>
+                    <input
+                      type="tel"
+                      placeholder="Ej: +34 600 123 456"
+                      value={telefono}
+                      onChange={(e: any) => setTelefono(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
+                    />
+                  </div>
+
+                  {/* Género */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Género</label>
+                    <select
+                      value={genero}
+                      onChange={(e: any) => setGenero(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
+                    >
+                      <option value="">Selecciona tu género</option>
+                      <option value="Masculino">Masculino</option>
+                      <option value="Femenino">Femenino</option>
+                      <option value="Otro">Otro</option>
+                    </select>
+                  </div>
+
+                  {/* Fecha de nacimiento */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Fecha de Nacimiento</label>
+                    <input
+                      type="date"
+                      value={fechaNacimiento}
+                      onChange={(e: any) => setFechaNacimiento(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Password Input */}
+              <div className="relative">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Contraseña *</label>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder={isSignUp ? "Crea una contraseña" : "Tu contraseña"}
+                  value={password}
+                  onChange={(e: any) => setPassword(e.target.value)}
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-10 text-gray-500 hover:text-gray-700 transition-colors p-1"
+                >
+                  {showPassword ? (
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                      <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                  )}
+                </button>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-[#00aa45] text-white py-3 rounded-lg font-semibold text-sm hover:bg-[#009340] transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? "Cargando..." : isSignUp ? "Crear cuenta" : "Iniciar sesión"}
+              </button>
+            </form>
+
+            {/* Toggle Sign Up / Sign In */}
+            <div className="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-center text-sm text-gray-700 font-medium">
+                {isSignUp ? "¿Ya tienes cuenta?" : "¿No tienes cuenta?"}
+              </p>
+              <button
+                onClick={() => {
+                  setIsSignUp(!isSignUp);
+                  setError("");
+                  setEmail("");
+                  setPassword("");
+                  setNombre("");
+                  setApellidos("");
+                  setTelefono("");
+                  setGenero("");
+                  setFechaNacimiento("");
+                  setShowPassword(false);
+                }}
+                className="w-full mt-3 px-4 py-2 bg-white border-2 border-[#00aa45] text-[#00aa45] font-semibold rounded-lg hover:bg-[#00aa45] hover:text-white transition duration-200"
+              >
+                {isSignUp ? "Inicia sesión aquí" : "Regístrate aquí"}
+              </button>
+            </div>
+
+            {/* Footer */}
+            <p className="text-center text-xs text-gray-500 mt-6">
+              Al continuar, aceptas nuestros{" "}
+              <a href="/terminos" className="text-[#00aa45] hover:underline">
+                términos
+              </a>
+              {" "}y{" "}
+              <a href="/privacidad" className="text-[#00aa45] hover:underline">
+                privacidad
+              </a>
+            </p>
           </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-[#00aa45] text-white py-3 rounded-lg font-semibold text-sm hover:bg-[#009340] transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? "Cargando..." : isSignUp ? "Crear cuenta" : "Iniciar sesión"}
-          </button>
-        </form>
-
-        {/* Toggle Sign Up / Sign In */}
-        <div className="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <p className="text-center text-sm text-gray-700 font-medium">
-            {isSignUp ? "¿Ya tienes cuenta?" : "¿No tienes cuenta?"}
-          </p>
-          <button
-            onClick={() => {
-              setIsSignUp(!isSignUp);
-              setError("");
-              setEmail("");
-              setPassword("");
-              setNombre("");
-              setApellidos("");
-              setTelefono("");
-              setGenero("");
-              setFechaNacimiento("");
-              setShowPassword(false);
-            }}
-            className="w-full mt-3 px-4 py-2 bg-white border-2 border-[#00aa45] text-[#00aa45] font-semibold rounded-lg hover:bg-[#00aa45] hover:text-white transition duration-200"
-          >
-            {isSignUp ? "Inicia sesión aquí" : "Regístrate aquí"}
-          </button>
         </div>
-
-        {/* Footer */}
-        <p className="text-center text-xs text-gray-500 mt-6">
-          Al continuar, aceptas nuestros{" "}
-          <a href="/terminos" className="text-[#00aa45] hover:underline">
-            términos
-          </a>
-          {" "}y{" "}
-          <a href="/privacidad" className="text-[#00aa45] hover:underline">
-            privacidad
-          </a>
-        </p>
       </div>
     </>
   );

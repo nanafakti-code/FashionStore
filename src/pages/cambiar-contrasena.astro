@@ -96,7 +96,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
     async function checkAuth() {
       const user = await getCurrentUser();
       if (!user) {
-        window.location.href = '/login?from=cambiar-contrasena';
+        window.location.href = '/';
       }
     }
 

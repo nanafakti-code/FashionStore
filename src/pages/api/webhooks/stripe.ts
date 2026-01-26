@@ -38,6 +38,7 @@ interface OrderItem {
   nombre: string;
   cantidad: number;
   precio_unitario: number;
+  precio_original?: number;
   imagen?: string;
   talla?: string;
   color?: string;
@@ -141,6 +142,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
           nombre: item.producto_nombre,
           cantidad: item.cantidad,
           precio_unitario: item.precio_unitario,
+          precio_original: item.precio_original,
           imagen: item.producto_imagen,
           talla: item.talla,
           color: item.color,
