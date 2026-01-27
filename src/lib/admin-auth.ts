@@ -3,18 +3,12 @@
  * Sistema simple de autenticación para el panel de administración
  */
 
-// Credenciales de administrador (soporta variables de entorno)
-const ADMIN_CREDENTIALS = {
-  email: import.meta.env.ADMIN_EMAIL || 'admin@fashionstore.com',
-  password: import.meta.env.ADMIN_PASSWORD || '1234'
-};
+// Credenciales de administrador - HARDCODED para máxima compatibilidad
+const ADMIN_EMAIL = 'admin@fashionstore.com';
+const ADMIN_PASSWORD = '1234';
 
-// Log de credenciales en desarrollo (solo para debugging)
-if (import.meta.env.DEV) {
-  console.log('[ADMIN-AUTH] Credenciales configuradas:');
-  console.log('[ADMIN-AUTH] Email:', ADMIN_CREDENTIALS.email);
-  console.log('[ADMIN-AUTH] Password:', '****' + ADMIN_CREDENTIALS.password.slice(-2));
-}
+console.log('[ADMIN-AUTH] Sistema inicializado');
+console.log('[ADMIN-AUTH] Email:', ADMIN_EMAIL);
 
 export interface AdminSession {
   username: string;
@@ -28,19 +22,27 @@ export interface AdminSession {
 export function validateAdminCredentials(username: string, password: string): boolean {
   // Normalizar email (lowercase y trim)
   const normalizedUsername = username.toLowerCase().trim();
-  const normalizedAdminEmail = ADMIN_CREDENTIALS.email.toLowerCase().trim();
+  const normalizedAdminEmail = ADMIN_EMAIL.toLowerCase().trim();
 
-  console.log('[ADMIN-AUTH] Validando credenciales:');
-  console.log('[ADMIN-AUTH] Username recibido:', normalizedUsername);
-  console.log('[ADMIN-AUTH] Username esperado:', normalizedAdminEmail);
-  console.log('[ADMIN-AUTH] Password match:', password === ADMIN_CREDENTIALS.password);
+  console.log('[ADMIN-AUTH] ==========================================');
+  console.log('[ADMIN-AUTH] VALIDACIÓN DE CREDENCIALES');
+  console.log('[ADMIN-AUTH] ==========================================');
+  console.log('[ADMIN-AUTH] Username recibido:', `"${username}"`);
+  console.log('[ADMIN-AUTH] Username normalizado:', `"${normalizedUsername}"`);
+  console.log('[ADMIN-AUTH] Email esperado:', `"${normalizedAdminEmail}"`);
+  console.log('[ADMIN-AUTH] Password recibido:', `"${password}"`);
+  console.log('[ADMIN-AUTH] Password esperado:', `"${ADMIN_PASSWORD}"`);
+  console.log('[ADMIN-AUTH] Email match:', normalizedUsername === normalizedAdminEmail);
+  console.log('[ADMIN-AUTH] Password match:', password === ADMIN_PASSWORD);
 
   const isValid = (
     normalizedUsername === normalizedAdminEmail &&
-    password === ADMIN_CREDENTIALS.password
+    password === ADMIN_PASSWORD
   );
 
-  console.log('[ADMIN-AUTH] Resultado validación:', isValid ? '✓ VÁLIDO' : '✗ INVÁLIDO');
+  console.log('[ADMIN-AUTH] ==========================================');
+  console.log('[ADMIN-AUTH] RESULTADO:', isValid ? '✓ VÁLIDO' : '✗ INVÁLIDO');
+  console.log('[ADMIN-AUTH] ==========================================');
 
   return isValid;
 }
@@ -117,5 +119,4 @@ export function isAdminFromCookie(cookieString: string | undefined): boolean {
     return false;
   }
 }
-
 
