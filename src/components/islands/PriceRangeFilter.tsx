@@ -1,18 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
 
 interface Props {
+  minPrice: number;
   maxPrice: number;
 }
 
-export default function PriceRangeFilter({ maxPrice }: Props) {
+export default function PriceRangeFilter({ minPrice: minPriceProp, maxPrice }: Props) {
   // Inicializar desde URL params si existen
   const getInitialMinPrice = () => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const urlMinPrice = params.get('minPrice');
-      return urlMinPrice ? Number(urlMinPrice) : 0;
+      return urlMinPrice ? Number(urlMinPrice) : minPriceProp;
     }
-    return 0;
+    return minPriceProp;
   };
 
   const getInitialMaxPrice = () => {
@@ -60,9 +61,9 @@ export default function PriceRangeFilter({ maxPrice }: Props) {
   }, [minPrice, maxPriceValue]);
 
   // Calcular porcentajes para la barra de rango
-  const priceRange = maxPrice;
-  const minPercent = (minPrice / priceRange) * 100;
-  const maxPercent = (maxPriceValue / priceRange) * 100;
+  const priceRange = maxPrice - minPriceProp;
+  const minPercent = ((minPrice - minPriceProp) / priceRange) * 100;
+  const maxPercent = ((maxPriceValue - minPriceProp) / priceRange) * 100;
 
   return (
     <div className="w-full">
@@ -90,7 +91,7 @@ export default function PriceRangeFilter({ maxPrice }: Props) {
                 type="number"
                 value={minPrice}
                 onChange={(e) => {
-                  const val = Math.max(0, Math.min(Number(e.target.value), maxPriceValue));
+                  const val = Math.max(minPriceProp, Math.min(Number((e.target as HTMLInputElement).value), maxPriceValue));
                   setMinPrice(val);
                 }}
                 className="w-full text-lg font-normal text-gray-900 bg-transparent focus:outline-none"
@@ -102,7 +103,7 @@ export default function PriceRangeFilter({ maxPrice }: Props) {
                 type="number"
                 value={maxPriceValue}
                 onChange={(e) => {
-                  const val = Math.max(minPrice, Math.min(Number(e.target.value), maxPrice));
+                  const val = Math.max(minPrice, Math.min(Number((e.target as HTMLInputElement).value), maxPrice));
                   setMaxPriceValue(val);
                 }}
                 className="w-full text-lg font-normal text-gray-900 bg-transparent focus:outline-none"
@@ -145,12 +146,12 @@ export default function PriceRangeFilter({ maxPrice }: Props) {
             {/* Invisible range inputs for interaction */}
             <input
               type="range"
-              min={0}
+              min={minPriceProp}
               max={maxPrice}
               value={minPrice}
               onChange={(e) => {
-                const val = Math.min(Number(e.target.value), maxPriceValue - 1);
-                setMinPrice(Math.max(0, val));
+                const val = Math.min(Number((e.target as HTMLInputElement).value), maxPriceValue - 1);
+                setMinPrice(Math.max(minPriceProp, val));
               }}
               className="price-range-input absolute w-full h-6 top-1/2 -translate-y-1/2 appearance-none bg-transparent cursor-pointer"
               style={{ zIndex: minPrice > maxPrice - 100 ? 15 : 11 }}
@@ -158,11 +159,11 @@ export default function PriceRangeFilter({ maxPrice }: Props) {
 
             <input
               type="range"
-              min={0}
+              min={minPriceProp}
               max={maxPrice}
               value={maxPriceValue}
               onChange={(e) => {
-                const val = Math.max(Number(e.target.value), minPrice + 1);
+                const val = Math.max(Number((e.target as HTMLInputElement).value), minPrice + 1);
                 setMaxPriceValue(Math.min(maxPrice, val));
               }}
               className="price-range-input absolute w-full h-6 top-1/2 -translate-y-1/2 appearance-none bg-transparent cursor-pointer"

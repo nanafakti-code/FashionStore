@@ -47,7 +47,7 @@ try {
   console.log("📦 Productos cargados:", products?.length || 0);
 
   if (products && products.length > 0) {
-    allProducts = products.map((p) => ({
+    allProducts = products.map((p: any) => ({
       ...p,
       imagen_principal: p.imagenes_producto?.[0]?.url,
     }));
@@ -94,8 +94,17 @@ switch (sortOrder) {
 const totalResults = allProducts.length;
 const hasResults = allProducts.length > 0;
 
-// Calcular precio máximo para el slider
-const maxPriceInDB = 1799;
+// Calcular precios mínimo y máximo reales de los productos (en céntimos)
+const minPriceInDB = hasResults 
+  ? Math.min(...allProducts.map(p => p.precio_venta || 0))
+  : 0;
+const maxPriceInDB = hasResults 
+  ? Math.max(...allProducts.map(p => p.precio_venta || 0))
+  : 1799;
+
+// Convertir a euros para el componente (el componente espera euros)
+const minPriceInEuros = Math.floor(minPriceInDB / 100);
+const maxPriceInEuros = Math.ceil(maxPriceInDB / 100);
 ---
 
 <Layout title="Productos - FashionStore">
@@ -140,7 +149,6 @@ const maxPriceInDB = 1799;
                   {
                     categories.map((cat) => (
                       <a
-                        key={cat.id}
                         href={`/productos?categoria=${cat.id}${searchQuery ? `&q=${encodeURIComponent(searchQuery)}` : ""}`}
                         class={`block px-4 py-2 rounded-lg transition ${selectedCategory === cat.id.toString() ? "bg-[#00aa45] text-white" : "text-gray-700 hover:bg-gray-100"}`}
                       >
@@ -154,7 +162,7 @@ const maxPriceInDB = 1799;
 
             {/* Filtro de Precio */}
             <div class="mb-8 pt-6 border-t border-gray-200">
-              <PriceRangeFilter client:load maxPrice={maxPriceInDB} />
+              <PriceRangeFilter client:load minPrice={minPriceInEuros} maxPrice={maxPriceInEuros} />
             </div>
 
             {/* Filtro de Condición */}
