@@ -20,21 +20,21 @@ export const GET: APIRoute = async (context) => {
 async function handleLogin(context: any) {
   try {
     console.log('[ADMIN-LOGIN-API] Request received');
-    
+
     let username = '';
     let password = '';
-    
+
     // Obtener datos del query string o body
     const url = new URL(context.request.url);
-    
+
     // Intentar primero con query string
     username = url.searchParams.get('username')?.trim() || '';
     password = url.searchParams.get('password')?.trim() || '';
-    
+
     // Si no hay en query string, intentar con body
     if (!username || !password) {
       const contentType = context.request.headers.get('content-type');
-      
+
       if (contentType?.includes('form-data')) {
         const formData = await context.request.formData();
         username = formData.get('username')?.toString().trim() || '';
@@ -48,10 +48,12 @@ async function handleLogin(context: any) {
     }
 
     console.log('[ADMIN-LOGIN-API] Username:', username);
+    console.log('[ADMIN-LOGIN-API] Password length:', password.length);
     console.log('[ADMIN-LOGIN-API] Method:', context.request.method);
 
     // Validaciones
     if (!username) {
+      console.log('[ADMIN-LOGIN-API] ✗ Username vacío');
       return new Response(
         JSON.stringify({
           success: false,
@@ -65,6 +67,7 @@ async function handleLogin(context: any) {
     }
 
     if (!password) {
+      console.log('[ADMIN-LOGIN-API] ✗ Password vacío');
       return new Response(
         JSON.stringify({
           success: false,
@@ -78,6 +81,7 @@ async function handleLogin(context: any) {
     }
 
     if (!username.includes('@')) {
+      console.log('[ADMIN-LOGIN-API] ✗ Email inválido');
       return new Response(
         JSON.stringify({
           success: false,
@@ -91,10 +95,12 @@ async function handleLogin(context: any) {
     }
 
     // Validar credenciales
+    console.log('[ADMIN-LOGIN-API] Validando credenciales...');
     if (validateAdminCredentials(username, password)) {
-      console.log('[ADMIN-LOGIN-API] ✓ Credenciales válidas');
+      console.log('[ADMIN-LOGIN-API] ✓ Credenciales válidas - Generando token');
       const token = createAdminSessionToken(username);
-      
+
+      console.log('[ADMIN-LOGIN-API] ✓ Token generado exitosamente');
       return new Response(
         JSON.stringify({
           success: true,
