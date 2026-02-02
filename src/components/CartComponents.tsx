@@ -22,20 +22,20 @@ export function CartBadge() {
 
   return (
     <div className="cart-badge-container">
-      <svg 
-        className="cart-icon" 
-        width="24" 
-        height="24" 
+      <svg
+        className="cart-icon"
+        width="24"
+        height="24"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
         strokeWidth="2"
       >
-        <circle cx="9" cy="21" r="1"/>
-        <circle cx="20" cy="21" r="1"/>
-        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        <circle cx="9" cy="21" r="1" />
+        <circle cx="20" cy="21" r="1" />
+        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
       </svg>
-      
+
       {count > 0 && (
         <span className="cart-badge" aria-label={`${count} items en carrito`}>
           {count}
@@ -242,9 +242,9 @@ export function CartItemsList() {
   };
 
   const handleRemove = async (itemId: string) => {
-    if (confirm('¿Eliminar este producto del carrito?')) {
-      await removeItem(itemId);
-    }
+    // if (confirm('¿Eliminar este producto del carrito?')) {
+    await removeItem(itemId);
+    // }
   };
 
   return (
@@ -264,8 +264,8 @@ export function CartItemsList() {
             <tr key={item.id} className="cart-item-row">
               <td className="product-info">
                 {item.product_image && (
-                  <img 
-                    src={item.product_image} 
+                  <img
+                    src={item.product_image}
                     alt={item.product_name}
                     className="product-image"
                   />
@@ -293,7 +293,7 @@ export function CartItemsList() {
                     type="number"
                     min="1"
                     value={item.quantity}
-                    onChange={(e: any) => 
+                    onChange={(e: any) =>
                       handleQuantityChange(item.id, parseInt(e.target?.value || 1) || 1)
                     }
                     disabled={isProcessing}
@@ -652,7 +652,7 @@ export const CartPage = () => {
     return (
       <div className="cart-summary-container">
         <h3>Resumen del pedido</h3>
-        
+
         <div className="summary-row">
           <span>Subtotal ({summary.itemCount} items)</span>
           <span className="amount">${summary.subtotal}</span>
@@ -670,8 +670,8 @@ export const CartPage = () => {
           <span className="amount">${summary.total}</span>
         </div>
 
-        <button 
-          className="btn-checkout" 
+        <button
+          className="btn-checkout"
           disabled={!hasItems}
         >
           Proceder al pago
@@ -693,9 +693,9 @@ export const CartPage = () => {
       <div className="cart-layout">
         <div className="cart-main">
           <CartItemsList />
-          
+
           <div className="cart-actions">
-            <button 
+            <button
               onClick={() => clear()}
               className="btn-clear-cart"
             >

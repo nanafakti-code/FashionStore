@@ -19,7 +19,7 @@ interface ProductGalleryProps {
   images: Image[];
   productName: string;
   discount: number;
-  variants: Variant[];
+  variants?: Variant[];
 }
 
 // Función para optimizar URLs de imágenes
@@ -28,13 +28,13 @@ function optimizeImageUrl(url: string): string {
   if (url.includes('quality') || url.includes('format')) {
     return url;
   }
-  
+
   // Si es una URL relativa o de Supabase, optimizarla
   if (url.includes('supabase') || url.startsWith('/')) {
     // Usar Supabase image optimization si está disponible
     return url;
   }
-  
+
   return url;
 }
 
@@ -50,7 +50,7 @@ export default function ProductGallery({
   // Agrupar variantes por color
   const colors = Array.from(
     new Set(
-      variants
+      (variants || [])
         .map((v) => v.color)
         .filter((c) => c)
     )
@@ -92,11 +92,10 @@ export default function ProductGallery({
             <button
               key={idx}
               onClick={() => handleImageClick(img)}
-              className={`relative aspect-square bg-white rounded-lg overflow-hidden hover:opacity-80 transition-all border-2 ${
-                mainImage?.url === img.url
-                  ? 'border-[#00aa45] shadow-md'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
+              className={`relative aspect-square bg-white rounded-lg overflow-hidden hover:opacity-80 transition-all border-2 ${mainImage?.url === img.url
+                ? 'border-[#00aa45] shadow-md'
+                : 'border-gray-200 hover:border-gray-300'
+                }`}
             >
               <img
                 src={optimizeImageUrl(img.url)}
@@ -118,7 +117,7 @@ export default function ProductGallery({
           <div className="flex flex-wrap gap-3">
             {colors.map((color) => {
               const isSelected = selectedColor === color;
-              const variantsByColor = variants.filter(
+              const variantsByColor = (variants || []).filter(
                 (v) => v.color === color
               );
               const hasStock = variantsByColor.some((v) => v.stock > 0);
@@ -143,23 +142,22 @@ export default function ProductGallery({
                 (key) => color.toLowerCase().includes(key.toLowerCase())
               )
                 ? colorMap[
-                    Object.keys(colorMap).find(
-                      (key) => color.toLowerCase().includes(key.toLowerCase())
-                    ) as string
-                  ]
+                Object.keys(colorMap).find(
+                  (key) => color.toLowerCase().includes(key.toLowerCase())
+                ) as string
+                ]
                 : '#D1D5DB';
 
               return (
                 <button
                   key={color}
                   onClick={() => setSelectedColor(color)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all border-2 ${
-                    isSelected
-                      ? 'border-[#00aa45] bg-[#00aa45] text-white'
-                      : hasStock
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all border-2 ${isSelected
+                    ? 'border-[#00aa45] bg-[#00aa45] text-white'
+                    : hasStock
                       ? 'border-gray-300 bg-white text-gray-900 hover:border-[#00aa45]'
                       : 'border-gray-200 bg-white text-gray-400 cursor-not-allowed'
-                  }`}
+                    }`}
                   disabled={!hasStock}
                   title={color}
                 >

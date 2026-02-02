@@ -1,8 +1,8 @@
 ---
-import AdminLayout from '@/layouts/AdminLayout.astro';
-import AdminDashboard from '@/components/islands/AdminDashboard';
+import AdminLayout from "@/layouts/AdminLayout.astro";
+import AdminDashboard from "@/components/islands/AdminDashboard";
 
-const section = Astro.url.searchParams.get('section') || 'dashboard';
+const section = Astro.url.searchParams.get("section") || "dashboard";
 ---
 
 <AdminLayout title="Admin Dashboard - FashionStore">
@@ -10,21 +10,22 @@ const section = Astro.url.searchParams.get('section') || 'dashboard';
 </AdminLayout>
 
 <script>
+  import { supabase } from "@/lib/supabase";
+
   declare global {
     interface Window {
       handleLogout: () => void;
     }
   }
 
-  function handleLogout() {
-    if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-      localStorage.removeItem('admin_token');
-      localStorage.removeItem('admin_user');
-      window.location.href = '/admin-secret-login';
-    }
+  async function handleLogout() {
+    // if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+    const { error } = await supabase.auth.signOut();
+    if (error) console.error("Error signing out:", error);
+    window.location.href = "/admin/login";
+    // }
   }
 
   // Hacer la función global
   window.handleLogout = handleLogout;
 </script>
-

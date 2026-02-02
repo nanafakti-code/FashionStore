@@ -89,7 +89,7 @@ export default function ProductsList({
   // Escuchar cambios en los parámetros de URL
   useEffect(() => {
     window.addEventListener('popstate', applyFilters);
-    
+
     // También escuchar cambios en la URL usando MutationObserver indirectamente
     // Usamos un intervalo para chequear cambios (no es ideal pero funciona)
     const observer = setInterval(() => {
@@ -109,7 +109,7 @@ export default function ProductsList({
           {filteredProducts.map((product) => (
             <a
               key={product.id}
-              href={`/producto/${product.slug || product.id}`}
+              href={`/productos/${product.slug || product.id}`}
               className="group bg-white rounded-lg shadow-sm hover:shadow-lg transition-shadow overflow-hidden"
             >
               {/* Imagen */}

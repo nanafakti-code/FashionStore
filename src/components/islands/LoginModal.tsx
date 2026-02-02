@@ -1,5 +1,5 @@
 import { useState } from "react";
-import AuthButtons from "./AuthButtons";
+
 import { supabase } from "@/lib/supabase";
 
 interface LoginModalProps {
@@ -167,7 +167,6 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
               ✕
             </button>
 
-            {/* Logo */}
             <div className="flex justify-center mb-8">
               <div className="text-2xl font-black tracking-tight">
                 Fashion<span className="text-[#00aa45]">Store</span>
@@ -182,18 +181,6 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
             <p className="text-center text-gray-600 mb-8 text-sm">
               {isSignUp ? "Únete a nuestra comunidad" : "Accede con tu cuenta"}
             </p>
-
-            {/* Social Auth Buttons */}
-            <div className="space-y-3 mb-6">
-              <AuthButtons onSuccess={onClose} />
-            </div>
-
-            {/* Divider */}
-            <div className="flex items-center my-6">
-              <div className="flex-1 border-t border-gray-200"></div>
-              <span className="px-3 text-gray-400 text-xs font-medium">O</span>
-              <div className="flex-1 border-t border-gray-200"></div>
-            </div>
 
             {/* Email & Password Form */}
             <form onSubmit={handleEmailAuth} className={`space-y-4 pointer-events-auto ${successMessage ? "opacity-50 pointer-events-none" : ""}`}>

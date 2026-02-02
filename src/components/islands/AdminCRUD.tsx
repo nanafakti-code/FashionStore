@@ -111,27 +111,27 @@ export default function AdminCRUD({ initialProducts = [] }: AdminCRUDProps) {
 
   // Eliminar producto
   const handleDeleteProduct = async (id: string) => {
-    if (confirm('¿Estás seguro de que deseas eliminar este producto?')) {
-      setLoading(true);
-      try {
-        const response = await fetch(`/api/admin/productos/${id}`, {
-          method: 'DELETE',
-        });
+    // if (confirm('¿Estás seguro de que deseas eliminar este producto?')) {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/admin/productos/${id}`, {
+        method: 'DELETE',
+      });
 
-        if (response.ok) {
-          await fetchProducts();
-          setMessage('Producto eliminado exitosamente ✓');
-          setTimeout(() => setMessage(''), 3000);
-        } else {
-          throw new Error('Error al eliminar');
-        }
-      } catch (error) {
-        setMessage('Error al eliminar el producto');
-        console.error('Error:', error);
-      } finally {
-        setLoading(false);
+      if (response.ok) {
+        await fetchProducts();
+        setMessage('Producto eliminado exitosamente ✓');
+        setTimeout(() => setMessage(''), 3000);
+      } else {
+        throw new Error('Error al eliminar');
       }
+    } catch (error) {
+      setMessage('Error al eliminar el producto');
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
     }
+    // }
   };
 
   // Editar producto
@@ -335,20 +335,18 @@ export default function AdminCRUD({ initialProducts = [] }: AdminCRUDProps) {
                     <td className="px-6 py-4 text-gray-800 font-semibold">{product.nombre}</td>
                     <td className="px-6 py-4 text-gray-600">{product.precio_venta.toFixed(2)}€</td>
                     <td className="px-6 py-4">
-                      <span className={`text-xs font-semibold px-3 py-1 rounded-full ${
-                        (product.stock_total || 0) > 0 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
+                      <span className={`text-xs font-semibold px-3 py-1 rounded-full ${(product.stock_total || 0) > 0
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                        }`}>
                         {product.stock_total || 0} uds
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`text-xs font-semibold px-3 py-1 rounded-full ${
-                        product.activo 
-                          ? 'bg-blue-100 text-blue-800' 
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
+                      <span className={`text-xs font-semibold px-3 py-1 rounded-full ${product.activo
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-gray-100 text-gray-800'
+                        }`}>
                         {product.activo ? 'Activo' : 'Inactivo'}
                       </span>
                     </td>

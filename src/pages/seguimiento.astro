@@ -5,25 +5,42 @@
  * Permite a clientes invitados consultar el estado de su pedido
  * y solicitar devoluciones usando email + número de pedido
  */
-import Layout from '@/layouts/Layout.astro';
-import Header from '@/components/Header.astro';
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
 ---
 
 <Layout title="Seguimiento de Pedido - FashionStore">
   <Header />
-  
-  <main class="min-h-screen bg-gradient-to-br from-[#f5f5f7] via-white to-[#f0fff6] py-12">
+
+  <main
+    class="min-h-screen bg-gradient-to-br from-[#f5f5f7] via-white to-[#f0fff6] py-12"
+  >
     <div class="max-w-2xl mx-auto px-4">
       <!-- Formulario de búsqueda -->
       <div id="search-form" class="bg-white rounded-2xl shadow-xl p-8">
         <div class="text-center mb-8">
-          <div class="w-16 h-16 mx-auto bg-[#00aa45]/10 rounded-full flex items-center justify-center mb-4">
-            <svg class="w-8 h-8 text-[#00aa45]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          <div
+            class="w-16 h-16 mx-auto bg-[#00aa45]/10 rounded-full flex items-center justify-center mb-4"
+          >
+            <svg
+              class="w-8 h-8 text-[#00aa45]"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
             </svg>
           </div>
-          <h1 class="text-3xl font-black text-gray-900 mb-2">Seguimiento de Pedido</h1>
-          <p class="text-gray-600">Introduce tu email y numero de pedido para ver el estado</p>
+          <h1 class="text-3xl font-black text-gray-900 mb-2">
+            Seguimiento de Pedido
+          </h1>
+          <p class="text-gray-600">
+            Introduce tu email y numero de pedido para ver el estado
+          </p>
         </div>
 
         <form id="tracking-form" class="space-y-6">
@@ -53,10 +70,15 @@ import Header from '@/components/Header.astro';
               required
               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent"
             />
-            <p class="text-xs text-gray-500 mt-1">Lo encontraras en tu email de confirmacion</p>
+            <p class="text-xs text-gray-500 mt-1">
+              Lo encontraras en tu email de confirmacion
+            </p>
           </div>
 
-          <div id="error-message" class="hidden bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm">
+          <div
+            id="error-message"
+            class="hidden bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm"
+          >
           </div>
 
           <button
@@ -65,8 +87,17 @@ import Header from '@/components/Header.astro';
             class="w-full bg-[#00aa45] text-white py-3 rounded-xl font-bold hover:bg-[#009340] transition flex items-center justify-center gap-2"
           >
             <span>Buscar pedido</span>
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
             </svg>
           </button>
         </form>
@@ -85,15 +116,26 @@ import Header from '@/components/Header.astro';
           id="back-btn"
           class="mb-6 text-[#00aa45] font-medium flex items-center gap-2 hover:underline"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"></path>
           </svg>
           Buscar otro pedido
         </button>
 
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
           <!-- Header -->
-          <div class="bg-gradient-to-r from-[#00aa45] to-[#008a35] p-6 text-white">
+          <div
+            class="bg-gradient-to-r from-[#00aa45] to-[#008a35] p-6 text-white"
+          >
             <p class="text-white/80 text-sm mb-1">Numero de pedido</p>
             <h2 id="result-order-number" class="text-2xl font-black">---</h2>
           </div>
@@ -103,13 +145,18 @@ import Header from '@/components/Header.astro';
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-sm text-gray-600 mb-1">Estado actual</p>
-                <span id="result-status" class="inline-block px-4 py-2 rounded-full text-sm font-bold bg-gray-100">
+                <span
+                  id="result-status"
+                  class="inline-block px-4 py-2 rounded-full text-sm font-bold bg-gray-100"
+                >
                   ---
                 </span>
               </div>
               <div class="text-right">
                 <p class="text-sm text-gray-600 mb-1">Total</p>
-                <p id="result-total" class="text-2xl font-black text-[#00aa45]">---</p>
+                <p id="result-total" class="text-2xl font-black text-[#00aa45]">
+                  ---
+                </p>
               </div>
             </div>
           </div>
@@ -136,8 +183,18 @@ import Header from '@/components/Header.astro';
               id="return-btn"
               class="w-full bg-gray-200 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-300 transition flex items-center justify-center gap-2"
             >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z"></path>
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z"
+                ></path>
               </svg>
               Solicitar devolucion
             </button>
@@ -146,13 +203,27 @@ import Header from '@/components/Header.astro';
       </div>
 
       <!-- Modal de devolución -->
-      <div id="return-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div
+        id="return-modal"
+        class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      >
         <div class="bg-white rounded-2xl max-w-lg w-full p-6">
           <div class="flex justify-between items-center mb-6">
-            <h3 class="text-xl font-bold text-gray-900">Solicitar devolucion</h3>
+            <h3 class="text-xl font-bold text-gray-900">
+              Solicitar devolucion
+            </h3>
             <button id="close-modal" class="text-gray-400 hover:text-gray-600">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"></path>
               </svg>
             </button>
           </div>
@@ -171,11 +242,16 @@ import Header from '@/components/Header.astro';
 
           <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
             <p class="text-sm text-amber-800">
-              <strong>Importante:</strong> Dispones de 30 dias desde la entrega para solicitar la devolucion. El reembolso se procesara en 5-10 dias habiles tras recibir el producto.
+              <strong>Importante:</strong> Dispones de 30 dias desde la entrega para
+              solicitar la devolucion. El reembolso se procesara en 5-10 dias habiles
+              tras recibir el producto.
             </p>
           </div>
 
-          <div id="return-error" class="hidden bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-red-700 text-sm">
+          <div
+            id="return-error"
+            class="hidden bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-red-700 text-sm"
+          >
           </div>
 
           <div class="flex gap-4">
@@ -199,99 +275,113 @@ import Header from '@/components/Header.astro';
 
   <script>
     let currentOrder: any = null;
-    let currentEmail = '';
+    let currentEmail = "";
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const form = document.getElementById('tracking-form') as HTMLFormElement;
-      const searchSection = document.getElementById('search-form');
-      const resultSection = document.getElementById('order-result');
-      const backBtn = document.getElementById('back-btn');
-      const returnBtn = document.getElementById('return-btn');
-      const returnModal = document.getElementById('return-modal');
-      const closeModal = document.getElementById('close-modal');
-      const cancelReturn = document.getElementById('cancel-return');
-      const confirmReturn = document.getElementById('confirm-return');
-      const errorMessage = document.getElementById('error-message');
-      const submitBtn = document.getElementById('submit-btn');
+    document.addEventListener("DOMContentLoaded", () => {
+      const form = document.getElementById("tracking-form") as HTMLFormElement;
+      const searchSection = document.getElementById("search-form");
+      const resultSection = document.getElementById("order-result");
+      const backBtn = document.getElementById("back-btn");
+      const returnBtn = document.getElementById("return-btn");
+      const returnModal = document.getElementById("return-modal");
+      const closeModal = document.getElementById("close-modal");
+      const cancelReturn = document.getElementById("cancel-return");
+      const confirmReturn = document.getElementById("confirm-return");
+      const errorMessage = document.getElementById("error-message");
+      const submitBtn = document.getElementById("submit-btn");
 
       // Buscar pedido
-      form?.addEventListener('submit', async (e) => {
+      form?.addEventListener("submit", async (e) => {
         e.preventDefault();
-        
-        const email = (document.getElementById('email') as HTMLInputElement).value;
-        const orderNumber = (document.getElementById('orderNumber') as HTMLInputElement).value;
+
+        const email = (document.getElementById("email") as HTMLInputElement)
+          .value;
+        const orderNumber = (
+          document.getElementById("orderNumber") as HTMLInputElement
+        ).value;
 
         if (!email || !orderNumber) return;
 
         currentEmail = email;
-        errorMessage?.classList.add('hidden');
-        if (submitBtn) submitBtn.innerHTML = '<span>Buscando...</span>';
+        errorMessage?.classList.add("hidden");
+        if (submitBtn) submitBtn.innerHTML = "<span>Buscando...</span>";
 
         try {
-          const response = await fetch(`/api/order/by-guest?email=${encodeURIComponent(email)}&orderNumber=${encodeURIComponent(orderNumber)}`);
-          
+          const response = await fetch(
+            `/api/order/by-guest?email=${encodeURIComponent(email)}&orderNumber=${encodeURIComponent(orderNumber)}`,
+          );
+
           if (!response.ok) {
             const data = await response.json();
-            throw new Error(data.error || 'Pedido no encontrado');
+            throw new Error(data.error || "Pedido no encontrado");
           }
 
           const data = await response.json();
           currentOrder = data.order;
 
           displayOrder(data);
-          searchSection?.classList.add('hidden');
-          resultSection?.classList.remove('hidden');
-
+          searchSection?.classList.add("hidden");
+          resultSection?.classList.remove("hidden");
         } catch (error: any) {
-          errorMessage!.textContent = error.message || 'Error buscando el pedido';
-          errorMessage?.classList.remove('hidden');
+          errorMessage!.textContent =
+            error.message || "Error buscando el pedido";
+          errorMessage?.classList.remove("hidden");
         } finally {
-          if (submitBtn) submitBtn.innerHTML = '<span>Buscar pedido</span><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>';
+          if (submitBtn)
+            submitBtn.innerHTML =
+              '<span>Buscar pedido</span><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>';
         }
       });
 
       // Volver a buscar
-      backBtn?.addEventListener('click', () => {
-        searchSection?.classList.remove('hidden');
-        resultSection?.classList.add('hidden');
+      backBtn?.addEventListener("click", () => {
+        searchSection?.classList.remove("hidden");
+        resultSection?.classList.add("hidden");
         currentOrder = null;
       });
 
       // Abrir modal de devolución
-      returnBtn?.addEventListener('click', () => {
+      returnBtn?.addEventListener("click", () => {
         if (!currentOrder) return;
-        returnModal?.classList.remove('hidden');
+        returnModal?.classList.remove("hidden");
       });
 
       // Cerrar modal
-      closeModal?.addEventListener('click', () => {
-        returnModal?.classList.add('hidden');
-        (document.getElementById('return-reason') as HTMLTextAreaElement).value = '';
+      closeModal?.addEventListener("click", () => {
+        returnModal?.classList.add("hidden");
+        (
+          document.getElementById("return-reason") as HTMLTextAreaElement
+        ).value = "";
       });
 
-      cancelReturn?.addEventListener('click', () => {
-        returnModal?.classList.add('hidden');
-        (document.getElementById('return-reason') as HTMLTextAreaElement).value = '';
+      cancelReturn?.addEventListener("click", () => {
+        returnModal?.classList.add("hidden");
+        (
+          document.getElementById("return-reason") as HTMLTextAreaElement
+        ).value = "";
       });
 
       // Confirmar devolución
-      confirmReturn?.addEventListener('click', async () => {
-        const reason = (document.getElementById('return-reason') as HTMLTextAreaElement).value;
-        const returnError = document.getElementById('return-error');
+      confirmReturn?.addEventListener("click", async () => {
+        const reason = (
+          document.getElementById("return-reason") as HTMLTextAreaElement
+        ).value;
+        const returnError = document.getElementById("return-error");
 
         if (!reason.trim()) {
-          returnError!.textContent = 'Por favor, indica el motivo de la devolución';
-          returnError?.classList.remove('hidden');
+          returnError!.textContent =
+            "Por favor, indica el motivo de la devolución";
+          returnError?.classList.remove("hidden");
           return;
         }
 
-        if (confirmReturn) confirmReturn.textContent = 'Enviando...';
-        returnError?.classList.add('hidden');
+        if (confirmReturn) confirmReturn.textContent = "Enviando...";
+        returnError?.classList.add("hidden");
 
         try {
-          const response = await fetch('/api/returns/request', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+          const response = await fetch("/api/returns/request", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               email: currentEmail,
               orderNumber: currentOrder.numero_orden,
@@ -302,21 +392,27 @@ import Header from '@/components/Header.astro';
           const data = await response.json();
 
           if (!response.ok) {
-            throw new Error(data.error || 'Error procesando la solicitud');
+            throw new Error(data.error || "Error procesando la solicitud");
           }
 
           // Actualizar estado visual
-          currentOrder.estado = 'Devolucion_Solicitada';
+          currentOrder.estado = "Devolucion_Solicitada";
           displayOrder({ order: currentOrder, items: [] });
-          
-          returnModal?.classList.add('hidden');
-          alert('Solicitud enviada correctamente. Recibirás un email con las instrucciones.');
 
+          returnModal?.classList.add("hidden");
+          // alert('Solicitud enviada correctamente. Recibirás un email con las instrucciones.');
+          const succMsg = document.createElement("div");
+          succMsg.className =
+            "fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-xl shadow-2xl z-50 animate-bounce";
+          succMsg.textContent =
+            "Solicitud enviada correctamente. Recibirás un email con las instrucciones.";
+          document.body.appendChild(succMsg);
+          setTimeout(() => succMsg.remove(), 5000);
         } catch (error: any) {
           returnError!.textContent = error.message;
-          returnError?.classList.remove('hidden');
+          returnError?.classList.remove("hidden");
         } finally {
-          if (confirmReturn) confirmReturn.textContent = 'Enviar solicitud';
+          if (confirmReturn) confirmReturn.textContent = "Enviar solicitud";
         }
       });
 
@@ -325,67 +421,76 @@ import Header from '@/components/Header.astro';
         const items = data.items || [];
 
         // Número de orden
-        document.getElementById('result-order-number')!.textContent = order.numero_orden;
+        document.getElementById("result-order-number")!.textContent =
+          order.numero_orden;
 
         // Estado
-        const statusEl = document.getElementById('result-status')!;
+        const statusEl = document.getElementById("result-status")!;
         const statusColors: Record<string, string> = {
-          Pendiente: 'bg-yellow-100 text-yellow-700',
-          Pagado: 'bg-purple-100 text-purple-700',
-          Enviado: 'bg-cyan-100 text-cyan-700',
-          Entregado: 'bg-green-100 text-green-700',
-          Cancelado: 'bg-red-100 text-red-700',
-          Devuelto: 'bg-gray-100 text-gray-700',
-          Devolucion_Solicitada: 'bg-orange-100 text-orange-700',
+          Pendiente: "bg-yellow-100 text-yellow-700",
+          Pagado: "bg-purple-100 text-purple-700",
+          Enviado: "bg-cyan-100 text-cyan-700",
+          Entregado: "bg-green-100 text-green-700",
+          Cancelado: "bg-red-100 text-red-700",
+          Devuelto: "bg-gray-100 text-gray-700",
+          Devolucion_Solicitada: "bg-orange-100 text-orange-700",
         };
         const statusLabels: Record<string, string> = {
-          Pendiente: 'Pendiente de pago',
-          Pagado: 'Pagado',
-          Enviado: 'Enviado',
-          Entregado: 'Entregado',
-          Cancelado: 'Cancelado',
-          Devuelto: 'Devuelto',
-          Devolucion_Solicitada: 'Devolución solicitada',
+          Pendiente: "Pendiente de pago",
+          Pagado: "Pagado",
+          Enviado: "Enviado",
+          Entregado: "Entregado",
+          Cancelado: "Cancelado",
+          Devuelto: "Devuelto",
+          Devolucion_Solicitada: "Devolución solicitada",
         };
-        statusEl.className = `inline-block px-4 py-2 rounded-full text-sm font-bold ${statusColors[order.estado] || 'bg-gray-100'}`;
+        statusEl.className = `inline-block px-4 py-2 rounded-full text-sm font-bold ${statusColors[order.estado] || "bg-gray-100"}`;
         statusEl.textContent = statusLabels[order.estado] || order.estado;
 
         // Total
-        document.getElementById('result-total')!.textContent = (order.total / 100).toFixed(2) + ' EUR';
+        document.getElementById("result-total")!.textContent =
+          (order.total / 100).toFixed(2) + " EUR";
 
         // Timeline
-        const timelineEl = document.getElementById('timeline')!;
+        const timelineEl = document.getElementById("timeline")!;
         const steps = [
-          { key: 'Pagado', label: 'Pago confirmado', date: order.fecha_pago },
-          { key: 'Enviado', label: 'Pedido enviado', date: order.fecha_envio },
-          { key: 'Entregado', label: 'Entregado', date: order.fecha_entrega },
+          { key: "Pagado", label: "Pago confirmado", date: order.fecha_pago },
+          { key: "Enviado", label: "Pedido enviado", date: order.fecha_envio },
+          { key: "Entregado", label: "Entregado", date: order.fecha_entrega },
         ];
-        const currentStepIndex = steps.findIndex(s => s.key === order.estado);
+        const currentStepIndex = steps.findIndex((s) => s.key === order.estado);
 
-        timelineEl.innerHTML = steps.map((step, idx) => {
-          const isCompleted = idx <= currentStepIndex && currentStepIndex >= 0;
-          const dateStr = step.date ? new Date(step.date).toLocaleDateString('es-ES') : '';
-          
-          return `
+        timelineEl.innerHTML = steps
+          .map((step, idx) => {
+            const isCompleted =
+              idx <= currentStepIndex && currentStepIndex >= 0;
+            const dateStr = step.date
+              ? new Date(step.date).toLocaleDateString("es-ES")
+              : "";
+
+            return `
             <div class="flex items-start gap-4">
-              <div class="w-8 h-8 rounded-full flex items-center justify-center ${isCompleted ? 'bg-[#00aa45] text-white' : 'bg-gray-200 text-gray-500'}">
+              <div class="w-8 h-8 rounded-full flex items-center justify-center ${isCompleted ? "bg-[#00aa45] text-white" : "bg-gray-200 text-gray-500"}">
                 ${isCompleted ? '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>' : `<span class="text-xs font-bold">${idx + 1}</span>`}
               </div>
               <div class="flex-1">
-                <p class="font-medium ${isCompleted ? 'text-gray-900' : 'text-gray-500'}">${step.label}</p>
-                ${dateStr ? `<p class="text-sm text-gray-500">${dateStr}</p>` : ''}
+                <p class="font-medium ${isCompleted ? "text-gray-900" : "text-gray-500"}">${step.label}</p>
+                ${dateStr ? `<p class="text-sm text-gray-500">${dateStr}</p>` : ""}
               </div>
             </div>
           `;
-        }).join('');
+          })
+          .join("");
 
         // Items
-        const itemsEl = document.getElementById('result-items')!;
+        const itemsEl = document.getElementById("result-items")!;
         if (items.length > 0) {
-          itemsEl.innerHTML = items.map((item: any) => `
+          itemsEl.innerHTML = items
+            .map(
+              (item: any) => `
             <div class="flex items-center gap-4 bg-gray-50 rounded-lg p-4">
               <img 
-                src="${item.producto_imagen || '/productos/placeholder.jpg'}" 
+                src="${item.producto_imagen || "/productos/placeholder.jpg"}" 
                 alt="${item.producto_nombre}"
                 class="w-16 h-16 object-cover rounded-lg"
               />
@@ -395,21 +500,24 @@ import Header from '@/components/Header.astro';
               </div>
               <p class="font-bold text-gray-900">${(item.subtotal / 100).toFixed(2)} EUR</p>
             </div>
-          `).join('');
+          `,
+            )
+            .join("");
         } else {
-          itemsEl.innerHTML = '<p class="text-gray-500 text-center py-4">No se pudieron cargar los productos</p>';
+          itemsEl.innerHTML =
+            '<p class="text-gray-500 text-center py-4">No se pudieron cargar los productos</p>';
         }
 
         // Botón de devolución
-        const returnBtn = document.getElementById('return-btn');
-        const actionsSection = document.getElementById('actions-section');
-        const validStatesForReturn = ['Pagado', 'Enviado', 'Entregado'];
-        
+        const returnBtn = document.getElementById("return-btn");
+        const actionsSection = document.getElementById("actions-section");
+        const validStatesForReturn = ["Pagado", "Enviado", "Entregado"];
+
         if (validStatesForReturn.includes(order.estado)) {
-          actionsSection?.classList.remove('hidden');
-          returnBtn?.classList.remove('hidden');
+          actionsSection?.classList.remove("hidden");
+          returnBtn?.classList.remove("hidden");
         } else {
-          actionsSection?.classList.add('hidden');
+          actionsSection?.classList.add("hidden");
         }
       }
     });

@@ -6,10 +6,10 @@ interface StripePaymentProps {
   onError?: (error: string) => void;
 }
 
-export default function StripePayment({ 
-  total = 0, 
-  onSuccess = () => {}, 
-  onError = () => {} 
+export default function StripePayment({
+  total = 0,
+  onSuccess = () => { },
+  onError = () => { }
 }: StripePaymentProps) {
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -23,7 +23,7 @@ export default function StripePayment({
   useEffect(() => {
     const cartJSON = localStorage.getItem('cart');
     const cart = cartJSON ? JSON.parse(cartJSON) : [];
-    const cartTotal = cart.reduce((sum: number, item: any) => 
+    const cartTotal = cart.reduce((sum: number, item: any) =>
       sum + (item.price * item.quantity), 0);
     setCurrentTotal(cartTotal);
   }, [total]);
@@ -96,14 +96,14 @@ export default function StripePayment({
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Mostrar confirmación
-      alert('¡Pago procesado exitosamente!\n\nGracias por tu compra en FashionStore.\nTe hemos enviado un email de confirmación.');
-      
+      // alert('¡Pago procesado exitosamente!\n\nGracias por tu compra en FashionStore.\nTe hemos enviado un email de confirmación.');
+
       // Limpiar carrito
       localStorage.removeItem('cart');
-      
+
       // Redirigir
       window.location.href = '/';
-      
+
       onSuccess();
     } catch (error) {
       onError('Error al procesar el pago');

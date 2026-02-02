@@ -2,16 +2,14 @@
 import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import { supabase } from "@/lib/supabase";
-import AddToCartButton from "@/components/islands/AddToCartButton";
-import AddReviewButton from "@/components/islands/AddReviewButton";
-import ProductGallery from "@/components/islands/ProductGallery";
 
 const { slug } = Astro.params;
 
 // Obtener producto de Supabase
 const { data: producto } = await supabase
-  .from('productos')
-  .select(`
+  .from("productos")
+  .select(
+    `
     id, 
     nombre, 
     slug, 
@@ -25,90 +23,53 @@ const { data: producto } = await supabase
     imagenes_producto(id, url, alt_text, es_principal),
     marca:marcas(nombre, slug),
     categoria:categorias(nombre, slug)
-  `)
-  .eq('slug', slug)
-  .eq('activo', true)
+  `,
+  )
+  .eq("slug", slug)
+  .eq("activo", true)
   .single();
 
 if (!producto) {
-  return Astro.redirect('/');
+  return Astro.redirect("/");
 }
 
 // Obtener reseñas verificadas
 const { data: resenas } = await supabase
-  .from('resenas')
-  .select('id, calificacion, titulo, comentario, usuario:usuarios(nombre), creada_en')
-  .eq('producto_id', producto.id)
-  .eq('verificada_compra', true)
-  .order('creada_en', { ascending: false });
+  .from("resenas")
+  .select(
+    "id, calificacion, titulo, comentario, usuario:usuarios(nombre), creada_en",
+  )
+  .eq("producto_id", producto.id)
+  .eq("estado", "Aprobada")
+  .order("creada_en", { ascending: false });
 
 // Calcular descuento
-const descuento = producto.precio_original 
-  ? Math.round(((producto.precio_original - producto.precio_venta) / producto.precio_original) * 100)
-  : 0;
+const descuento =
+  producto.precio_original && producto.precio_venta
+    ? Math.round(
+        ((producto.precio_original - producto.precio_venta) /
+          producto.precio_original) *
+          100,
+      )
+    : 0;
 
-// Convertir céntimos a euros
+// Formatear precios
 const precioEuros = (producto.precio_venta / 100).toFixed(2);
-const precioOriginalEuros = producto.precio_original 
+const precioOriginalEuros = producto.precio_original
   ? (producto.precio_original / 100).toFixed(2)
   : null;
 
 // Obtener imágenes
 const imagenes = producto.imagenes_producto || [];
-const imagenPrincipal = imagenes.find((img: any) => img.es_principal) || imagenes[0];
-
-// Obtener productos relacionados
-const { data: productosRelacionados } = await supabase
-  .from('productos')
-  .select('id, nombre, slug, precio_venta, imagenes_producto(url, es_principal)')
-  .eq('categoria_id', producto.categoria_id)
-  .neq('id', producto.id)
-  .eq('activo', true)
-  .limit(4);
-
-// Obtener variantes del producto (colores, capacidades, estados)
-const { data: variantes } = await supabase
-  .from('variantes_producto')
-  .select('id, color, capacidad, estado, stock, sku_variante, precio_ajustado')
-  .eq('producto_id', producto.id)
-  .eq('activo', true)
-  .order('color', { ascending: true })
-  .order('capacidad', { ascending: true });
-
-// Agrupar variantes por color
-const coloresPorVariante = new Map<string, any[]>();
-if (variantes) {
-  variantes.forEach((v: any) => {
-    if (!coloresPorVariante.has(v.color || 'Sin color')) {
-      coloresPorVariante.set(v.color || 'Sin color', []);
-    }
-    coloresPorVariante.get(v.color || 'Sin color')?.push(v);
-  });
-}
-
-// Obtener estados únicos de las variantes
-const estadosUnicos: string[] = variantes 
-  ? Array.from(new Set(variantes.map((v: any) => v.estado).filter(Boolean)))
-  : [];
-
-// Mapeo de descripciones de estado
-const estadoDescripcion: Record<string, string> = {
-  'Correcto': '✓ Correcto',
-  'Muy Bueno': '✓✓ Muy Bueno',
-  'Excelente': '✓✓✓ Excelente'
-};
-
-// Función para formatear precios
-function formatPrice(cents: number): string {
-  return `${(cents / 100).toFixed(2)}€`;
-}
+const imagenPrincipal =
+  imagenes.find((img: any) => img.es_principal) || imagenes[0];
 
 // Generar rutas estáticas para todos los productos
 export async function getStaticPaths() {
   const { data: productos } = await supabase
-    .from('productos')
-    .select('slug')
-    .eq('activo', true);
+    .from("productos")
+    .select("slug")
+    .eq("activo", true);
 
   return (
     productos?.map((p: any) => ({
@@ -117,21 +78,29 @@ export async function getStaticPaths() {
   );
 }
 ---
+
 <Layout title={`${producto.nombre} - FashionStore`}>
   <Header />
-  
+
   <main class="min-h-screen bg-[#f5f5f7]">
     <!-- Breadcrumb -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
       <nav class="flex items-center gap-2 text-sm text-gray-600">
         <a href="/" class="hover:text-[#00aa45]">Inicio</a>
         <span>/</span>
-        {producto.categoria && (
-          <>
-            <a href={`/categoria/${producto.categoria.slug}`} class="hover:text-[#00aa45]">{producto.categoria.nombre}</a>
-            <span>/</span>
-          </>
-        )}
+        {
+          producto.categoria && (
+            <>
+              <a
+                href={`/categoria/${producto.categoria.slug}`}
+                class="hover:text-[#00aa45]"
+              >
+                {producto.categoria.nombre}
+              </a>
+              <span>/</span>
+            </>
+          )
+        }
         <span class="text-gray-900 font-semibold">{producto.nombre}</span>
       </nav>
     </div>
@@ -140,303 +109,173 @@ export async function getStaticPaths() {
     <section class="py-12 sm:py-16">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12">
-          <!-- Galería de Imágenes (Componente Interactivo) -->
-          <ProductGallery
-            client:load
-            images={imagenes}
-            productName={producto.nombre}
-            discount={descuento}
-            variants={variantes || []}
-          />
+          <!-- Galería de Imágenes -->
+          <div id="product-gallery-container">
+            <img
+              id="main-product-image"
+              src={imagenPrincipal?.url || ""}
+              alt={producto.nombre}
+              class="w-full h-auto rounded-2xl bg-white shadow-md object-contain p-8"
+            />
+          </div>
 
           <!-- Información del Producto -->
           <div class="space-y-6">
             <!-- Categoría -->
-            {producto.categoria && (
-              <a href={`/categoria/${producto.categoria.slug}`} class="inline-block text-sm text-[#00aa45] hover:text-[#009340] font-semibold">
-                {producto.categoria.nombre}
-              </a>
-            )}
+            {
+              producto.categoria && (
+                <a
+                  href={`/categoria/${producto.categoria.slug}`}
+                  class="inline-block text-sm text-[#00aa45] hover:text-[#009340] font-semibold"
+                >
+                  {producto.categoria.nombre}
+                </a>
+              )
+            }
 
             <!-- Título -->
-            <h1 class="text-4xl sm:text-5xl font-black text-gray-900">
+            <h1 class="text-3xl sm:text-4xl font-black text-gray-900">
               {producto.nombre}
             </h1>
 
             <!-- Marca -->
-            {producto.marca && (
-              <p class="text-lg text-gray-600">
-                Marca: <span class="font-semibold text-gray-900">{producto.marca.nombre}</span>
-              </p>
-            )}
+            {
+              producto.marca && (
+                <p class="text-lg text-gray-600">
+                  Marca:{" "}
+                  <span class="font-semibold text-gray-900">
+                    {producto.marca.nombre}
+                  </span>
+                </p>
+              )
+            }
 
             <!-- Valoración -->
-            {producto.total_resenas > 0 && (
-              <div class="flex items-center gap-4">
-                <div class="flex gap-1">
-                  {Array(5).fill(0).map((_: any, i: number) => (
-                    <svg
-                      class={`w-5 h-5 ${i < Math.floor(producto.valoracion_promedio) ? 'text-amber-400 fill-amber-400' : 'text-gray-300 fill-gray-300'}`}
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                    </svg>
-                  ))}
+            {
+              (
+                <div class="flex items-center gap-4">
+                  <div class="flex gap-1">
+                    {Array(5)
+                      .fill(0)
+                      .map((_: any, i: number) => (
+                        <svg
+                          class={`w-5 h-5 ${i < Math.floor(producto.valoracion_promedio) ? "text-amber-400 fill-amber-400" : "text-gray-300 fill-gray-300"}`}
+                          viewBox="0 0 20 20"
+                        >
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      ))}
+                  </div>
+                  <span class="text-sm text-gray-600">
+                    {producto.valoracion_promedio.toFixed(1)} (
+                    {producto.total_resenas}{" "}
+                    {producto.total_resenas === 1 ? "reseña" : "reseñas"})
+                  </span>
                 </div>
-                <span class="text-gray-600">{producto.valoracion_promedio.toFixed(1)} ({producto.total_resenas} reseñas)</span>
-              </div>
-            )}
-
-            <!-- Precios -->
-            <div class="space-y-2">
-              <div class="flex items-baseline gap-4">
-                <span class="text-4xl font-black text-gray-900">{precioEuros}€</span>
-                {precioOriginalEuros && (
-                  <span class="text-2xl text-gray-500 line-through">{precioOriginalEuros}€</span>
-                )}
-              </div>
-              {descuento > 0 && (
-                <p class="text-green-600 font-semibold">
-                  Ahorras: {((producto.precio_original - producto.precio_venta) / 100).toFixed(2)}€
-                </p>
-              )}
-            </div>
-
-            <!-- Stock -->
-            <div class="flex items-center gap-2">
-              <div class={`w-3 h-3 rounded-full ${producto.stock_total > 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-              <span class={`font-semibold ${producto.stock_total > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {producto.stock_total > 0 ? `En stock (${producto.stock_total} disponibles)` : 'Agotado'}
-              </span>
-            </div>
+              )
+            }
 
             <!-- Descripción -->
-            <p class="text-gray-700 leading-relaxed">
+            <p class="text-gray-700 leading-relaxed mb-6">
               {producto.descripcion}
             </p>
 
-            <!-- Modelos Disponibles (Estado + Capacidad) -->
-            {variantes && variantes.length > 0 && (
-              <div class="space-y-4">
-                <!-- Selector de Estados -->
-                {estadosUnicos.length > 0 && (
-                  <div>
-                    <h3 class="text-sm font-semibold text-gray-900 mb-3">
-                      Estado del Producto
-                    </h3>
-                    <div class="flex flex-wrap gap-2">
-                      {estadosUnicos.map((estado: string) => {
-                        const variantesConEstado = variantes.filter((v: any) => v.estado === estado);
-                        const tieneStock = variantesConEstado.some((v: any) => v.stock > 0);
-
-                        return (
-                          <button
-                            class={`px-4 py-2 border-2 rounded-lg font-medium transition-all ${
-                              tieneStock
-                                ? 'border-gray-300 hover:border-[#00aa45] hover:bg-[#00aa45] hover:text-white'
-                                : 'border-gray-200 bg-white text-gray-400 cursor-not-allowed'
-                            }`}
-                            disabled={!tieneStock}
-                            title={tieneStock ? estado : 'Sin stock en este estado'}
-                          >
-                            {estadoDescripcion[estado as keyof typeof estadoDescripcion] || estado}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                <!-- Selector de Capacidades -->
-                {variantes.some((v: any) => v.capacidad) && (
-                  <div>
-                    <h3 class="text-sm font-semibold text-gray-900 mb-3">
-                      Capacidad / Almacenamiento
-                    </h3>
-                    <div class="flex flex-wrap gap-2">
-                      {Array.from(new Set(variantes.map((v: any) => v.capacidad).filter(Boolean))).map((capacidad: any) => {
-                        const variantesConCapacidad = variantes.filter((v: any) => v.capacidad === capacidad);
-                        const tieneStock = variantesConCapacidad.some((v: any) => v.stock > 0);
-
-                        return (
-                          <button
-                            class={`px-4 py-2 border-2 rounded-lg font-medium transition-all ${
-                              tieneStock
-                                ? 'border-gray-300 hover:border-[#00aa45] hover:bg-[#00aa45] hover:text-white'
-                                : 'border-gray-200 bg-white text-gray-400 cursor-not-allowed'
-                            }`}
-                            disabled={!tieneStock}
-                            title={tieneStock ? capacidad : 'Sin stock en esta capacidad'}
-                          >
-                            {capacidad}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                <!-- Combinaciones disponibles -->
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <p class="text-xs text-blue-800">
-                    <strong>{variantes.filter((v: any) => v.stock > 0).length}</strong> opciones disponibles en diferentes colores, estados y capacidades
-                  </p>
-                </div>
-              </div>
-            )}
-
-            <!-- Botón Añadir al Carrito -->
-            <AddToCartButton
-              client:load
-              productId={producto.id}
-              productName={producto.nombre}
-              price={producto.precio_venta}
-              image={imagenPrincipal?.url || ''}
-              stock={producto.stock_total}
-            />
+            <!-- Selector de Variantes -->
+            <div id="variant-selector-container"></div>
 
             <!-- Características -->
-            <div class="border-t border-gray-200 pt-6 space-y-4">
-              <div class="flex items-start gap-3">
-                <svg class="w-6 h-6 text-[#00aa45] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                <div>
-                  <h4 class="font-semibold text-gray-900">Envío Gratuito</h4>
-                  <p class="text-sm text-gray-600">En pedidos superiores a 50€</p>
+            {
+              producto.descripcion_larga && (
+                <div class="border-t border-gray-200 pt-6">
+                  <h3 class="text-lg font-semibold text-gray-900 mb-3">
+                    Descripción Detallada
+                  </h3>
+                  <p class="text-gray-700 leading-relaxed whitespace-pre-line">
+                    {producto.descripcion_larga}
+                  </p>
                 </div>
+              )
+            }
+          </div>
+        </div>
+
+        <!-- Reseñas -->
+        {
+          resenas && resenas.length > 0 && (
+            <div class="mt-16">
+              <div class="flex items-center justify-between mb-8">
+                <h2 class="text-2xl font-bold text-gray-900">
+                  Reseñas de Clientes
+                </h2>
               </div>
-              <div class="flex items-start gap-3">
-                <svg class="w-6 h-6 text-[#00aa45] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                </svg>
-                <div>
-                  <h4 class="font-semibold text-gray-900">Devoluciones Fáciles</h4>
-                  <p class="text-sm text-gray-600">30 días para devolver</p>
-                </div>
-              </div>
-              <div class="flex items-start gap-3">
-                <svg class="w-6 h-6 text-[#00aa45] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                </svg>
-                <div>
-                  <h4 class="font-semibold text-gray-900">Garantía de Calidad</h4>
-                  <p class="text-sm text-gray-600">Producto reacondicionado certificado</p>
-                </div>
+
+              <div class="grid gap-6">
+                {resenas.slice(0, 5).map((resena: any) => (
+                  <div class="bg-white rounded-xl p-6 shadow-sm">
+                    <div class="flex items-start justify-between mb-3">
+                      <div>
+                        <div class="flex gap-1 mb-2">
+                          {Array(5)
+                            .fill(0)
+                            .map((_: any, i: number) => (
+                              <svg
+                                class={`w-4 h-4 ${i < resena.calificacion ? "text-amber-400 fill-amber-400" : "text-gray-300 fill-gray-300"}`}
+                                viewBox="0 0 20 20"
+                              >
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                              </svg>
+                            ))}
+                        </div>
+                        <h4 class="font-semibold text-gray-900">
+                          {resena.titulo}
+                        </h4>
+                      </div>
+                      <span class="text-sm text-gray-500">
+                        {new Date(resena.creada_en).toLocaleDateString("es-ES")}
+                      </span>
+                    </div>
+                    <p class="text-gray-700 mb-3">{resena.comentario}</p>
+                    <p class="text-sm text-gray-600">
+                      Por {resena.usuario?.nombre || "Usuario"}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </section>
+          )
+        }
 
-    <!-- Descripción Detallada -->
-    {producto.descripcion_larga && (
-      <section class="py-12 sm:py-16 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 class="text-3xl font-black text-gray-900 mb-6">Descripción Detallada</h2>
-          <div class="text-gray-700 space-y-4 leading-relaxed">
-            {producto.descripcion_larga.split('\n').map((parrafo: string) => (
-              <p>{parrafo}</p>
-            ))}
-          </div>
-        </div>
-      </section>
-    )}
-
-    <!-- Reseñas -->
-    <section class="py-12 sm:py-16">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-3xl font-black text-gray-900 mb-8">Reseñas de Clientes</h2>
-        
         <!-- Botón para agregar reseña -->
-        <div class="mb-8">
-          <AddReviewButton client:load productId={producto.id} />
-        </div>
-
-        <!-- Lista de reseñas -->
-        {resenas && resenas.length > 0 ? (
-          <div class="grid gap-6">
-            {resenas.map((resena: any) => (
-              <div class="bg-white rounded-lg p-6 border border-gray-200">
-                <div class="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 class="font-bold text-gray-900">{resena.usuario?.nombre || 'Usuario'}</h3>
-                    <p class="text-sm text-gray-600">{new Date(resena.creada_en).toLocaleDateString('es-ES')}</p>
-                  </div>
-                  <div class="flex gap-1">
-                    {Array(5).fill(0).map((_: any, i: number) => (
-                      <svg
-                        class={`w-4 h-4 ${i < resena.calificacion ? 'text-amber-400 fill-amber-400' : 'text-gray-300 fill-gray-300'}`}
-                        viewBox="0 0 20 20"
-                      >
-                        <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                      </svg>
-                    ))}
-                  </div>
-                </div>
-                <h4 class="font-semibold text-gray-900 mb-2">{resena.titulo}</h4>
-                <p class="text-gray-700">{resena.comentario}</p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div class="bg-blue-50 border border-blue-200 rounded-lg p-8 text-center">
-            <p class="text-blue-900 font-semibold mb-4">
-              Aún no hay reseñas verificadas para este producto
-            </p>
-            <p class="text-blue-700 text-sm">
-              Sé el primero en compartir tu experiencia
-            </p>
-          </div>
-        )}
       </div>
     </section>
-
-    <!-- Productos Relacionados -->
-    {productosRelacionados && productosRelacionados.length > 0 && (
-      <section class="py-16 bg-[#f5f5f7]">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 class="text-3xl font-black text-gray-900 mb-8">
-            También te puede interesar
-          </h2>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {productosRelacionados?.map((prod: any) => {
-              const imgPrincipal = prod.imagenes_producto?.find((img: any) => img.es_principal) || prod.imagenes_producto?.[0];
-              return (
-                <a
-                  href={`/productos/${prod.slug}`}
-                  class="group bg-white rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-                >
-                  <div class="aspect-square bg-white border border-gray-200 relative overflow-hidden">
-                    {imgPrincipal ? (
-                      <img
-                        src={imgPrincipal.url}
-                        alt={prod.nombre}
-                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div class="w-full h-full flex items-center justify-center">
-                        <span class="text-slate-400 text-lg">{prod.nombre}</span>
-                      </div>
-                    )}
-                  </div>
-                  <div class="p-4">
-                    <h3 class="font-semibold text-gray-900 mb-2 group-hover:text-[#00aa45] transition-colors">
-                      {prod.nombre}
-                    </h3>
-                    <span class="text-xl font-bold text-[#00aa45]">
-                      {formatPrice(prod.precio_venta)}
-                    </span>
-                  </div>
-                </a>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-    )}
   </main>
-</Layout>
 
+  <script>
+    import VariantSelector from "@/components/VariantSelector";
+
+    import { createRoot } from "react-dom/client";
+    import { createElement } from "react";
+
+    const container = document.getElementById("variant-selector-container");
+
+    const imageElement = document.getElementById(
+      "main-product-image",
+    ) as HTMLImageElement;
+    const productSlug = window.location.pathname.split("/").pop() || "";
+
+    if (container && imageElement) {
+      const root = createRoot(container);
+
+      root.render(
+        createElement(VariantSelector, {
+          productSlug: productSlug,
+          onImageChange: (imageUrl: string | null) => {
+            if (imageUrl) {
+              imageElement.src = imageUrl;
+            }
+          },
+        }),
+      );
+    }
+  </script>
+</Layout>

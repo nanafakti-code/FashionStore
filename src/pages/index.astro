@@ -14,14 +14,15 @@ let loadError: string | null = null;
 let productsFromDB: any[] | null = null;
 let productsError: any = null;
 
-console.log('=== INDEX: Iniciando carga de productos ===');
-console.log('Supabase configurado:', isSupabaseConfigured);
+console.log("=== INDEX: Iniciando carga de productos ===");
+console.log("Supabase configurado:", isSupabaseConfigured);
 
 try {
   // Obtener productos destacados de la BD
   const result = await supabase
-    .from('productos')
-    .select(`
+    .from("productos")
+    .select(
+      `
       id, 
       nombre, 
       slug, 
@@ -31,21 +32,27 @@ try {
       stock_total, 
       destacado,
       categoria_id,
+      valoracion_promedio,
+      total_resenas,
       imagenes_producto(url)
-    `)
-    .eq('destacado', true)
-    .eq('activo', true)
+    `,
+    )
+    .eq("destacado", true)
+    .eq("activo", true)
     .limit(8);
-  
+
   productsFromDB = result.data;
   productsError = result.error;
 
   // Si no hay productos destacados, obtener los primeros 8 activos
   if (!productsFromDB || productsFromDB.length === 0) {
-    console.warn('No hay productos destacados, obteniendo productos activos...');
+    console.warn(
+      "No hay productos destacados, obteniendo productos activos...",
+    );
     const fallbackResult = await supabase
-      .from('productos')
-      .select(`
+      .from("productos")
+      .select(
+        `
         id, 
         nombre, 
         slug, 
@@ -55,11 +62,14 @@ try {
         stock_total, 
         destacado,
         categoria_id,
+        valoracion_promedio,
+        total_resenas,
         imagenes_producto(url)
-      `)
-      .eq('activo', true)
+      `,
+      )
+      .eq("activo", true)
       .limit(8);
-    
+
     productsFromDB = fallbackResult.data;
     if (fallbackResult.error && !productsError) {
       productsError = fallbackResult.error;
@@ -68,37 +78,38 @@ try {
 
   if (productsError) {
     loadError = productsError.message || JSON.stringify(productsError);
-    console.error('Error de Supabase:', loadError);
+    console.error("Error de Supabase:", loadError);
   }
-
 } catch (err: any) {
-  loadError = err.message || 'Error desconocido al cargar productos';
-  console.error('Excepción al cargar productos:', err);
+  loadError = err.message || "Error desconocido al cargar productos";
+  console.error("Excepción al cargar productos:", err);
 }
 
 // Obtener categorías de la BD
 const { data: categoriesFromDB } = await supabase
-  .from('categorias')
-  .select('id, nombre, slug, descripcion')
-  .eq('activa', true)
-  .order('orden', { ascending: true });
+  .from("categorias")
+  .select("id, nombre, slug, descripcion")
+  .eq("activa", true)
+  .order("orden", { ascending: true });
 
 // Obtener un producto de cada categoría para usar su imagen
 await Promise.all(
   (categoriesFromDB || []).map(async (cat: any) => {
     const { data: productData } = await supabase
-      .from('productos')
-      .select('imagenes_producto(url)')
-      .eq('categoria_id', cat.id)
-      .eq('activo', true)
+      .from("productos")
+      .select("imagenes_producto(url)")
+      .eq("categoria_id", cat.id)
+      .eq("activo", true)
       .limit(1)
       .single();
-    
+
     return {
       categoryId: cat.id,
-      image: productData?.imagenes_producto?.[0]?.url || `https://images.unsplash.com/photo-1511707267537-b85faf00021e?w=800&h=400&fit=crop`
+      image:
+        productData?.imagenes_producto?.[0]?.url ||
+        `https://images.unsplash.com/photo-1511707267537-b85faf00021e?w=800&h=400&fit=crop`,
     };
-  })
+  }),
 );
 
 // ============================================
@@ -106,10 +117,10 @@ await Promise.all(
 // ============================================
 
 // Mostrar info de depuración
-console.log('=== INDEX: Resultados ===');
-console.log('Productos encontrados:', productsFromDB?.length || 0);
-console.log('Error de carga:', loadError || 'ninguno');
-console.log('Categorías:', categoriesFromDB?.length || 0);
+console.log("=== INDEX: Resultados ===");
+console.log("Productos encontrados:", productsFromDB?.length || 0);
+console.log("Error de carga:", loadError || "ninguno");
+console.log("Categorías:", categoriesFromDB?.length || 0);
 
 // Mapear productos
 const featuredProducts = (productsFromDB || []).map((product: any) => ({
@@ -119,12 +130,18 @@ const featuredProducts = (productsFromDB || []).map((product: any) => ({
   price: product.precio_venta,
   originalPrice: product.precio_original,
   description: product.descripcion,
-  image: product.imagenes_producto?.[0]?.url || 'https://via.placeholder.com/500x700?text=' + encodeURIComponent(product.nombre || 'Producto'),
-  badge: product.precio_original && product.precio_venta < product.precio_original ? "Oferta" : null,
+  image:
+    product.imagenes_producto?.[0]?.url ||
+    "https://via.placeholder.com/500x700?text=" +
+      encodeURIComponent(product.nombre || "Producto"),
+  badge:
+    product.precio_original && product.precio_venta < product.precio_original
+      ? "Oferta"
+      : null,
   badge_color: "bg-[#e2ff7a]",
   condition: "Excelente estado",
-  rating: 4.8,
-  reviews: 245,
+  rating: product.valoracion_promedio || 0,
+  reviews: product.total_resenas || 0,
   stock: product.stock_total,
 }));
 
@@ -133,14 +150,14 @@ const hasError = Boolean(loadError);
 const errorMessage = loadError;
 
 // Log final
-console.log('=== INDEX: Renderizado ===');
-console.log('hasError:', hasError);
-console.log('featuredProducts count:', featuredProducts.length);
+console.log("=== INDEX: Renderizado ===");
+console.log("hasError:", hasError);
+console.log("featuredProducts count:", featuredProducts.length);
 ---
 
 <Layout title="TechStore - Electrónica Reacondicionada">
   <Header />
-  
+
   <main class="bg-[#f5f5f7] min-h-screen">
     <!-- Hero Section -->
     <section class="bg-[#e2ff7a] py-3 sm:py-5 relative overflow-hidden">
@@ -148,33 +165,41 @@ console.log('featuredProducts count:', featuredProducts.length);
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <!-- Contenido Izquierdo -->
           <div>
-            <h1 class="text-5xl sm:text-6xl lg:text-7xl font-black italic text-gray-900 mb-6 leading-tight">
+            <h1
+              class="text-5xl sm:text-6xl lg:text-7xl font-black italic text-gray-900 mb-6 leading-tight"
+            >
               Tecnología Premium
               <br />
               <span class="text-[#00aa45]">al mejor precio</span>
             </h1>
 
             <p class="text-xl text-gray-800 mb-8 max-w-2xl">
-              Descubre los mejores productos electrónicos con garantía. Smartphones, laptops y accesorios a los mejores precios.
+              Descubre los mejores productos electrónicos con garantía.
+              Smartphones, laptops y accesorios a los mejores precios.
             </p>
 
             <div class="flex flex-col sm:flex-row gap-4">
-              <a href="/productos" class="bg-gray-900 hover:bg-gray-800 text-white font-black py-3 px-8 rounded-lg transition-colors duration-200 text-lg text-center">
+              <a
+                href="/productos"
+                class="bg-gray-900 hover:bg-gray-800 text-white font-black py-3 px-8 rounded-lg transition-colors duration-200 text-lg text-center"
+              >
                 Ver Productos
               </a>
-              <button class="border-2 border-gray-900 text-gray-900 hover:bg-gray-100 font-black py-3 px-8 rounded-lg transition-colors duration-200 text-lg">
+              <button
+                class="border-2 border-gray-900 text-gray-900 hover:bg-gray-100 font-black py-3 px-8 rounded-lg transition-colors duration-200 text-lg"
+              >
                 Cómo funciona
               </button>
             </div>
           </div>
 
           <!-- Imagen Derecha -->
-          <HeroImage 
+          <HeroImage
             client:load
             images={[
-              'https://cdsassets.apple.com/live/SZLF0YNV/images/sp/111883_macbookair.png',
-              'https://cdsassets.apple.com/live/7WUAS350/images/tech-specs/iphone-16.png',
-              'https://cdsassets.apple.com/live/SZLF0YNV/images/sp/111979_ipad-pro-12-2018.png'
+              "https://cdsassets.apple.com/live/SZLF0YNV/images/sp/111883_macbookair.png",
+              "https://cdsassets.apple.com/live/7WUAS350/images/tech-specs/iphone-16.png",
+              "https://cdsassets.apple.com/live/SZLF0YNV/images/sp/111979_ipad-pro-12-2018.png",
             ]}
             interval={5000}
           />
@@ -185,108 +210,160 @@ console.log('featuredProducts count:', featuredProducts.length);
     <!-- Compra los "más buscados" -->
     <section class="py-16 sm:py-24 bg-white">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-4xl sm:text-5xl font-black italic text-gray-900 mb-12">Compra los "más buscados"</h2>
-        
+        <h2 class="text-4xl sm:text-5xl font-black italic text-gray-900 mb-12">
+          Compra los "más buscados"
+        </h2>
+
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <!-- Ofertones -->
-          <a href="/productos" class="group relative overflow-hidden rounded-2xl h-64 flex items-end">
-            <img 
+          <a
+            href="/productos"
+            class="group relative overflow-hidden rounded-2xl h-64 flex items-end"
+          >
+            <img
               src="https://www.backmarket.es/cdn-cgi/image/format%3Dauto%2Cquality%3D75%2Cwidth%3D3840/https://images.ctfassets.net/mmeshd7gafk1/Pp4pOTfXlUSotMSqXEbxu/3370173794ce712f1e1cbcc40295b383/Modular-card_Desktop_Great_deals.jpg"
               alt="Ofertones"
               class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div
+              class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"
+            >
+            </div>
             <div class="relative z-10 p-6 w-full">
               <h3 class="text-2xl font-black text-white">Ofertones</h3>
             </div>
           </a>
 
           <!-- iPhone -->
-          <a href="/categoria/smartphones" class="group relative overflow-hidden rounded-2xl h-64 flex items-end">
-            <img 
+          <a
+            href="/categoria/smartphones"
+            class="group relative overflow-hidden rounded-2xl h-64 flex items-end"
+          >
+            <img
               src="https://www.backmarket.es/cdn-cgi/image/format%3Dauto%2Cquality%3D75%2Cwidth%3D3840/https://images.ctfassets.net/mmeshd7gafk1/1bRy70V8KNknn628bf14h8/00d17107aeb0b9649fbdf6b07f3ffaf5/Modular-card_Desktop_iPhone.jpg"
               alt="iPhone"
               class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div
+              class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"
+            >
+            </div>
             <div class="relative z-10 p-6 w-full">
               <h3 class="text-2xl font-black text-white">iPhone</h3>
             </div>
           </a>
 
           <!-- MacBook -->
-          <a href="/categoria/laptops" class="group relative overflow-hidden rounded-2xl h-64 flex items-end">
-            <img 
+          <a
+            href="/categoria/laptops"
+            class="group relative overflow-hidden rounded-2xl h-64 flex items-end"
+          >
+            <img
               src="https://www.backmarket.es/cdn-cgi/image/format%3Dauto%2Cquality%3D75%2Cwidth%3D3840/https://images.ctfassets.net/mmeshd7gafk1/5GjoGJCqWVngJRShjjG7a/e5244dcc76c3549e25b290f886334388/Modular-card_Desktop_Macbooks.jpg"
               alt="MacBook"
               class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div
+              class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"
+            >
+            </div>
             <div class="relative z-10 p-6 w-full">
               <h3 class="text-2xl font-black text-white">MacBook</h3>
             </div>
           </a>
 
           <!-- iPad -->
-          <a href="/categoria/tablets" class="group relative overflow-hidden rounded-2xl h-64 flex items-end">
-            <img 
+          <a
+            href="/categoria/tablets"
+            class="group relative overflow-hidden rounded-2xl h-64 flex items-end"
+          >
+            <img
               src="https://www.backmarket.es/cdn-cgi/image/format%3Dauto%2Cquality%3D75%2Cwidth%3D3840/https://images.ctfassets.net/mmeshd7gafk1/jW258Um5YCpwOTHNgEokq/1bf0f42f2e1714c689abf89d98b4710c/Modular-card_Desktop_iPad.jpg"
               alt="iPad"
               class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div
+              class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"
+            >
+            </div>
             <div class="relative z-10 p-6 w-full">
               <h3 class="text-2xl font-black text-white">iPad</h3>
             </div>
           </a>
 
           <!-- Smartwatches -->
-          <a href="/categoria/wearables" class="group relative overflow-hidden rounded-2xl h-64 flex items-end">
-            <img 
+          <a
+            href="/categoria/wearables"
+            class="group relative overflow-hidden rounded-2xl h-64 flex items-end"
+          >
+            <img
               src="https://www.backmarket.es/cdn-cgi/image/format%3Dauto%2Cquality%3D75%2Cwidth%3D3840/https://images.ctfassets.net/mmeshd7gafk1/1W08wc0KJB4db2rXsJyP1P/cec0c617c837e6ca306ef223eae6d8ee/Modular-card_Desktop_Smartwatch.jpg"
               alt="Smartwatches"
               class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div
+              class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"
+            >
+            </div>
             <div class="relative z-10 p-6 w-full">
               <h3 class="text-2xl font-black text-white">Smartwatches</h3>
             </div>
           </a>
 
           <!-- Smartphones Android -->
-          <a href="/categoria/smartphones" class="group relative overflow-hidden rounded-2xl h-64 flex items-end">
-            <img 
+          <a
+            href="/categoria/smartphones"
+            class="group relative overflow-hidden rounded-2xl h-64 flex items-end"
+          >
+            <img
               src="https://www.backmarket.es/cdn-cgi/image/format%3Dauto%2Cquality%3D75%2Cwidth%3D3840/https://images.ctfassets.net/mmeshd7gafk1/1kHjYTtX4lFsNMLAybrL15/039602935bc433400942240a92a50a4d/Modular-card_Desktop_Android.jpg"
               alt="Smartphones Android"
               class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div
+              class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"
+            >
+            </div>
             <div class="relative z-10 p-6 w-full">
-              <h3 class="text-2xl font-black text-white">Smartphones Android</h3>
+              <h3 class="text-2xl font-black text-white">
+                Smartphones Android
+              </h3>
             </div>
           </a>
 
           <!-- Portátiles Windows -->
-          <a href="/categoria/laptops" class="group relative overflow-hidden rounded-2xl h-64 flex items-end">
-            <img 
+          <a
+            href="/categoria/laptops"
+            class="group relative overflow-hidden rounded-2xl h-64 flex items-end"
+          >
+            <img
               src="https://www.backmarket.es/cdn-cgi/image/format%3Dauto%2Cquality%3D75%2Cwidth%3D3840/https://images.ctfassets.net/mmeshd7gafk1/5hkcYLitLSwmhC6mC9UkYI/1b14e28d69023e48311650e134dd7623/Modular-card_Desktop_Windows_Laptop.jpg"
               alt="Portátiles Windows"
               class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div
+              class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"
+            >
+            </div>
             <div class="relative z-10 p-6 w-full">
               <h3 class="text-2xl font-black text-white">Portátiles Windows</h3>
             </div>
           </a>
 
           <!-- Electrodomésticos -->
-          <a href="/productos" class="group relative overflow-hidden rounded-2xl h-64 flex items-end">
-            <img 
+          <a
+            href="/productos"
+            class="group relative overflow-hidden rounded-2xl h-64 flex items-end"
+          >
+            <img
               src="https://www.backmarket.es/cdn-cgi/image/format%3Dauto%2Cquality%3D75%2Cwidth%3D3840/https://images.ctfassets.net/mmeshd7gafk1/7snz6xrm8ugZjYmQFScxkl/3311b3b3194d277b2dcd1a2d39bfc69f/Modular-card_Desktop_Home_appliances.jpg"
               alt="Electrodomésticos"
               class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div
+              class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"
+            >
+            </div>
             <div class="relative z-10 p-6 w-full">
               <h3 class="text-2xl font-black text-white">Electrodomésticos</h3>
             </div>
@@ -295,69 +372,116 @@ console.log('featuredProducts count:', featuredProducts.length);
       </div>
     </section>
 
-
-
     <!-- Productos Destacados -->
     <section id="productos" class="py-16 sm:py-24 bg-[#f5f5f7]">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-4xl sm:text-5xl font-black italic text-gray-900 mb-12">Productos Destacados</h2>
-        
-        {hasError ? (
-          <div class="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
-            <div class="text-red-500 mb-4">
-              <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-              </svg>
+        <h2 class="text-4xl sm:text-5xl font-black italic text-gray-900 mb-12">
+          Productos Destacados
+        </h2>
+
+        {
+          hasError ? (
+            <div class="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
+              <div class="text-red-500 mb-4">
+                <svg
+                  class="w-16 h-16 mx-auto"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+              <h3 class="text-xl font-bold text-red-800 mb-2">
+                Error al cargar productos
+              </h3>
+              <p class="text-red-600 mb-4">{errorMessage}</p>
+              <p class="text-sm text-red-500">
+                Revisa la configuración de Supabase en el servidor.
+              </p>
+              <a
+                href="/api/health"
+                target="_blank"
+                class="inline-block mt-4 text-red-700 underline hover:no-underline"
+              >
+                Ver diagnóstico del sistema
+              </a>
             </div>
-            <h3 class="text-xl font-bold text-red-800 mb-2">Error al cargar productos</h3>
-            <p class="text-red-600 mb-4">{errorMessage}</p>
-            <p class="text-sm text-red-500">Revisa la configuración de Supabase en el servidor.</p>
-            <a href="/api/health" target="_blank" class="inline-block mt-4 text-red-700 underline hover:no-underline">
-              Ver diagnóstico del sistema
-            </a>
-          </div>
-        ) : featuredProducts.length > 0 ? (
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProducts.map((product: any) => (
-              <ProductCard 
-                id={product.id}
-                name={product.name}
-                price={product.price}
-                originalPrice={product.originalPrice}
-                image={product.image}
-                slug={product.slug}
-                badge={product.badge}
-                badge_color={product.badge_color}
-                condition={product.condition}
-                rating={product.rating}
-                reviews={product.reviews}
-                stock={product.stock}
-              />
-            ))}
-          </div>
-        ) : (
-          <div class="text-center py-12 bg-yellow-50 border border-yellow-200 rounded-xl">
-            <div class="text-yellow-500 mb-4">
-              <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
-              </svg>
+          ) : featuredProducts.length > 0 ? (
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {featuredProducts.map((product: any) => (
+                <ProductCard
+                  id={product.id}
+                  name={product.name}
+                  price={product.price}
+                  originalPrice={product.originalPrice}
+                  image={product.image}
+                  slug={product.slug}
+                  badge={product.badge}
+                  badge_color={product.badge_color}
+                  condition={product.condition}
+                  rating={product.rating}
+                  reviews={product.reviews}
+                  stock={product.stock}
+                />
+              ))}
             </div>
-            <h3 class="text-xl font-bold text-yellow-800 mb-2">No hay productos disponibles</h3>
-            <p class="text-yellow-600">No se encontraron productos en la base de datos.</p>
-            <a href="/api/health" target="_blank" class="inline-block mt-4 text-yellow-700 underline hover:no-underline">
-              Verificar estado del sistema
-            </a>
-          </div>
-        )}
+          ) : (
+            <div class="text-center py-12 bg-yellow-50 border border-yellow-200 rounded-xl">
+              <div class="text-yellow-500 mb-4">
+                <svg
+                  class="w-16 h-16 mx-auto"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                  />
+                </svg>
+              </div>
+              <h3 class="text-xl font-bold text-yellow-800 mb-2">
+                No hay productos disponibles
+              </h3>
+              <p class="text-yellow-600">
+                No se encontraron productos en la base de datos.
+              </p>
+              <a
+                href="/api/health"
+                target="_blank"
+                class="inline-block mt-4 text-yellow-700 underline hover:no-underline"
+              >
+                Verificar estado del sistema
+              </a>
+            </div>
+          )
+        }
       </div>
     </section>
 
     <!-- Call to Action -->
-    <section class="py-16 sm:py-24 bg-gradient-to-r from-[#00aa45] to-green-600 text-white">
+    <section
+      class="py-16 sm:py-24 bg-gradient-to-r from-[#00aa45] to-green-600 text-white"
+    >
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 class="text-4xl sm:text-5xl font-black text-white mb-6">¿No encontraste lo que buscas?</h2>
-        <p class="text-xl text-white/90 mb-8">Explora nuestro catálogo completo de productos</p>
-        <a href="/productos" class="inline-block bg-white hover:bg-gray-100 text-[#00aa45] font-black py-4 px-12 rounded-lg transition-colors duration-200 text-lg">
+        <h2 class="text-4xl sm:text-5xl font-black text-white mb-6">
+          ¿No encontraste lo que buscas?
+        </h2>
+        <p class="text-xl text-white/90 mb-8">
+          Explora nuestro catálogo completo de productos
+        </p>
+        <a
+          href="/productos"
+          class="inline-block bg-white hover:bg-gray-100 text-[#00aa45] font-black py-4 px-12 rounded-lg transition-colors duration-200 text-lg"
+        >
           Ver Catálogo Completo
         </a>
       </div>

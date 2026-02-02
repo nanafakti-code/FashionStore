@@ -65,7 +65,7 @@ export default function CouponInput({ subtotal, onCouponApplied }: CouponInputPr
           descuento: result.descuento_calculado,
           cupon_id: result.cupon_id
         };
-        
+
         setAppliedCoupon(coupon);
         localStorage.setItem('fashionstore_applied_coupon', JSON.stringify(coupon));
         onCouponApplied(coupon);
@@ -101,7 +101,7 @@ export default function CouponInput({ subtotal, onCouponApplied }: CouponInputPr
             <div>
               <p className="font-bold text-green-800">Cupón aplicado: {appliedCoupon.codigo}</p>
               <p className="text-sm text-green-600">
-                {appliedCoupon.tipo === 'Porcentaje' 
+                {appliedCoupon.tipo === 'Porcentaje'
                   ? `${appliedCoupon.valor}% de descuento`
                   : `${appliedCoupon.valor}€ de descuento`
                 }
@@ -125,20 +125,20 @@ export default function CouponInput({ subtotal, onCouponApplied }: CouponInputPr
       <label className="block text-sm font-semibold text-gray-700 mb-2">
         ¿Tienes un código de descuento?
       </label>
-      
-      <div className="flex gap-2">
+
+      <div className="flex flex-col sm:flex-row gap-2">
         <input
           type="text"
           value={codigo}
           onInput={(e) => setCodigo((e.target as HTMLInputElement).value.toUpperCase())}
           placeholder="Código de cupón"
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent uppercase"
+          className="w-full flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent uppercase"
           disabled={isLoading}
         />
         <button
           onClick={handleApplyCoupon}
           disabled={isLoading || !codigo.trim()}
-          className="px-6 py-2 bg-gray-800 text-white rounded-lg font-medium hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="w-full sm:w-auto px-6 py-2 bg-gray-800 text-white rounded-lg font-medium hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {isLoading ? (
             <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">

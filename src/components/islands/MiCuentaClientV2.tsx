@@ -10,6 +10,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import AddReviewButton from "@/components/islands/AddReviewButton";
 
 // ============================================================
 // TIPOS
@@ -84,7 +85,8 @@ export default function MiCuentaClientV2() {
   const [showReturnModal, setShowReturnModal] = useState(false);
   const [returnReason, setReturnReason] = useState("");
   const [returnSubmitting, setReturnSubmitting] = useState(false);
-  
+  const [reviewableItems, setReviewableItems] = useState<any[]>([]);
+
   // Estado para formulario de direcciones
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Direccion | null>(null);
@@ -124,10 +126,54 @@ export default function MiCuentaClientV2() {
 
     // Check for hash in URL to set active section
     const hash = window.location.hash.slice(1);
-    if (hash === "pedidos" || hash === "seguridad") {
+    if (hash === "pedidos" || hash === "seguridad" || hash === "resenas") {
       setActiveSection(hash);
     }
   }, []);
+
+  // Realtime subscription for orders
+  useEffect(() => {
+    if (!userData?.id) return;
+
+    console.log("Setting up realtime subscription for orders...");
+    const channel = supabase
+      .channel('ordenes-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'ordenes',
+          filter: `usuario_id=eq.${userData.id}`
+        },
+        (payload: any) => {
+          console.log('Realtime change detected:', payload);
+          fetchOrders(userData.id);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userData?.id]);
+
+  // Sync selectedOrder with real-time updates
+  useEffect(() => {
+    if (selectedOrder && orders.length > 0) {
+      const updatedOrder = orders.find(o => o.id === selectedOrder.id);
+      if (updatedOrder && updatedOrder.estado !== selectedOrder.estado) {
+        // If status changed, reload full details to be safe
+        loadOrderDetails(updatedOrder);
+      }
+    }
+  }, [orders]);
+
+  useEffect(() => {
+    if (activeSection === "resenas" && userData) {
+      loadReviewableItems();
+    }
+  }, [activeSection, userData]);
 
   const loadUserData = async () => {
     try {
@@ -178,18 +224,10 @@ export default function MiCuentaClientV2() {
 
       setUserData(data as UserData);
 
-      // Load orders from ordenes table (NOT pedidos)
-      const { data: ordersData, error: ordersError } = await supabase
-        .from("ordenes")
-        .select("*")
-        .eq("usuario_id", user.id)
-        .order("fecha_creacion", { ascending: false });
+      // Load orders
+      await fetchOrders(user.id);
 
-      if (ordersError) {
-        console.error("Error loading orders:", ordersError);
-      } else {
-        setOrders((ordersData as Order[]) || []);
-      }
+      // Load addresses from direcciones table
 
       // Load addresses from direcciones table
       const { data: addressesData, error: addressesError } = await supabase
@@ -207,6 +245,20 @@ export default function MiCuentaClientV2() {
       console.error("Error loading user data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchOrders = async (userId: string) => {
+    const { data: ordersData, error: ordersError } = await supabase
+      .from("ordenes")
+      .select("*")
+      .eq("usuario_id", userId)
+      .order("fecha_creacion", { ascending: false });
+
+    if (ordersError) {
+      console.error("Error loading orders:", ordersError);
+    } else {
+      setOrders((ordersData as Order[]) || []);
     }
   };
 
@@ -242,8 +294,10 @@ export default function MiCuentaClientV2() {
 
     // Validar que el pedido permite devolución
     const validStates = ["Pagado", "Enviado", "Entregado"];
-    if (!validStates.includes(selectedOrder.estado)) {
-      alert("Este pedido no puede ser devuelto en su estado actual.");
+    const canReturn = ['Entregado', 'Pagado'].includes(selectedOrder.estado);
+    if (!canReturn) {
+      // alert("Este pedido no puede ser devuelto en su estado actual.");
+      console.warn("Pedido no elegible para devolución:", selectedOrder.estado);
       return;
     }
 
@@ -293,13 +347,59 @@ export default function MiCuentaClientV2() {
           "Solicitud de devolución enviada. Recibirás un email con las instrucciones."
         );
       } else {
-        alert(result.error || "Error al procesar la solicitud");
+        // alert(result.error || "Error al procesar la solicitud");
+        console.error(result.error || "Error al procesar la solicitud");
       }
     } catch (error) {
-      console.error("Error:", error);
-      alert("Error al procesar la solicitud de devolución");
+      console.error('Error requesting return:', error);
+      // alert("Error al procesar la solicitud de devolución");
     } finally {
       setReturnSubmitting(false);
+    }
+  };
+
+  const loadReviewableItems = async () => {
+    if (!userData) return;
+    try {
+      // 1. Obtener pedidos entregados
+      const { data: deliveredOrders } = await supabase
+        .from('ordenes')
+        .select('id, fecha_creacion')
+        .eq('usuario_id', userData.id)
+        .in('estado', ['Entregado', 'Completado']); // Check for both statuses
+
+      if (!deliveredOrders?.length) {
+        setReviewableItems([]);
+        return;
+      }
+
+      const orderIds = deliveredOrders.map(o => o.id);
+
+      // 2. Obtener items de esos pedidos
+      const { data: items } = await supabase
+        .from('items_orden')
+        .select('*')
+        .in('orden_id', orderIds);
+
+      if (items) {
+        // 3. Obtener reseñas del usuario para estos productos
+        const productIds = items.map(i => i.producto_id);
+        const { data: reviews } = await supabase
+          .from('resenas')
+          .select('*')
+          .eq('usuario_id', userData.id)
+          .in('producto_id', productIds);
+
+        // Enriquecer con fecha y reseña
+        const enrichedItems = items.map(item => {
+          const order = deliveredOrders.find(o => o.id === item.orden_id);
+          const review = reviews?.find(r => r.producto_id === item.producto_id);
+          return { ...item, fecha_compra: order?.fecha_creacion, resena: review };
+        });
+        setReviewableItems(enrichedItems);
+      }
+    } catch (error) {
+      console.error("Error loading reviewable items:", error);
     }
   };
 
@@ -351,8 +451,13 @@ export default function MiCuentaClientV2() {
       setPasswordMessage(null);
 
       const formData = new FormData(e.target as HTMLFormElement);
+      const currentPassword = formData.get("current_password") as string;
       const newPassword = formData.get("new_password") as string;
       const confirmPassword = formData.get("confirm_password") as string;
+
+      if (!currentPassword) {
+        throw new Error("Debes ingresar tu contraseña actual");
+      }
 
       if (newPassword !== confirmPassword) {
         throw new Error("Las contraseñas no coinciden");
@@ -361,6 +466,20 @@ export default function MiCuentaClientV2() {
         throw new Error("La contraseña debe tener al menos 6 caracteres");
       }
 
+      // 1. Verificar contraseña actual
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !user.email) throw new Error("Usuario no autenticado");
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword,
+      });
+
+      if (signInError) {
+        throw new Error("La contraseña actual es incorrecta");
+      }
+
+      // 2. Actualizar contraseña
       const { error } = await supabase.auth.updateUser({
         password: newPassword,
       });
@@ -431,9 +550,9 @@ export default function MiCuentaClientV2() {
     if (!userData) return;
 
     // Validar campos requeridos
-    if (!addressFormData.nombre_destinatario || !addressFormData.calle || 
-        !addressFormData.numero || !addressFormData.codigo_postal || 
-        !addressFormData.ciudad || !addressFormData.provincia) {
+    if (!addressFormData.nombre_destinatario || !addressFormData.calle ||
+      !addressFormData.numero || !addressFormData.codigo_postal ||
+      !addressFormData.ciudad || !addressFormData.provincia) {
       setAddressMessage({
         type: "error",
         message: "Por favor, completa todos los campos obligatorios."
@@ -523,9 +642,9 @@ export default function MiCuentaClientV2() {
   };
 
   const handleDeleteAddress = async (addressId: string) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar esta dirección?")) {
-      return;
-    }
+    // if (!confirm("¿Estás seguro de que quieres eliminar esta dirección?")) {
+    //   return;
+    // }
 
     try {
       const { error } = await supabase
@@ -588,10 +707,6 @@ export default function MiCuentaClientV2() {
     }
   };
 
-  // ============================================================
-  // HELPERS
-  // ============================================================
-
   const getStatusColor = (estado: string) => {
     const colors: Record<string, string> = {
       Pendiente: "bg-yellow-100 text-yellow-700",
@@ -613,6 +728,7 @@ export default function MiCuentaClientV2() {
       Pagado: "Pagado",
       Enviado: "Enviado",
       Entregado: "Entregado",
+      Completado: "Entregado",
       Cancelado: "Cancelado",
       Devuelto: "Devuelto",
       Devolucion_Solicitada: "Devolucion solicitada",
@@ -698,11 +814,10 @@ export default function MiCuentaClientV2() {
                 setActiveSection("perfil");
                 setSelectedOrder(null);
               }}
-              className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition flex items-center gap-2 ${
-                activeSection === "perfil"
-                  ? "bg-[#f0fff6] text-[#00aa45] border-l-4 border-[#00aa45]"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
+              className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition flex items-center gap-2 ${activeSection === "perfil"
+                ? "bg-[#f0fff6] text-[#00aa45] border-l-4 border-[#00aa45]"
+                : "text-gray-700 hover:bg-gray-100"
+                }`}
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path
@@ -719,11 +834,10 @@ export default function MiCuentaClientV2() {
                 setActiveSection("pedidos");
                 setSelectedOrder(null);
               }}
-              className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition flex items-center gap-2 ${
-                activeSection === "pedidos"
-                  ? "bg-[#f0fff6] text-[#00aa45] border-l-4 border-[#00aa45]"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
+              className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition flex items-center gap-2 ${activeSection === "pedidos"
+                ? "bg-[#f0fff6] text-[#00aa45] border-l-4 border-[#00aa45]"
+                : "text-gray-700 hover:bg-gray-100"
+                }`}
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 6H6.28l-.31-1.243A1 1 0 005 4H3z"></path>
@@ -742,11 +856,10 @@ export default function MiCuentaClientV2() {
                 setActiveSection("seguridad");
                 setSelectedOrder(null);
               }}
-              className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition flex items-center gap-2 ${
-                activeSection === "seguridad"
-                  ? "bg-[#f0fff6] text-[#00aa45] border-l-4 border-[#00aa45]"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
+              className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition flex items-center gap-2 ${activeSection === "seguridad"
+                ? "bg-[#f0fff6] text-[#00aa45] border-l-4 border-[#00aa45]"
+                : "text-gray-700 hover:bg-gray-100"
+                }`}
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path
@@ -763,11 +876,10 @@ export default function MiCuentaClientV2() {
                 setActiveSection("direcciones");
                 setSelectedOrder(null);
               }}
-              className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition flex items-center gap-2 ${
-                activeSection === "direcciones"
-                  ? "bg-[#f0fff6] text-[#00aa45] border-l-4 border-[#00aa45]"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
+              className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition flex items-center gap-2 ${activeSection === "direcciones"
+                ? "bg-[#f0fff6] text-[#00aa45] border-l-4 border-[#00aa45]"
+                : "text-gray-700 hover:bg-gray-100"
+                }`}
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path
@@ -782,6 +894,22 @@ export default function MiCuentaClientV2() {
                   {direcciones.length}
                 </span>
               )}
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveSection("resenas");
+                setSelectedOrder(null);
+              }}
+              className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition flex items-center gap-2 ${activeSection === "resenas"
+                ? "bg-[#f0fff6] text-[#00aa45] border-l-4 border-[#00aa45]"
+                : "text-gray-700 hover:bg-gray-100"
+                }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+              </svg>
+              Mis Reseñas
             </button>
 
             <button
@@ -906,11 +1034,10 @@ export default function MiCuentaClientV2() {
 
               {profileMessage && (
                 <div
-                  className={`text-sm p-4 rounded-xl border-l-4 flex items-center gap-3 ${
-                    profileMessage.type === "success"
-                      ? "bg-green-50 text-green-600 border-green-500"
-                      : "bg-red-50 text-red-600 border-red-500"
-                  }`}
+                  className={`text-sm p-4 rounded-xl border-l-4 flex items-center gap-3 ${profileMessage.type === "success"
+                    ? "bg-green-50 text-green-600 border-green-500"
+                    : "bg-red-50 text-red-600 border-red-500"
+                    }`}
                 >
                   {profileMessage.type === "success" && (
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -992,7 +1119,7 @@ export default function MiCuentaClientV2() {
                         {getStatusLabel(order.estado)}
                       </span>
                     </div>
-                    <div className="flex justify-between items-center">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-4 sm:mt-0">
                       <span className="text-2xl font-black text-[#00aa45]">
                         {formatPrice(order.total)}
                       </span>
@@ -1026,7 +1153,7 @@ export default function MiCuentaClientV2() {
                 </svg>
                 Volver a mis pedidos
               </button>
-              <div className="flex justify-between items-start">
+              <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                 <div>
                   <h2 className="text-2xl font-black text-gray-900">
                     {selectedOrder.numero_orden}
@@ -1052,18 +1179,16 @@ export default function MiCuentaClientV2() {
                 <h3 className="font-bold text-gray-900 mb-4">Estado del pedido</h3>
                 <div className="flex items-center gap-2 overflow-x-auto pb-2">
                   {["Pagado", "Enviado", "Entregado"].map((estado, idx) => {
-                    const isActive =
-                      ["Pagado", "Enviado", "Entregado"].indexOf(
-                        selectedOrder.estado
-                      ) >= idx;
+                    const statusOrder = ["Pagado", "Enviado", "Entregado"];
+                    const currentStatus = selectedOrder.estado === "Completado" ? "Entregado" : selectedOrder.estado;
+                    const isActive = statusOrder.indexOf(currentStatus) >= idx;
                     return (
                       <div key={estado} className="flex items-center">
                         <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                            isActive
-                              ? "bg-[#00aa45] text-white"
-                              : "bg-gray-200 text-gray-500"
-                          }`}
+                          className={`w-8 h-8 rounded-full flex items-center justify-center ${isActive
+                            ? "bg-[#00aa45] text-white"
+                            : "bg-gray-200 text-gray-500"
+                            }`}
                         >
                           {isActive ? (
                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -1074,17 +1199,15 @@ export default function MiCuentaClientV2() {
                           )}
                         </div>
                         <span
-                          className={`ml-2 text-sm font-medium ${
-                            isActive ? "text-gray-900" : "text-gray-500"
-                          }`}
+                          className={`ml-2 text-sm font-medium ${isActive ? "text-gray-900" : "text-gray-500"
+                            }`}
                         >
                           {estado}
                         </span>
                         {idx < 2 && (
                           <div
-                            className={`w-12 h-0.5 mx-2 ${
-                              isActive ? "bg-[#00aa45]" : "bg-gray-200"
-                            }`}
+                            className={`w-12 h-0.5 mx-2 ${isActive ? "bg-[#00aa45]" : "bg-gray-200"
+                              }`}
                           ></div>
                         )}
                       </div>
@@ -1100,24 +1223,26 @@ export default function MiCuentaClientV2() {
                   {selectedOrder.items?.map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-center gap-4 bg-gray-50 rounded-lg p-4"
+                      className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-gray-50 rounded-lg p-4"
                     >
-                      <img
-                        src={item.producto_imagen || "/productos/placeholder.jpg"}
-                        alt={item.producto_nombre}
-                        className="w-16 h-16 object-cover rounded-lg"
-                      />
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900">
-                          {item.producto_nombre}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          Cantidad: {item.cantidad}
-                          {item.talla && ` | Talla: ${item.talla}`}
-                          {item.color && ` | Color: ${item.color}`}
-                        </p>
+                      <div className="flex items-center gap-4 w-full">
+                        <img
+                          src={item.producto_imagen || "/productos/placeholder.jpg"}
+                          alt={item.producto_nombre}
+                          className="w-16 h-16 object-cover rounded-lg"
+                        />
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">
+                            {item.producto_nombre}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            Cantidad: {item.cantidad}
+                            {item.talla && ` | Talla: ${item.talla}`}
+                            {item.color && ` | Color: ${item.color}`}
+                          </p>
+                        </div>
                       </div>
-                      <p className="font-bold text-gray-900">
+                      <p className="font-bold text-gray-900 mt-2 sm:mt-0 ml-20 sm:ml-0">
                         {formatPrice(item.subtotal)}
                       </p>
                     </div>
@@ -1178,18 +1303,31 @@ export default function MiCuentaClientV2() {
                   <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                 </svg>
               </div>
-              Cambiar Contrasena
+              Cambiar Contraseña
             </h2>
 
             <form onSubmit={handlePasswordSubmit} className="space-y-6 max-w-md">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Nueva Contrasena
+                  Contraseña Actual
+                </label>
+                <input
+                  type="password"
+                  name="current_password"
+                  placeholder="Tu contraseña actual"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Nueva Contraseña
                 </label>
                 <input
                   type="password"
                   name="new_password"
-                  placeholder="Minimo 6 caracteres"
+                  placeholder="Mínimo 6 caracteres"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
                   required
                   minLength={6}
@@ -1198,12 +1336,12 @@ export default function MiCuentaClientV2() {
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Confirmar Contrasena
+                  Confirmar Contraseña
                 </label>
                 <input
                   type="password"
                   name="confirm_password"
-                  placeholder="Repite tu nueva contrasena"
+                  placeholder="Repite tu nueva contraseña"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
                   required
                   minLength={6}
@@ -1212,11 +1350,10 @@ export default function MiCuentaClientV2() {
 
               {passwordMessage && (
                 <div
-                  className={`text-sm p-4 rounded-xl border-l-4 flex items-center gap-3 ${
-                    passwordMessage.type === "success"
-                      ? "bg-green-50 text-green-600 border-green-500"
-                      : "bg-red-50 text-red-600 border-red-500"
-                  }`}
+                  className={`text-sm p-4 rounded-xl border-l-4 flex items-center gap-3 ${passwordMessage.type === "success"
+                    ? "bg-green-50 text-green-600 border-green-500"
+                    : "bg-red-50 text-red-600 border-red-500"
+                    }`}
                 >
                   <span>{passwordMessage.message}</span>
                 </div>
@@ -1252,11 +1389,10 @@ export default function MiCuentaClientV2() {
 
             {addressMessage && (
               <div
-                className={`text-sm p-4 rounded-xl border-l-4 flex items-center gap-3 mb-6 ${
-                  addressMessage.type === "success"
-                    ? "bg-green-50 text-green-600 border-green-500"
-                    : "bg-red-50 text-red-600 border-red-500"
-                }`}
+                className={`text-sm p-4 rounded-xl border-l-4 flex items-center gap-3 mb-6 ${addressMessage.type === "success"
+                  ? "bg-green-50 text-green-600 border-green-500"
+                  : "bg-red-50 text-red-600 border-red-500"
+                  }`}
               >
                 <span>{addressMessage.message}</span>
               </div>
@@ -1482,23 +1618,22 @@ export default function MiCuentaClientV2() {
                 {direcciones.map((direccion) => (
                   <div
                     key={direccion.id}
-                    className={`border rounded-xl p-5 transition ${
-                      direccion.es_predeterminada
-                        ? "border-[#00aa45] bg-green-50"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
+                    className={`border rounded-xl p-5 transition ${direccion.es_predeterminada
+                      ? "border-[#00aa45] bg-green-50"
+                      : "border-gray-200 hover:border-gray-300"
+                      }`}
                   >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
+                    <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                      <div className="flex-1 w-full">
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
                           <span className="font-bold text-gray-900">
                             {direccion.nombre_destinatario}
                           </span>
-                          <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">
+                          <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600 whitespace-nowrap">
                             {direccion.tipo}
                           </span>
                           {direccion.es_predeterminada && (
-                            <span className="text-xs px-2 py-1 rounded-full bg-[#00aa45] text-white">
+                            <span className="text-xs px-2 py-1 rounded-full bg-[#00aa45] text-white whitespace-nowrap">
                               Predeterminada
                             </span>
                           )}
@@ -1513,7 +1648,7 @@ export default function MiCuentaClientV2() {
                         <p className="text-gray-600 text-sm">{direccion.pais}</p>
                       </div>
 
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 w-full sm:w-auto justify-end mt-2 sm:mt-0">
                         {!direccion.es_predeterminada && (
                           <button
                             onClick={() => handleSetDefaultAddress(direccion.id)}
@@ -1551,76 +1686,133 @@ export default function MiCuentaClientV2() {
             )}
           </div>
         )}
+
+
+        {/* ============================================================ */}
+        {/* MIS RESEÑAS */}
+        {/* ============================================================ */}
+        {activeSection === "resenas" && (
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+            <h2 className="text-2xl font-black text-gray-900 mb-8 flex items-center gap-3 pb-4 border-b-2 border-gray-100">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00aa45] to-[#008a35] flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                </svg>
+              </div>
+              Productos para Reseñar
+            </h2>
+
+            {reviewableItems.length === 0 ? (
+              <div className="text-center py-12 bg-gray-50 rounded-xl">
+                <p className="text-gray-500 text-lg">
+                  No tienes productos entregados pendientes de reseña.
+                </p>
+                <a href="/productos" className="text-[#00aa45] font-bold mt-2 inline-block hover:underline">
+                  ¡Haz tu primera compra!
+                </a>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-6">
+                {reviewableItems.map((item) => (
+                  <div key={item.id} className="flex flex-col sm:flex-row items-center gap-6 bg-gray-50 p-6 rounded-xl border border-gray-200">
+                    <img
+                      src={item.producto_imagen || "/productos/placeholder.jpg"}
+                      alt={item.producto_nombre}
+                      className="w-24 h-24 object-contain bg-white rounded-lg shadow-sm border border-gray-100 p-2"
+                    />
+                    <div className="flex-1 text-center sm:text-left">
+                      <h3 className="font-bold text-lg text-gray-900 mb-1">{item.producto_nombre}</h3>
+                      <p className="text-sm text-gray-500 mb-3">
+                        Comprado el {formatDate(item.fecha_compra)}
+                      </p>
+
+                      <div className="max-w-[200px] mx-auto sm:mx-0">
+                        <AddReviewButton
+                          productId={item.producto_id}
+                          existingReview={item.resena}
+                          onReviewAdded={loadReviewableItems}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ============================================================ */}
       {/* MODAL DE DEVOLUCIÓN */}
       {/* ============================================================ */}
-      {showReturnModal && selectedOrder && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-gray-900">
-                Solicitar devolucion
-              </h3>
-              <button
-                onClick={() => {
-                  setShowReturnModal(false);
-                  setReturnReason("");
-                }}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              </button>
-            </div>
+      {
+        showReturnModal && selectedOrder && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl max-w-lg w-full p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-gray-900">
+                  Solicitar devolucion
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowReturnModal(false);
+                    setReturnReason("");
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
 
-            <div className="mb-6">
-              <p className="text-gray-600 mb-4">
-                Pedido: <strong>{selectedOrder.numero_orden}</strong>
-              </p>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Motivo de la devolucion
-              </label>
-              <textarea
-                value={returnReason}
-                onInput={(e) => setReturnReason((e.target as HTMLTextAreaElement).value)}
-                placeholder="Describe el motivo de tu devolucion..."
-                rows={4}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm resize-none"
-                required
-              ></textarea>
-            </div>
+              <div className="mb-6">
+                <p className="text-gray-600 mb-4">
+                  Pedido: <strong>{selectedOrder.numero_orden}</strong>
+                </p>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Motivo de la devolucion
+                </label>
+                <textarea
+                  value={returnReason}
+                  onInput={(e) => setReturnReason((e.target as HTMLTextAreaElement).value)}
+                  placeholder="Describe el motivo de tu devolucion..."
+                  rows={4}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm resize-none"
+                  required
+                ></textarea>
+              </div>
 
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-              <p className="text-sm text-amber-800">
-                <strong>Importante:</strong> Una vez enviada la solicitud, recibiras un email con las instrucciones para devolver el producto. El reembolso se procesara en 5-10 dias habiles tras recibir el producto.
-              </p>
-            </div>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+                <p className="text-sm text-amber-800">
+                  <strong>Importante:</strong> Una vez enviada la solicitud, recibiras un email con las instrucciones para devolver el producto. El reembolso se procesara en 5-10 dias habiles tras recibir el producto.
+                </p>
+              </div>
 
-            <div className="flex gap-4">
-              <button
-                onClick={() => {
-                  setShowReturnModal(false);
-                  setReturnReason("");
-                }}
-                className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition"
-                disabled={returnSubmitting}
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleReturnRequest}
-                disabled={!returnReason.trim() || returnSubmitting}
-                className="flex-1 bg-[#00aa45] text-white py-3 rounded-xl font-bold hover:bg-[#009340] transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {returnSubmitting ? "Enviando..." : "Enviar solicitud"}
-              </button>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => {
+                    setShowReturnModal(false);
+                    setReturnReason("");
+                  }}
+                  className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition"
+                  disabled={returnSubmitting}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleReturnRequest}
+                  disabled={!returnReason.trim() || returnSubmitting}
+                  className="flex-1 bg-[#00aa45] text-white py-3 rounded-xl font-bold hover:bg-[#009340] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {returnSubmitting ? "Enviando..." : "Enviar solicitud"}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+
+    </div >
   );
 }

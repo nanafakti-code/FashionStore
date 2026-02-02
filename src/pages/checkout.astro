@@ -1,12 +1,12 @@
 ---
-import Layout from '@/layouts/Layout.astro';
-import Header from '@/components/Header.astro';
-import CheckoutAddressSelector from '@/components/islands/CheckoutAddressSelector';
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelector";
 ---
 
 <Layout title="Checkout - FashionStore">
   <Header />
-  
+
   <main class="min-h-screen bg-[#f5f5f7]">
     <!-- Breadcrumb -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -20,11 +20,20 @@ import CheckoutAddressSelector from '@/components/islands/CheckoutAddressSelecto
     </div>
 
     <!-- Checkout Header -->
-    <section class="bg-gradient-to-r from-[#00aa45] to-green-600 text-white py-12">
+    <section
+      class="bg-gradient-to-r from-[#00aa45] to-green-600 text-white py-12"
+    >
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 class="text-4xl sm:text-5xl font-black italic mb-4">Tramitar Pedido</h1>
-        <p class="text-lg text-white/90">Completa los datos de entrega y pago</p>
-        <div id="auth-status" class="mt-4 flex items-center gap-2 text-white/90">
+        <h1 class="text-4xl sm:text-5xl font-black italic mb-4">
+          Tramitar Pedido
+        </h1>
+        <p class="text-lg text-white/90">
+          Completa los datos de entrega y pago
+        </p>
+        <div
+          id="auth-status"
+          class="mt-4 flex items-center gap-2 text-white/90"
+        >
           <!-- Se cargará con JavaScript -->
         </div>
       </div>
@@ -37,7 +46,11 @@ import CheckoutAddressSelector from '@/components/islands/CheckoutAddressSelecto
           <!-- Formulario -->
           <div class="lg:col-span-2">
             <!-- Mensajes de Error -->
-            <div id="error-message" class="hidden mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg" role="alert">
+            <div
+              id="error-message"
+              class="hidden mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg"
+              role="alert"
+            >
               <p id="error-text"></p>
             </div>
 
@@ -45,70 +58,155 @@ import CheckoutAddressSelector from '@/components/islands/CheckoutAddressSelecto
               <!-- Datos Personales -->
               <div class="bg-white p-6 rounded-lg shadow">
                 <h2 class="text-2xl font-bold mb-4">Datos Personales</h2>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Nombre *</label>
-                    <input type="text" id="input-nombre" placeholder="Tu nombre" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                    <label class="block text-sm font-medium text-gray-700 mb-2"
+                      >Nombre *</label
+                    >
+                    <input
+                      type="text"
+                      id="input-nombre"
+                      placeholder="Tu nombre"
+                      required
+                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent"
+                    />
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Apellidos *</label>
-                    <input type="text" id="input-apellidos" placeholder="Tus apellidos" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                    <label class="block text-sm font-medium text-gray-700 mb-2"
+                      >Apellidos *</label
+                    >
+                    <input
+                      type="text"
+                      id="input-apellidos"
+                      placeholder="Tus apellidos"
+                      required
+                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent"
+                    />
                   </div>
                 </div>
 
                 <div class="mt-4">
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
-                  <input type="email" id="input-email" placeholder="tu@correo.com" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                  <label class="block text-sm font-medium text-gray-700 mb-2"
+                    >Email *</label
+                  >
+                  <input
+                    type="email"
+                    id="input-email"
+                    placeholder="tu@correo.com"
+                    required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent"
+                  />
                 </div>
 
                 <div class="mt-4">
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Teléfono *</label>
-                  <input type="tel" id="input-telefono" placeholder="Tu teléfono" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                  <label class="block text-sm font-medium text-gray-700 mb-2"
+                    >Teléfono *</label
+                  >
+                  <input
+                    type="tel"
+                    id="input-telefono"
+                    placeholder="Tu teléfono"
+                    required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent"
+                  />
                 </div>
               </div>
 
               <!-- Dirección de Entrega -->
               <div class="bg-white p-6 rounded-lg shadow">
                 <h2 class="text-2xl font-bold mb-4">Dirección de Entrega</h2>
-                
+
                 <!-- Selector de direcciones guardadas -->
                 <CheckoutAddressSelector client:load />
-                
+
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Calle *</label>
-                  <input type="text" id="input-calle" placeholder="Calle y número" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                  <label class="block text-sm font-medium text-gray-700 mb-2"
+                    >Calle *</label
+                  >
+                  <input
+                    type="text"
+                    id="input-calle"
+                    placeholder="Calle y número"
+                    required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent"
+                  />
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Número *</label>
-                    <input type="text" id="input-numero" placeholder="Número" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                    <label class="block text-sm font-medium text-gray-700 mb-2"
+                      >Número *</label
+                    >
+                    <input
+                      type="text"
+                      id="input-numero"
+                      placeholder="Número"
+                      required
+                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent"
+                    />
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Piso / Puerta</label>
-                    <input type="text" id="input-piso" placeholder="Ej: 2º A" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                    <label class="block text-sm font-medium text-gray-700 mb-2"
+                      >Piso / Puerta</label
+                    >
+                    <input
+                      type="text"
+                      id="input-piso"
+                      placeholder="Ej: 2º A"
+                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent"
+                    />
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Código Postal *</label>
-                    <input type="text" id="input-cp" placeholder="Código Postal" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                    <label class="block text-sm font-medium text-gray-700 mb-2"
+                      >Código Postal *</label
+                    >
+                    <input
+                      type="text"
+                      id="input-cp"
+                      placeholder="Código Postal"
+                      required
+                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent"
+                    />
                   </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Ciudad *</label>
-                    <input type="text" id="input-ciudad" placeholder="Ciudad" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                    <label class="block text-sm font-medium text-gray-700 mb-2"
+                      >Ciudad *</label
+                    >
+                    <input
+                      type="text"
+                      id="input-ciudad"
+                      placeholder="Ciudad"
+                      required
+                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent"
+                    />
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Provincia *</label>
-                    <input type="text" id="input-provincia" placeholder="Provincia" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent" />
+                    <label class="block text-sm font-medium text-gray-700 mb-2"
+                      >Provincia *</label
+                    >
+                    <input
+                      type="text"
+                      id="input-provincia"
+                      placeholder="Provincia"
+                      required
+                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent"
+                    />
                   </div>
                 </div>
 
                 <div class="mt-4">
-                  <label class="block text-sm font-medium text-gray-700 mb-2">País *</label>
-                  <select id="input-pais" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent">
+                  <label class="block text-sm font-medium text-gray-700 mb-2"
+                    >País *</label
+                  >
+                  <select
+                    id="input-pais"
+                    required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent"
+                  >
                     <option value="">Selecciona un país</option>
                     <option value="España">España</option>
                     <option value="Francia">Francia</option>
@@ -124,7 +222,13 @@ import CheckoutAddressSelector from '@/components/islands/CheckoutAddressSelecto
                 <label class="flex items-start gap-3 cursor-pointer">
                   <input type="checkbox" required class="mt-1" />
                   <span class="text-sm text-gray-600">
-                    Acepto los <a href="#" class="text-[#00aa45] hover:underline">términos y condiciones</a> y la <a href="#" class="text-[#00aa45] hover:underline">política de privacidad</a>
+                    Acepto los <a
+                      href="#"
+                      class="text-[#00aa45] hover:underline"
+                      >términos y condiciones</a
+                    > y la <a href="#" class="text-[#00aa45] hover:underline"
+                      >política de privacidad</a
+                    >
                   </span>
                 </label>
               </div>
@@ -135,8 +239,11 @@ import CheckoutAddressSelector from '@/components/islands/CheckoutAddressSelecto
           <div class="lg:col-span-1">
             <div class="bg-white p-6 rounded-lg shadow sticky top-4">
               <h2 class="text-2xl font-bold mb-4">Resumen de Pedido</h2>
-              
-              <div id="summary-items" class="space-y-2 mb-4 border-b border-gray-200 pb-4">
+
+              <div
+                id="summary-items"
+                class="space-y-2 mb-4 border-b border-gray-200 pb-4"
+              >
                 <p class="text-gray-500">Cargando carrito...</p>
               </div>
 
@@ -151,26 +258,33 @@ import CheckoutAddressSelector from '@/components/islands/CheckoutAddressSelecto
                 </div>
                 <div class="flex justify-between text-gray-700">
                   <span>Envío:</span>
-                  <span id="shipping" class="text-gray-900 font-bold">Gratis</span>
+                  <span id="shipping" class="text-gray-900 font-bold"
+                    >Gratis</span
+                  >
                 </div>
               </div>
 
               <div class="mb-6 border-t border-gray-200 pt-4">
-                <div class="flex justify-between text-2xl font-black text-gray-900">
+                <div
+                  class="flex justify-between text-2xl font-black text-gray-900"
+                >
                   <span>Total:</span>
                   <span id="total">0.00€</span>
                 </div>
               </div>
 
-              <button 
-                type="button" 
+              <button
+                type="button"
                 id="pay-button"
                 class="w-full bg-[#00aa45] text-white py-3 rounded-lg font-bold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Ir a Pagar con Stripe
               </button>
 
-              <a href="/carrito" class="block text-center text-[#00aa45] hover:underline mt-3 font-medium">
+              <a
+                href="/carrito"
+                class="block text-center text-[#00aa45] hover:underline mt-3 font-medium"
+              >
                 ← Volver al carrito
               </a>
             </div>
@@ -183,13 +297,14 @@ import CheckoutAddressSelector from '@/components/islands/CheckoutAddressSelecto
   <script>
     // @ts-nocheck
     // CHECKOUT SCRIPT - Lee carrito desde localStorage y BD
-    console.log('=== CHECKOUT: Iniciando ===');
-    
+    console.log("=== CHECKOUT: Iniciando ===");
+
     // Configuración
-    const SUPABASE_URL = 'https://spzvtjybxpaxpnpfxbqv.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwenZ0anlieHBheHBucGZ4YnF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjgyMzUsImV4cCI6MjA4MzQ0NDIzNX0.5gggyKxtxR7IdQejFS48eoF_xL-7CPuP2jOeuMLTS8M';
-    const CART_KEY = 'fashionstore_guest_cart';
-    const SESSION_KEY = 'sb-spzvtjybxpaxpnpfxbqv-auth-token';
+    const SUPABASE_URL = "https://spzvtjybxpaxpnpfxbqv.supabase.co";
+    const SUPABASE_ANON_KEY =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwenZ0anlieHBheHBucGZ4YnF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjgyMzUsImV4cCI6MjA4MzQ0NDIzNX0.5gggyKxtxR7IdQejFS48eoF_xL-7CPuP2jOeuMLTS8M";
+    const CART_KEY = "fashionstore_guest_cart";
+    const SESSION_KEY = "sb-spzvtjybxpaxpnpfxbqv-auth-token";
 
     // Obtener sesión actual de Supabase
     function getSession() {
@@ -198,12 +313,12 @@ import CheckoutAddressSelector from '@/components/islands/CheckoutAddressSelecto
         if (sessionData) {
           const parsed = JSON.parse(sessionData);
           if (parsed.access_token && parsed.user) {
-            console.log('✓ Sesión encontrada:', parsed.user.email);
+            console.log("✓ Sesión encontrada:", parsed.user.email);
             return parsed;
           }
         }
       } catch (e) {
-        console.error('Error leyendo sesión:', e);
+        console.error("Error leyendo sesión:", e);
       }
       return null;
     }
@@ -211,67 +326,142 @@ import CheckoutAddressSelector from '@/components/islands/CheckoutAddressSelecto
     // Obtener carrito de usuario autenticado usando RPC get_user_cart
     async function getAuthenticatedCart(accessToken) {
       try {
-        console.log('Obteniendo carrito de BD via RPC...');
-        
+        console.log("Obteniendo carrito de BD via RPC...");
+
         // Usar RPC get_user_cart como hace el resto del sistema
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_user_cart`, {
-          method: 'POST',
-          headers: {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
+        const response = await fetch(
+          `${SUPABASE_URL}/rest/v1/rpc/get_user_cart`,
+          {
+            method: "POST",
+            headers: {
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+            body: "{}",
           },
-          body: '{}'
-        });
+        );
 
         if (!response.ok) {
-          console.error('Error RPC get_user_cart:', response.status, await response.text());
+          console.error(
+            "Error RPC get_user_cart:",
+            response.status,
+            await response.text(),
+          );
           return getGuestCart(); // Fallback
         }
 
         const data = await response.json();
-        console.log('Datos RPC get_user_cart:', data);
-        
+        console.log("Datos RPC get_user_cart:", data);
+
         if (!data || data.length === 0) {
-          console.log('Carrito BD vacío, probando localStorage...');
+          console.log("Carrito BD vacío, probando localStorage...");
           return getGuestCart();
         }
-        
+
         // Mapear los datos al formato esperado
-        return (data || []).map(item => ({
+        return (data || []).map((item) => ({
           id: item.id,
           product_id: item.product_id,
-          product_name: item.product_name || 'Producto',
-          product_image: item.product_image || '',
+          product_name: item.product_name || "Producto",
+          product_image: item.product_image || "",
           precio_unitario: item.precio_unitario,
           price: item.precio_unitario,
           quantity: item.quantity,
           talla: item.talla,
-          color: item.color
+          color: item.color,
         }));
       } catch (error) {
-        console.error('Error obteniendo carrito autenticado:', error);
+        console.error("Error obteniendo carrito autenticado:", error);
         return getGuestCart();
       }
     }
 
-    // Obtener carrito de invitado desde localStorage
-    function getGuestCart() {
+    // Obtener session ID de invitado
+    function getGuestSessionId() {
+      let sessionId = localStorage.getItem("fashionstore_guest_session_id");
+      if (!sessionId) {
+        // Generar uno nuevo si no existe (aunque ya debería existir si tiene carrito)
+        sessionId = crypto.randomUUID();
+        localStorage.setItem("fashionstore_guest_session_id", sessionId);
+      }
+      return sessionId;
+    }
+
+    // Obtener carrito de invitado desde BD (RPC get_guest_cart)
+    async function getGuestCart() {
       try {
-        console.log('Leyendo carrito de localStorage...');
-        console.log('Keys en localStorage:', Object.keys(localStorage));
-        
+        console.log("Obteniendo carrito de invitado desde BD...");
+        const sessionId = getGuestSessionId();
+
+        if (!sessionId) {
+          console.warn("No hay session ID de invitado");
+          return [];
+        }
+
+        const response = await fetch(
+          `${SUPABASE_URL}/rest/v1/rpc/get_guest_cart`,
+          {
+            method: "POST",
+            headers: {
+              apikey: SUPABASE_ANON_KEY,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ p_session_id: sessionId }),
+          },
+        );
+
+        if (!response.ok) {
+          console.error(
+            "Error RPC get_guest_cart:",
+            response.status,
+            await response.text(),
+          );
+          // Fallback a localStorage por si acaso
+          return getGuestCartFromStorage();
+        }
+
+        const data = await response.json();
+        console.log("Datos RPC get_guest_cart:", data);
+
+        if (!data || data.length === 0) {
+          // Fallback a localStorage por si acaso
+          return getGuestCartFromStorage();
+        }
+
+        // Mapear datos
+        return data.map((item) => ({
+          id: item.id,
+          product_id: item.product_id,
+          product_name: item.product_name || "Producto",
+          product_image: item.variant_image || item.product_image || "",
+          precio_unitario: item.precio_unitario,
+          price: item.precio_unitario,
+          quantity: item.quantity,
+          talla: item.talla,
+          color: item.color,
+        }));
+      } catch (error) {
+        console.error("Error getting guest cart from DB:", error);
+        return getGuestCartFromStorage();
+      }
+    }
+
+    // Obtener carrito de Storage (Legacy/Fallback)
+    function getGuestCartFromStorage() {
+      try {
+        console.log("Leyendo carrito de localStorage (fallback)...");
+
         let cartJSON = localStorage.getItem(CART_KEY);
         if (!cartJSON) {
           cartJSON = sessionStorage.getItem(CART_KEY);
-          console.log('Intentando sessionStorage');
         }
-        
+
         const cart = cartJSON ? JSON.parse(cartJSON) : [];
-        console.log('Carrito localStorage/sessionStorage:', cart);
+        console.log("Carrito localStorage/sessionStorage:", cart);
         return cart;
       } catch (error) {
-        console.error('Error getting guest cart:', error);
+        console.error("Error getting guest cart from storage:", error);
         return [];
       }
     }
@@ -279,19 +469,19 @@ import CheckoutAddressSelector from '@/components/islands/CheckoutAddressSelecto
     // Obtener carrito (detecta si es usuario o invitado)
     async function getCart() {
       const session = getSession();
-      
+
       if (session?.access_token) {
-        console.log('Usuario autenticado, obteniendo carrito de BD...');
+        console.log("Usuario autenticado, obteniendo carrito de BD...");
         const authCart = await getAuthenticatedCart(session.access_token);
         if (authCart && authCart.length > 0) {
           return authCart;
         }
         // Si el carrito autenticado está vacío, probar localStorage por si hay items
-        console.log('Carrito autenticado vacío, probando localStorage...');
+        console.log("Carrito autenticado vacío, probando localStorage...");
       }
-      
-      console.log('Obteniendo carrito de localStorage...');
-      return getGuestCart();
+
+      console.log("Obteniendo carrito de invitado...");
+      return await getGuestCart();
     }
 
     // Variable global para el carrito
@@ -301,77 +491,83 @@ import CheckoutAddressSelector from '@/components/islands/CheckoutAddressSelecto
     // Obtener datos del perfil del usuario autenticado
     async function getUserProfile(accessToken, userId) {
       try {
-        console.log('Obteniendo perfil del usuario...');
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/usuarios?id=eq.${userId}&select=*`, {
-          method: 'GET',
-          headers: {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          }
-        });
+        console.log("Obteniendo perfil del usuario...");
+        const response = await fetch(
+          `${SUPABASE_URL}/rest/v1/usuarios?id=eq.${userId}&select=*`,
+          {
+            method: "GET",
+            headers: {
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+          },
+        );
 
         if (!response.ok) {
-          console.error('Error obteniendo perfil:', response.status);
+          console.error("Error obteniendo perfil:", response.status);
           return null;
         }
 
         const data = await response.json();
-        console.log('Perfil del usuario:', data);
+        console.log("Perfil del usuario:", data);
         return data && data.length > 0 ? data[0] : null;
       } catch (error) {
-        console.error('Error obteniendo perfil:', error);
+        console.error("Error obteniendo perfil:", error);
         return null;
       }
     }
 
     // Auto-rellenar formulario con datos del usuario
     function fillFormWithUserData(profile, email) {
-      console.log('Rellenando formulario con datos del usuario...');
-      
+      console.log("Rellenando formulario con datos del usuario...");
+
       // Email del usuario autenticado
-      const inputEmail = document.getElementById('input-email');
+      const inputEmail = document.getElementById("input-email");
       if (inputEmail && email) {
         inputEmail.value = email;
       }
-      
+
       if (!profile) {
-        console.log('No hay perfil, solo se rellena el email');
+        console.log("No hay perfil, solo se rellena el email");
         return;
       }
 
       // Datos personales
-      const inputNombre = document.getElementById('input-nombre');
-      const inputApellidos = document.getElementById('input-apellidos');
-      const inputTelefono = document.getElementById('input-telefono');
-      
+      const inputNombre = document.getElementById("input-nombre");
+      const inputApellidos = document.getElementById("input-apellidos");
+      const inputTelefono = document.getElementById("input-telefono");
+
       if (inputNombre && profile.nombre) inputNombre.value = profile.nombre;
-      if (inputApellidos && profile.apellidos) inputApellidos.value = profile.apellidos;
-      if (inputTelefono && profile.telefono) inputTelefono.value = profile.telefono;
-      
+      if (inputApellidos && profile.apellidos)
+        inputApellidos.value = profile.apellidos;
+      if (inputTelefono && profile.telefono)
+        inputTelefono.value = profile.telefono;
+
       // Dirección de entrega
-      const inputCalle = document.getElementById('input-calle');
-      const inputCiudad = document.getElementById('input-ciudad');
-      const inputCp = document.getElementById('input-cp');
-      const inputPais = document.getElementById('input-pais');
-      
+      const inputCalle = document.getElementById("input-calle");
+      const inputCiudad = document.getElementById("input-ciudad");
+      const inputCp = document.getElementById("input-cp");
+      const inputPais = document.getElementById("input-pais");
+
       if (inputCalle && profile.direccion) inputCalle.value = profile.direccion;
       if (inputCiudad && profile.ciudad) inputCiudad.value = profile.ciudad;
-      if (inputCp && profile.codigo_postal) inputCp.value = profile.codigo_postal;
+      if (inputCp && profile.codigo_postal)
+        inputCp.value = profile.codigo_postal;
       if (inputPais && profile.pais) inputPais.value = profile.pais;
-      
-      console.log('✓ Formulario rellenado automáticamente');
+
+      console.log("✓ Formulario rellenado automáticamente");
     }
 
     // INICIALIZAR
     async function initCheckout() {
-      console.log('=== INICIANDO CHECKOUT ===');
-      
+      console.log("=== INICIANDO CHECKOUT ===");
+
       currentSession = getSession();
       const isGuest = !currentSession;
 
       // Mostrar estado de autenticación
-      const authStatus = document.getElementById('auth-status');
+      const authStatus = document.getElementById("auth-status");
       if (authStatus) {
         if (isGuest) {
           authStatus.innerHTML = `
@@ -387,13 +583,16 @@ import CheckoutAddressSelector from '@/components/islands/CheckoutAddressSelecto
             </svg>
             <span>Sesión iniciada como: <strong>${currentSession.user.email}</strong></span>
           `;
-          
+
           // Auto-rellenar formulario con datos del usuario
           try {
-            const profile = await getUserProfile(currentSession.access_token, currentSession.user.id);
+            const profile = await getUserProfile(
+              currentSession.access_token,
+              currentSession.user.id,
+            );
             fillFormWithUserData(profile, currentSession.user.email);
           } catch (error) {
-            console.error('Error al cargar perfil para auto-rellenar:', error);
+            console.error("Error al cargar perfil para auto-rellenar:", error);
             // Al menos rellenar el email
             fillFormWithUserData(null, currentSession.user.email);
           }
@@ -401,36 +600,40 @@ import CheckoutAddressSelector from '@/components/islands/CheckoutAddressSelecto
       }
 
       // Cargar carrito
-      console.log('Obteniendo carrito...');
+      console.log("Obteniendo carrito...");
       try {
         const cart = await getCart();
-        console.log('Carrito obtenido:', cart);
+        console.log("Carrito obtenido:", cart);
         cartData = Array.isArray(cart) ? cart : [];
       } catch (error) {
-        console.error('Error al obtener carrito:', error);
+        console.error("Error al obtener carrito:", error);
         cartData = [];
       }
-      
-      const summaryItems = document.getElementById('summary-items');
+
+      const summaryItems = document.getElementById("summary-items");
       let subtotal = 0;
 
       if (summaryItems) {
         if (cartData.length === 0) {
-          summaryItems.innerHTML = '<p class="text-gray-600">Tu carrito está vacío</p>';
+          summaryItems.innerHTML =
+            '<p class="text-gray-600">Tu carrito está vacío</p>';
         } else {
-          summaryItems.innerHTML = cartData.map(item => {
-            const itemPrice = item.precio_unitario || item.price || 0;
-            const itemQuantity = item.quantity || 1;
-            const itemTotal = (itemPrice * itemQuantity) / 100;
-            subtotal += itemPrice * itemQuantity;
-            const itemName = item.product_name || item.name || 'Producto desconocido';
-            return `
+          summaryItems.innerHTML = cartData
+            .map((item) => {
+              const itemPrice = item.precio_unitario || item.price || 0;
+              const itemQuantity = item.quantity || 1;
+              const itemTotal = (itemPrice * itemQuantity) / 100;
+              subtotal += itemPrice * itemQuantity;
+              const itemName =
+                item.product_name || item.name || "Producto desconocido";
+              return `
               <div class="flex justify-between text-sm text-gray-700">
                 <span>${itemName} x${itemQuantity}</span>
                 <span>${itemTotal.toFixed(2)}€</span>
               </div>
             `;
-          }).join('');
+            })
+            .join("");
         }
       }
 
@@ -438,81 +641,93 @@ import CheckoutAddressSelector from '@/components/islands/CheckoutAddressSelecto
       const taxAmount = Math.round(subtotal * 0.21) / 100;
       const totalAmount = subtotalEuros + taxAmount;
 
-      const subtotalEl = document.getElementById('subtotal');
-      const taxEl = document.getElementById('tax');
-      const totalEl = document.getElementById('total');
-      
+      const subtotalEl = document.getElementById("subtotal");
+      const taxEl = document.getElementById("tax");
+      const totalEl = document.getElementById("total");
+
       if (subtotalEl) subtotalEl.textContent = `${subtotalEuros.toFixed(2)}€`;
       if (taxEl) taxEl.textContent = `${taxAmount.toFixed(2)}€`;
       if (totalEl) totalEl.textContent = `${totalAmount.toFixed(2)}€`;
 
       // Botón de pago
-      const payButton = document.getElementById('pay-button');
-      const errorMessage = document.getElementById('error-message');
-      const errorText = document.getElementById('error-text');
+      const payButton = document.getElementById("pay-button");
+      const errorMessage = document.getElementById("error-message");
+      const errorText = document.getElementById("error-text");
 
-      const showError = message => {
+      const showError = (message) => {
         if (errorText && errorMessage) {
           errorText.textContent = message;
-          errorMessage.classList.remove('hidden');
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          errorMessage.classList.remove("hidden");
+          window.scrollTo({ top: 0, behavior: "smooth" });
         }
       };
 
       const hideError = () => {
         if (errorMessage) {
-          errorMessage.classList.add('hidden');
+          errorMessage.classList.add("hidden");
         }
       };
 
       if (payButton) {
-        payButton.addEventListener('click', async e => {
+        payButton.addEventListener("click", async (e) => {
           e.preventDefault();
           hideError();
-          
-          const inputs = document.querySelectorAll('#checkout-form input, #checkout-form select');
+
+          const inputs = document.querySelectorAll(
+            "#checkout-form input, #checkout-form select",
+          );
           let allFilled = true;
-          
-          inputs.forEach(input => {
-            if (input.type === 'checkbox') {
+
+          inputs.forEach((input) => {
+            if (input.type === "checkbox") {
               if (!input.checked) allFilled = false;
-            } else if (input.value.trim() === '') {
+            } else if (input.value.trim() === "") {
               allFilled = false;
             }
           });
-          
+
           if (!allFilled) {
-            showError('Por favor completa todos los campos obligatorios');
+            showError("Por favor completa todos los campos obligatorios");
             return;
           }
 
           if (cartData.length === 0) {
-            showError('Tu carrito está vacío');
+            showError("Tu carrito está vacío");
             return;
           }
 
           payButton.disabled = true;
-          payButton.textContent = 'Procesando...';
+          payButton.textContent = "Procesando...";
 
           try {
             // Leer valores del formulario usando los IDs
-            const nombre = document.getElementById('input-nombre')?.value.trim();
-            const apellidos = document.getElementById('input-apellidos')?.value.trim();
-            const email = document.getElementById('input-email')?.value.trim();
-            const telefono = document.getElementById('input-telefono')?.value.trim();
-            const calle = document.getElementById('input-calle')?.value.trim();
-            const ciudad = document.getElementById('input-ciudad')?.value.trim();
-            const codigoPostal = document.getElementById('input-cp')?.value.trim();
-            const pais = document.getElementById('input-pais')?.value;
+            const nombre = document
+              .getElementById("input-nombre")
+              ?.value.trim();
+            const apellidos = document
+              .getElementById("input-apellidos")
+              ?.value.trim();
+            const email = document.getElementById("input-email")?.value.trim();
+            const telefono = document
+              .getElementById("input-telefono")
+              ?.value.trim();
+            const calle = document.getElementById("input-calle")?.value.trim();
+            const ciudad = document
+              .getElementById("input-ciudad")
+              ?.value.trim();
+            const codigoPostal = document
+              .getElementById("input-cp")
+              ?.value.trim();
+            const pais = document.getElementById("input-pais")?.value;
 
-            const items = cartData.map(item => ({
+            const items = cartData.map((item) => ({
               producto_id: item.product_id || item.id,
               nombre: item.product_name || item.name,
               imagen: item.product_image || item.image,
               cantidad: item.quantity,
               precio_unitario: item.precio_unitario || item.price,
               talla: item.talla || null,
-              color: item.color || null
+              color: item.color || null,
             }));
 
             const direccion = {
@@ -520,15 +735,15 @@ import CheckoutAddressSelector from '@/components/islands/CheckoutAddressSelecto
               ciudad,
               codigo_postal: codigoPostal,
               pais,
-              nombre_completo: `${nombre} ${apellidos}`
+              nombre_completo: `${nombre} ${apellidos}`,
             };
 
             const totalCents = Math.round(totalAmount * 100);
             const isGuest = !currentSession;
 
-            const response = await fetch('/api/stripe/create-session', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+            const response = await fetch("/api/stripe/create-session", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 totalAmount: totalCents,
                 userEmail: email,
@@ -538,33 +753,38 @@ import CheckoutAddressSelector from '@/components/islands/CheckoutAddressSelecto
                 nombre: `${nombre} ${apellidos}`,
                 telefono: telefono,
                 direccion: direccion,
-                successUrl: window.location.origin + '/checkout/success?session_id={CHECKOUT_SESSION_ID}',
-                cancelUrl: window.location.origin + '/checkout'
-              })
+                successUrl:
+                  window.location.origin +
+                  "/checkout/success?session_id={CHECKOUT_SESSION_ID}",
+                cancelUrl: window.location.origin + "/checkout",
+              }),
             });
 
             const data = await response.json();
 
             if (!response.ok) {
-              throw new Error(data.error || 'Error creating checkout session');
+              throw new Error(data.error || "Error creating checkout session");
             }
 
             if (data.url) {
               window.location.href = data.url;
             } else {
-              throw new Error('No checkout URL returned');
+              throw new Error("No checkout URL returned");
             }
           } catch (error) {
-            console.error('Error:', error);
-            const errorMsg = error instanceof Error ? error.message : 'Error procesando el pago. Intenta de nuevo.';
+            console.error("Error:", error);
+            const errorMsg =
+              error instanceof Error
+                ? error.message
+                : "Error procesando el pago. Intenta de nuevo.";
             showError(errorMsg);
             payButton.disabled = false;
-            payButton.textContent = 'Ir a Pagar con Stripe';
+            payButton.textContent = "Ir a Pagar con Stripe";
           }
         });
       }
     }
-    
+
     // Iniciar cuando el DOM esté listo
     initCheckout();
   </script>

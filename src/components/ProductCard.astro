@@ -1,6 +1,4 @@
 ---
-import AddToCartButton from './islands/AddToCartButton';
-
 /**
  * COMPONENTE TARJETA DE PRODUCTO
  * ================================
@@ -22,13 +20,13 @@ interface Props {
     stock?: number; // Stock disponible
 }
 
-const { 
+const {
     slug,
     id = slug,
-    name, 
-    price, 
-    originalPrice, 
-    image, 
+    name,
+    price,
+    originalPrice,
+    image,
     badge = null,
     condition = "Buen estado",
     rating = 4.5,
@@ -38,101 +36,131 @@ const {
 } = Astro.props;
 
 // Calcular el descuento
-const discount = originalPrice ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
+const discount = originalPrice
+    ? Math.round(((originalPrice - price) / originalPrice) * 100)
+    : 0;
 const priceEur = (price / 100).toFixed(2);
-const originalPriceEur = originalPrice ? (originalPrice / 100).toFixed(2) : null;
+const originalPriceEur = originalPrice
+    ? (originalPrice / 100).toFixed(2)
+    : null;
 
 // Generar array de estrellas
-const stars = Array(5).fill(0).map((_, i) => i < Math.floor(rating));
+const stars = Array(5)
+    .fill(0)
+    .map((_, i) => i < Math.floor(rating));
 const hasHalfStar = rating % 1 !== 0;
 ---
 
 <a href={`/productos/${slug}`} class="group">
-    <div class="relative overflow-hidden rounded-2xl bg-white hover:shadow-xl transition-all duration-300 hover:scale-105 flex flex-col h-full">
-        
+    <div
+        class="relative overflow-hidden rounded-2xl bg-white hover:shadow-xl transition-all duration-300 hover:scale-105 flex flex-col h-full"
+    >
         <!-- Imagen Container -->
-        <div class="relative bg-white overflow-hidden h-48 sm:h-56 flex items-center justify-center border border-gray-200">
-            {image ? (
-                <img
-                    src={image}
-                    alt={name}
-                    loading="lazy"
-                    class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
-                    onload="this.classList.add('loaded')"
-                    onerror="this.style.display='none'; this.nextElementSibling?.style.display='flex'"
-                />
-            ) : null}
-            
-            {!image ? (
-                <div class="text-center text-slate-400 w-full h-full flex items-center justify-center">
-                    <p class="text-sm font-medium px-2">{name}</p>
-                </div>
-            ) : (
-                <div class="absolute inset-0 hidden text-center text-slate-400 w-full h-full items-center justify-center">
-                    <p class="text-sm font-medium px-2">{name}</p>
-                </div>
-            )}
+        <div
+            class="relative bg-white overflow-hidden h-48 sm:h-56 flex items-center justify-center border border-gray-200"
+        >
+            {
+                image ? (
+                    <img
+                        src={image}
+                        alt={name}
+                        loading="lazy"
+                        class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
+                        onload="this.classList.add('loaded')"
+                        onerror="this.style.display='none'; this.nextElementSibling?.style.display='flex'"
+                    />
+                ) : null
+            }
+
+            {
+                !image ? (
+                    <div class="text-center text-slate-400 w-full h-full flex items-center justify-center">
+                        <p class="text-sm font-medium px-2">{name}</p>
+                    </div>
+                ) : (
+                    <div class="absolute inset-0 hidden text-center text-slate-400 w-full h-full items-center justify-center">
+                        <p class="text-sm font-medium px-2">{name}</p>
+                    </div>
+                )
+            }
 
             <!-- Badge Superior Izquierda -->
-            {badge && (
-                <div class={`absolute top-3 left-3 ${badge_color} text-slate-900 px-3 py-1 rounded-full text-xs font-black shadow-md`}>
-                    {badge}
-                </div>
-            )}
+            {
+                badge && (
+                    <div
+                        class={`absolute top-3 left-3 ${badge_color} text-slate-900 px-3 py-1 rounded-full text-xs font-black shadow-md`}
+                    >
+                        {badge}
+                    </div>
+                )
+            }
 
             <!-- Descuento Badge Superior Derecha -->
-            {discount > 0 && (
-                <div class="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-black shadow-md">
-                    -{discount}%
-                </div>
-            )}
+            {
+                discount > 0 && (
+                    <div class="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-black shadow-md">
+                        -{discount}%
+                    </div>
+                )
+            }
         </div>
 
         <!-- Contenido Card -->
         <div class="flex-1 flex flex-col p-4 sm:p-5 bg-white">
-            
             <!-- Título -->
-            <h3 class="font-black text-slate-900 text-sm sm:text-base line-clamp-2 mb-3 group-hover:text-slate-600 transition-colors">
+            <h3
+                class="font-black text-slate-900 text-sm sm:text-base line-clamp-2 mb-3 group-hover:text-slate-600 transition-colors"
+            >
                 {name}
             </h3>
 
             <!-- Rating -->
-            {reviews > 0 && (
-                <div class="flex items-center gap-2 mb-3">
-                    <div class="flex gap-0.5">
-                        {stars.map((filled: boolean, _idx: number) => (
-                            <svg
-                                class={`w-4 h-4 ${filled ? 'text-amber-400 fill-current' : 'text-slate-300 fill-current'}`}
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 20 20"
-                            >
-                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" fill-opacity="0.5" />
-                            </svg>
-                        ))}
-                        {hasHalfStar && (
-                            <svg
-                                class="w-4 h-4 text-amber-400 fill-current"
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 20 20"
-                            >
-                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" fill-opacity="0.5" />
-                            </svg>
-                        )}
+            {
+                (
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="flex gap-0.5">
+                            {stars.map((filled: boolean, _idx: number) => (
+                                <svg
+                                    class={`w-4 h-4 ${filled ? "text-amber-400 fill-current" : "text-slate-300 fill-current"}`}
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 20 20"
+                                >
+                                    <path
+                                        d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"
+                                        fill-opacity="0.5"
+                                    />
+                                </svg>
+                            ))}
+                            {hasHalfStar && (
+                                <svg
+                                    class="w-4 h-4 text-amber-400 fill-current"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 20 20"
+                                >
+                                    <path
+                                        d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"
+                                        fill-opacity="0.5"
+                                    />
+                                </svg>
+                            )}
+                        </div>
+                        <span class="text-xs text-slate-600 font-medium">
+                            {rating.toFixed(1)} ({reviews})
+                        </span>
                     </div>
-                    <span class="text-xs text-slate-600 font-medium">
-                        {rating.toFixed(1)} ({reviews})
-                    </span>
-                </div>
-            )}
+                )
+            }
 
             <!-- Estado del Producto -->
-            {condition && (
-                <div class="mb-4">
-                    <span class="inline-block bg-white text-slate-700 px-2 py-1 rounded text-xs font-bold border border-gray-200">
-                        {condition}
-                    </span>
-                </div>
-            )}
+            {
+                condition && (
+                    <div class="mb-4">
+                        <span class="inline-block bg-white text-slate-700 px-2 py-1 rounded text-xs font-bold border border-gray-200">
+                            {condition}
+                        </span>
+                    </div>
+                )
+            }
 
             <!-- Precios -->
             <div class="mt-auto">
@@ -140,30 +168,34 @@ const hasHalfStar = rating % 1 !== 0;
                     <span class="text-xl sm:text-2xl font-black text-slate-900">
                         {priceEur}€
                     </span>
-                    {originalPriceEur && (
-                        <span class="text-sm text-slate-500 line-through font-semibold">
-                            {originalPriceEur}€
-                        </span>
-                    )}
+                    {
+                        originalPriceEur && (
+                            <span class="text-sm text-slate-500 line-through font-semibold">
+                                {originalPriceEur}€
+                            </span>
+                        )
+                    }
                 </div>
 
                 <!-- Ahorro Info -->
-                {discount > 0 && (
-                    <p class="text-xs text-green-600 font-bold">
-                        Ahorras {originalPrice && ((originalPrice - price) / 100).toFixed(2)}€
-                    </p>
-                )}
+                {
+                    discount > 0 && (
+                        <p class="text-xs text-green-600 font-bold">
+                            Ahorras{" "}
+                            {originalPrice &&
+                                ((originalPrice - price) / 100).toFixed(2)}
+                            €
+                        </p>
+                    )
+                }
             </div>
 
-            <!-- CTA Button -->
-            <AddToCartButton 
-                client:load
-                productId={id}
-                productName={name}
-                price={price}
-                image={image || ''}
-                stock={stock}
-            />
+            {/* CTA Button - Reemplazado por Ver Producto */}
+            <div
+                class="w-full bg-slate-900 text-white py-3 px-4 rounded-xl font-bold text-center group-hover:bg-[#00aa45] transition-colors mt-3"
+            >
+                Ver producto
+            </div>
         </div>
     </div>
 </a>

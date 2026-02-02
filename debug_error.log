@@ -1,0 +1,479 @@
+[2026-01-30T11:36:09.257Z] GUEST USER: No valid session found. Returns guestItem.
+[2026-01-30T11:37:57.950Z] GUEST USER: No valid session found. Returns guestItem.
+[2026-01-30T11:39:08.470Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+Auth Result: User=NULL, Error=Auth session missing!
+[2026-01-30T11:39:08.573Z] GUEST USER: No valid session found. Returns guestItem.
+[2026-01-30T11:39:44.640Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+Auth Result: User=NULL, Error=Auth session missing!
+[2026-01-30T11:39:44.850Z] GUEST USER: No valid session found. Returns guestItem.
+[2026-02-01T14:40:35.662Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=952). Prefix: eyJhbGciOi...
+Auth Result: User=NULL, Error=Auth session missing!
+[2026-02-01T14:40:35.836Z] GUEST USER: No valid session found. Returns guestItem.
+[2026-02-01T14:42:07.680Z] REQUEST START. Cookie=NO, Header=MISSING
+[2026-02-01T14:42:07.771Z] GUEST USER: No valid session found. Returns guestItem.
+[2026-02-01T14:44:41.314Z] REQUEST START. Cookie=NO, Header=MISSING
+[2026-02-01T14:44:41.544Z] GUEST USER: No valid session found. Returns guestItem.
+[2026-02-01T14:52:33.558Z] REQUEST START. Cookie=NO, Header=MISSING
+[2026-02-01T14:52:34.909Z] GUEST USER: No valid session found. Returns guestItem.
+[2026-02-01T14:52:51.803Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=1392). Prefix: eyJhbGciOi...
+Auth Result: User=NULL, Error=Auth session missing!
+[2026-02-01T14:52:51.877Z] GUEST USER: No valid session found. Returns guestItem.
+[2026-02-01T14:52:59.713Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=1392). Prefix: eyJhbGciOi...
+Auth Result: User=NULL, Error=Auth session missing!
+[2026-02-01T14:52:59.782Z] GUEST USER: No valid session found. Returns guestItem.
+[2026-02-01T14:54:00.936Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=1392). Prefix: eyJhbGciOi...
+Auth Result: User=NULL, Error=Auth session missing!
+[2026-02-01T14:54:01.055Z] GUEST USER: No valid session found. Returns guestItem.
+[2026-02-01T15:01:01.316Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=1392). Prefix: eyJhbGciOi...
+Auth Result: User=NULL, Error=Auth session missing!
+[2026-02-01T15:01:01.444Z] GUEST USER: No valid session found. Returns guestItem.
+[2026-02-01T15:09:54.631Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=1392). Prefix: eyJhbGciOi...
+Auth Result: User=NULL, Error=Auth session missing!
+[2026-02-01T15:09:54.734Z] GUEST USER: No valid session found. Returns guestItem.
+[2026-02-01T15:18:25.849Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=1392). Prefix: eyJhbGciOi...
+Auth Result: User=NULL, Error=Auth session missing!
+[2026-02-01T15:18:25.928Z] GUEST USER: No valid session found. Returns guestItem.
+[2026-02-01T15:19:12.897Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+Auth Result: User=NULL, Error=Auth session missing!
+[2026-02-01T15:19:12.976Z] GUEST USER: No valid session found. Returns guestItem.
+[2026-02-01T15:21:00.685Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=942). Prefix: eyJhbGciOi...
+Auth Result: User=NULL, Error=Auth session missing!
+[2026-02-01T15:21:00.765Z] GUEST USER: No valid session found. Returns guestItem.
+[2026-02-01T15:24:10.973Z] REQUEST START. Cookie=NO, Header=MISSING
+[2026-02-01T15:24:11.157Z] GUEST USER: No valid session found. Returns guestItem.
+[2026-02-01T15:26:26.436Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=942). Prefix: eyJhbGciOi...
+Auth Result: User=NULL, Error=Auth session missing!
+[2026-02-01T15:26:26.568Z] GUEST USER: No valid session found. Returns guestItem.
+[2026-02-01T15:38:35.318Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-01T15:38:35.395Z] Validating token with getUser()...
+[2026-02-01T15:38:35.489Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-01T15:38:35.489Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant 52569b85-9ada-4fd4-8583-cff55036cd60
+[2026-02-01T15:38:35.709Z] INSERT ERROR: new row violates row-level security policy for table "cart_items"
+[2026-02-01T15:45:54.213Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-01T15:45:54.294Z] Validating token with getUser()...
+[2026-02-01T15:45:54.415Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-01T15:45:54.416Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant d2404ad7-b801-4219-899b-1ad3adb1befd
+[2026-02-01T15:45:54.657Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-01T15:46:36.165Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-01T15:46:37.378Z] Validating token with getUser()...
+[2026-02-01T15:46:37.491Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-01T15:46:37.492Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant 30abe782-8934-4efa-a761-578a2a8add80
+[2026-02-01T15:46:37.883Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-01T15:47:23.303Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-01T15:47:23.370Z] Validating token with getUser()...
+[2026-02-01T15:47:23.447Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-01T15:47:23.448Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant ac35ccae-59a0-4a20-bf4b-65bae65b4222
+[2026-02-01T15:47:23.589Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-01T15:47:56.555Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-01T15:47:56.638Z] Validating token with getUser()...
+[2026-02-01T15:47:56.722Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-01T15:47:56.723Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant f85b79fd-5f76-4bcd-ad13-0feeeec8efbd
+[2026-02-01T15:47:56.925Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-01T16:02:41.063Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-01T16:02:41.158Z] Validating token with getUser()...
+[2026-02-01T16:02:41.230Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-01T16:02:41.231Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant 387b1bb1-a91b-4fae-b72d-5d856f811e08
+[2026-02-01T16:02:41.406Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-01T17:16:38.476Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-01T17:16:38.551Z] Validating token with getUser()...
+[2026-02-01T17:16:38.620Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-01T17:16:38.621Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant 5af6fb4e-b642-4f24-b9a5-21331279b2e0
+[2026-02-01T17:16:38.810Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-01T17:24:28.708Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-01T17:24:28.795Z] Validating token with getUser()...
+[2026-02-01T17:24:28.870Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-01T17:24:28.871Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant 5af6fb4e-b642-4f24-b9a5-21331279b2e0
+[2026-02-01T17:24:29.090Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-01T17:42:51.204Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-01T17:42:51.299Z] Validating token with getUser()...
+[2026-02-01T17:42:51.378Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-01T17:42:51.379Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant a3e5ed4d-715f-471c-af06-c323490c657c
+[2026-02-01T17:42:51.556Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-01T17:42:54.655Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-01T17:42:54.753Z] Validating token with getUser()...
+[2026-02-01T17:42:54.838Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-01T17:42:54.839Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant 3351a033-0caf-4c88-b158-84bcd55f4fc7
+[2026-02-01T17:42:55.024Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-01T17:51:04.131Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-01T17:51:04.254Z] Validating token with getUser()...
+[2026-02-01T17:51:04.412Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-01T17:51:04.413Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant aab2afcc-c8ee-48c3-97ef-bdfcbfd6ddca
+[2026-02-01T17:51:04.624Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-01T18:39:54.565Z] REQUEST START. Cookie=NO, Header=MISSING
+[2026-02-01T18:39:54.704Z] GUEST USER: No valid session found. Returns guestItem.
+[2026-02-01T18:49:07.047Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=942). Prefix: eyJhbGciOi...
+[2026-02-01T18:49:07.127Z] Validating token with getUser()...
+[2026-02-01T18:49:07.211Z] getUser Result: User=4c3c38b0-b5a0-4b48-8879-d04cab332d09, Error=NONE
+[2026-02-01T18:49:07.212Z] AUTH USER CONFIRMED: 4c3c38b0-b5a0-4b48-8879-d04cab332d09 - Proceeding with DB insert for variant d2404ad7-b801-4219-899b-1ad3adb1befd
+[2026-02-01T18:49:07.424Z] SUCCESS: Cart item saved for user 4c3c38b0-b5a0-4b48-8879-d04cab332d09
+[2026-02-01T18:58:13.713Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-01T18:58:13.804Z] Validating token with getUser()...
+[2026-02-01T18:58:13.876Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-01T18:58:13.877Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant 23d03a38-2775-4487-b433-2dc0fab59a28
+[2026-02-01T18:58:14.059Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-01T19:09:58.065Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-01T19:09:58.142Z] Validating token with getUser()...
+[2026-02-01T19:09:58.211Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-01T19:09:58.212Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant 51f8f167-2b27-4744-820d-510eec412f7e
+[2026-02-01T19:09:58.376Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-01T19:48:33.139Z] REQUEST START. Cookie=NO, Header=MISSING
+[2026-02-01T19:48:33.249Z] GUEST USER: No valid session found. Returns guestItem.
+[2026-02-01T19:59:56.553Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-01T19:59:56.637Z] Validating token with getUser()...
+[2026-02-01T19:59:56.729Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-01T19:59:56.732Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant 9ca33281-cb83-4b31-887f-e3ca0414a141
+[2026-02-01T19:59:56.923Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-01T20:44:35.204Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-01T20:44:35.416Z] Validating token with getUser()...
+[2026-02-01T20:44:35.511Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-01T20:44:35.511Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant d811b626-5d3b-48eb-b7a4-41ebfa51cdc7
+[2026-02-01T20:44:35.733Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-01T20:48:10.576Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-01T20:48:10.675Z] Validating token with getUser()...
+[2026-02-01T20:48:10.765Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-01T20:48:10.766Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant 9049b3ea-0466-4a34-9c25-54991ff11ce7
+[2026-02-01T20:48:10.974Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-01T21:17:59.839Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-01T21:17:59.916Z] Validating token with getUser()...
+[2026-02-01T21:17:59.994Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-01T21:17:59.995Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant d811b626-5d3b-48eb-b7a4-41ebfa51cdc7
+[2026-02-01T21:18:00.151Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-01T21:22:40.988Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-01T21:22:41.079Z] Validating token with getUser()...
+[2026-02-01T21:22:41.174Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-01T21:22:41.175Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant 941d1f4a-00c0-4d28-aa6e-53abf214376c
+[2026-02-01T21:22:41.403Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-01T21:30:44.558Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-01T21:30:44.658Z] Validating token with getUser()...
+[2026-02-01T21:30:44.748Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-01T21:30:44.749Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant 23d03a38-2775-4487-b433-2dc0fab59a28
+[2026-02-01T21:30:44.966Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-01T21:44:07.874Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-01T21:44:07.959Z] Validating token with getUser()...
+[2026-02-01T21:44:08.046Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-01T21:44:08.047Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant d2404ad7-b801-4219-899b-1ad3adb1befd
+[2026-02-01T21:44:08.239Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-01T21:51:09.022Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-01T21:51:09.111Z] Validating token with getUser()...
+[2026-02-01T21:51:09.198Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-01T21:51:09.198Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant aab2afcc-c8ee-48c3-97ef-bdfcbfd6ddca
+[2026-02-01T21:51:09.552Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-01T21:57:29.849Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-01T21:57:29.934Z] Validating token with getUser()...
+[2026-02-01T21:57:30.009Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-01T21:57:30.010Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant 51f8f167-2b27-4744-820d-510eec412f7e
+[2026-02-01T21:57:30.164Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-02T07:20:09.306Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-02T07:20:09.495Z] Validating token with getUser()...
+[2026-02-02T07:20:09.577Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-02T07:20:09.578Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant b5208351-6a93-4b27-8f85-57388895e688
+[2026-02-02T07:20:09.824Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-02T07:27:10.358Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=1392). Prefix: eyJhbGciOi...
+[2026-02-02T07:27:10.942Z] Validating token with getUser()...
+[2026-02-02T07:27:11.030Z] getUser Result: User=f194e3e4-e6f5-46da-b593-1f0a1cd8a73b, Error=NONE
+[2026-02-02T07:27:11.030Z] AUTH USER CONFIRMED: f194e3e4-e6f5-46da-b593-1f0a1cd8a73b - Proceeding with DB insert for variant 1d8b13c3-b2d9-41c5-977c-d45d4aecf0bb
+[2026-02-02T07:27:11.341Z] SUCCESS: Cart item saved for user f194e3e4-e6f5-46da-b593-1f0a1cd8a73b
+[2026-02-02T08:08:25.116Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-02T08:08:25.204Z] Validating token with getUser()...
+[2026-02-02T08:08:25.288Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-02T08:08:25.288Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant ac35ccae-59a0-4a20-bf4b-65bae65b4222
+[2026-02-02T08:08:25.506Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-02T08:54:48.952Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-02T08:54:49.090Z] Validating token with getUser()...
+[2026-02-02T08:54:49.167Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-02T08:54:49.168Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant 5af6fb4e-b642-4f24-b9a5-21331279b2e0
+[2026-02-02T08:54:49.397Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-02T11:33:14.756Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-02T11:33:14.890Z] Validating token with getUser()...
+[2026-02-02T11:33:14.971Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-02T11:33:14.971Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant 0d6cb29e-591c-42d2-8ccb-054add13a7be
+[2026-02-02T11:33:15.156Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-02T16:14:54.996Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-02T16:14:55.172Z] Validating token with getUser()...
+[2026-02-02T16:14:55.264Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-02T16:14:55.265Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant dd56d122-dc19-4d4a-a806-8bbe986dce05
+[2026-02-02T16:14:55.447Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-02T16:23:36.431Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-02T16:23:36.575Z] Validating token with getUser()...
+[2026-02-02T16:23:36.655Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-02T16:23:36.656Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant db7ea4ad-1511-4962-b103-e38d2fb24477
+[2026-02-02T16:23:36.861Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-02T18:53:29.743Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-02T18:53:30.075Z] Validating token with getUser()...
+[2026-02-02T18:53:30.248Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-02T18:53:30.248Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant c8cbee8b-6fbb-472c-a599-b8bbb025ca2e
+[2026-02-02T18:53:30.525Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-02T18:55:15.959Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-02T18:55:16.212Z] Validating token with getUser()...
+[2026-02-02T18:55:16.346Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-02T18:55:16.347Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant c8cbee8b-6fbb-472c-a599-b8bbb025ca2e
+[2026-02-02T18:55:16.607Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-02T18:55:56.696Z] REQUEST START. Cookie=NO, Header=MISSING
+[2026-02-02T18:55:56.863Z] GUEST USER: No valid session found. Returns guestItem.
+[2026-02-02T18:57:08.925Z] REQUEST START. Cookie=NO, Header=MISSING
+[2026-02-02T18:57:09.249Z] GUEST USER: No valid session found. Returns guestItem.
+[2026-02-02T19:06:49.718Z] REQUEST START. Cookie=NO, Header=MISSING
+[2026-02-02T19:06:49.866Z] GUEST USER: No valid session found. Returns guestItem.
+[2026-02-02T19:06:51.885Z] REQUEST START. Cookie=NO, Header=MISSING
+[2026-02-02T19:06:52.044Z] GUEST USER: No valid session found. Returns guestItem.
+[2026-02-02T19:07:11.003Z] REQUEST START. Cookie=NO, Header=MISSING
+[2026-02-02T19:07:11.126Z] GUEST USER: No valid session found. Returns guestItem.
+[2026-02-02T19:08:14.225Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-02T19:08:14.371Z] Validating token with getUser()...
+[2026-02-02T19:08:14.496Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-02T19:08:14.497Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant c8cbee8b-6fbb-472c-a599-b8bbb025ca2e
+[2026-02-02T19:08:14.761Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-02T19:08:16.287Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-02T19:08:16.407Z] Validating token with getUser()...
+[2026-02-02T19:08:16.548Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-02T19:08:16.548Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant c8cbee8b-6fbb-472c-a599-b8bbb025ca2e
+[2026-02-02T19:08:16.913Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-02T19:09:45.044Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-02T19:09:45.413Z] Validating token with getUser()...
+[2026-02-02T19:09:45.629Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-02T19:09:45.629Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant c8cbee8b-6fbb-472c-a599-b8bbb025ca2e
+[2026-02-02T19:09:45.955Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-02T19:09:48.273Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-02T19:09:48.439Z] Validating token with getUser()...
+[2026-02-02T19:09:48.598Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-02T19:09:48.599Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant c8cbee8b-6fbb-472c-a599-b8bbb025ca2e
+[2026-02-02T19:09:48.993Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-02T19:14:40.086Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-02T19:14:40.554Z] Validating token with getUser()...
+[2026-02-02T19:14:40.837Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-02T19:14:40.838Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant c8cbee8b-6fbb-472c-a599-b8bbb025ca2e
+[2026-02-02T19:14:41.210Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-02T19:15:45.564Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-02T19:15:45.865Z] Validating token with getUser()...
+[2026-02-02T19:15:45.981Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-02T19:15:45.981Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant c8cbee8b-6fbb-472c-a599-b8bbb025ca2e
+[2026-02-02T19:15:46.272Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-02T19:17:31.200Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-02T19:17:31.348Z] Validating token with getUser()...
+[2026-02-02T19:17:31.472Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-02T19:17:31.472Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant c8cbee8b-6fbb-472c-a599-b8bbb025ca2e
+[2026-02-02T19:17:31.612Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-02T19:18:24.947Z] REQUEST START. Cookie=NO, Header=MISSING
+[2026-02-02T19:18:25.118Z] GUEST USER: No valid session found. Returns guestItem.
+[2026-02-02T19:23:06.076Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-02T19:23:06.298Z] Validating token with getUser()...
+[2026-02-02T19:23:06.442Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-02T19:23:06.442Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant c8cbee8b-6fbb-472c-a599-b8bbb025ca2e
+[2026-02-02T19:23:06.627Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-02T19:23:37.265Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-02T19:23:37.400Z] Validating token with getUser()...
+[2026-02-02T19:23:37.547Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-02T19:23:37.548Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant c8cbee8b-6fbb-472c-a599-b8bbb025ca2e
+[2026-02-02T19:23:37.707Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-02T19:23:39.425Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-02T19:23:39.581Z] Validating token with getUser()...
+[2026-02-02T19:23:39.703Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-02T19:23:39.703Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant c8cbee8b-6fbb-472c-a599-b8bbb025ca2e
+[2026-02-02T19:23:39.866Z] STOCK V2 ERROR: Insufficient variant stock
+[2026-02-02T19:23:41.939Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-02T19:23:42.073Z] Validating token with getUser()...
+[2026-02-02T19:23:42.197Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-02T19:23:42.198Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant c8cbee8b-6fbb-472c-a599-b8bbb025ca2e
+[2026-02-02T19:23:42.360Z] STOCK V2 ERROR: Insufficient variant stock
+[2026-02-02T19:24:55.015Z] REQUEST START. Cookie=NO, Header=MISSING
+[2026-02-02T19:24:55.230Z] GUEST USER: No valid session found. Returns guestItem.
+[2026-02-02T19:25:37.869Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-02T19:25:38.008Z] Validating token with getUser()...
+[2026-02-02T19:25:38.148Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-02T19:25:38.149Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant b55c0a89-00af-4002-8cf2-62eb3af7f478
+[2026-02-02T19:25:38.293Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-02T19:27:22.139Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-02T19:27:22.286Z] Validating token with getUser()...
+[2026-02-02T19:27:22.430Z] getUser Result: User=2b1e08d8-63a2-4af9-b434-99fd77b9a258, Error=NONE
+[2026-02-02T19:27:22.431Z] AUTH USER CONFIRMED: 2b1e08d8-63a2-4af9-b434-99fd77b9a258 - Proceeding with DB insert for variant c8cbee8b-6fbb-472c-a599-b8bbb025ca2e
+[2026-02-02T19:27:22.603Z] SUCCESS: Cart item saved for user 2b1e08d8-63a2-4af9-b434-99fd77b9a258
+[2026-02-02T19:27:31.007Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=942). Prefix: eyJhbGciOi...
+[2026-02-02T19:27:31.340Z] Validating token with getUser()...
+[2026-02-02T19:27:31.475Z] getUser Result: User=4c3c38b0-b5a0-4b48-8879-d04cab332d09, Error=NONE
+[2026-02-02T19:27:31.476Z] AUTH USER CONFIRMED: 4c3c38b0-b5a0-4b48-8879-d04cab332d09 - Proceeding with DB insert for variant c8cbee8b-6fbb-472c-a599-b8bbb025ca2e
+[2026-02-02T19:27:31.611Z] STOCK V2 ERROR: Insufficient variant stock
+[2026-02-02T19:27:33.895Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=942). Prefix: eyJhbGciOi...
+[2026-02-02T19:27:34.098Z] Validating token with getUser()...
+[2026-02-02T19:27:34.239Z] getUser Result: User=4c3c38b0-b5a0-4b48-8879-d04cab332d09, Error=NONE
+[2026-02-02T19:27:34.239Z] AUTH USER CONFIRMED: 4c3c38b0-b5a0-4b48-8879-d04cab332d09 - Proceeding with DB insert for variant c8cbee8b-6fbb-472c-a599-b8bbb025ca2e
+[2026-02-02T19:27:34.374Z] STOCK V2 ERROR: Insufficient variant stock
+[2026-02-02T19:32:34.706Z] REQUEST START. Cookie=NO, Header=MISSING
+[2026-02-02T19:32:37.332Z] REQUEST START. Cookie=NO, Header=MISSING
+[2026-02-02T19:32:40.047Z] REQUEST START. Cookie=NO, Header=MISSING
+[2026-02-02T19:32:40.602Z] REQUEST START. Cookie=NO, Header=MISSING
+[2026-02-02T19:32:44.721Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=942). Prefix: eyJhbGciOi...
+[2026-02-02T19:32:45.089Z] ERROR: {"code":"PGRST203","details":null,"hint":"Try renaming the parameters or the function itself in the database so function overloading can be resolved","message":"Could not choose the best candidate function between: public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid), public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid, p_session_id => text)"}
+Stack: 
+
+[2026-02-02T19:32:45.685Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=942). Prefix: eyJhbGciOi...
+[2026-02-02T19:32:45.873Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=942). Prefix: eyJhbGciOi...
+[2026-02-02T19:32:46.052Z] ERROR: {"code":"PGRST203","details":null,"hint":"Try renaming the parameters or the function itself in the database so function overloading can be resolved","message":"Could not choose the best candidate function between: public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid), public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid, p_session_id => text)"}
+Stack: 
+
+[2026-02-02T19:32:46.273Z] ERROR: {"code":"PGRST203","details":null,"hint":"Try renaming the parameters or the function itself in the database so function overloading can be resolved","message":"Could not choose the best candidate function between: public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid), public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid, p_session_id => text)"}
+Stack: 
+
+[2026-02-02T19:32:52.040Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=942). Prefix: eyJhbGciOi...
+[2026-02-02T19:32:52.539Z] ERROR: {"code":"PGRST203","details":null,"hint":"Try renaming the parameters or the function itself in the database so function overloading can be resolved","message":"Could not choose the best candidate function between: public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid), public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid, p_session_id => text)"}
+Stack: 
+
+[2026-02-02T19:33:13.714Z] REQUEST START. Cookie=NO, Header=MISSING
+[2026-02-02T19:33:20.444Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=942). Prefix: eyJhbGciOi...
+[2026-02-02T19:33:20.951Z] ERROR: {"code":"PGRST203","details":null,"hint":"Try renaming the parameters or the function itself in the database so function overloading can be resolved","message":"Could not choose the best candidate function between: public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid), public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid, p_session_id => text)"}
+Stack: 
+
+[2026-02-02T19:33:57.644Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-02T19:33:58.080Z] ERROR: {"code":"PGRST203","details":null,"hint":"Try renaming the parameters or the function itself in the database so function overloading can be resolved","message":"Could not choose the best candidate function between: public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid), public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid, p_session_id => text)"}
+Stack: 
+
+[2026-02-02T19:34:13.415Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=936). Prefix: eyJhbGciOi...
+[2026-02-02T19:34:13.861Z] ERROR: {"code":"PGRST203","details":null,"hint":"Try renaming the parameters or the function itself in the database so function overloading can be resolved","message":"Could not choose the best candidate function between: public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid), public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid, p_session_id => text)"}
+Stack: 
+
+[2026-02-02T19:36:25.450Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=942). Prefix: eyJhbGciOi...
+[2026-02-02T19:36:26.272Z] ERROR: {"code":"PGRST203","details":null,"hint":"Try renaming the parameters or the function itself in the database so function overloading can be resolved","message":"Could not choose the best candidate function between: public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid), public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid, p_session_id => text)"}
+Stack: 
+
+[2026-02-02T19:36:32.608Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=942). Prefix: eyJhbGciOi...
+[2026-02-02T19:36:33.068Z] ERROR: {"code":"PGRST203","details":null,"hint":"Try renaming the parameters or the function itself in the database so function overloading can be resolved","message":"Could not choose the best candidate function between: public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid), public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid, p_session_id => text)"}
+Stack: 
+
+[2026-02-02T19:36:43.213Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=942). Prefix: eyJhbGciOi...
+[2026-02-02T19:36:43.726Z] ERROR: {"code":"PGRST203","details":null,"hint":"Try renaming the parameters or the function itself in the database so function overloading can be resolved","message":"Could not choose the best candidate function between: public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid), public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid, p_session_id => text)"}
+Stack: 
+
+[2026-02-02T19:36:46.928Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=942). Prefix: eyJhbGciOi...
+[2026-02-02T19:36:47.309Z] ERROR: {"code":"PGRST203","details":null,"hint":"Try renaming the parameters or the function itself in the database so function overloading can be resolved","message":"Could not choose the best candidate function between: public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid), public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid, p_session_id => text)"}
+Stack: 
+
+[2026-02-02T19:36:49.219Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=942). Prefix: eyJhbGciOi...
+[2026-02-02T19:36:49.581Z] ERROR: {"code":"PGRST203","details":null,"hint":"Try renaming the parameters or the function itself in the database so function overloading can be resolved","message":"Could not choose the best candidate function between: public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid), public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid, p_session_id => text)"}
+Stack: 
+
+[2026-02-02T19:37:04.143Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=942). Prefix: eyJhbGciOi...
+[2026-02-02T19:37:04.504Z] ERROR: {"code":"PGRST203","details":null,"hint":"Try renaming the parameters or the function itself in the database so function overloading can be resolved","message":"Could not choose the best candidate function between: public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid), public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid, p_session_id => text)"}
+Stack: 
+
+[2026-02-02T19:37:08.338Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=942). Prefix: eyJhbGciOi...
+[2026-02-02T19:37:08.701Z] ERROR: {"code":"PGRST203","details":null,"hint":"Try renaming the parameters or the function itself in the database so function overloading can be resolved","message":"Could not choose the best candidate function between: public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid), public.add_to_cart_v2(p_product_id => uuid, p_quantity => integer, p_variant_id => uuid, p_user_id => uuid, p_session_id => text)"}
+Stack: 
+
+[2026-02-02T19:37:57.561Z] REQUEST START. Cookie=NO, Header=MISSING
+[2026-02-02T19:38:06.535Z] REQUEST START. Cookie=NO, Header=MISSING
+[2026-02-02T19:38:43.253Z] REQUEST START. Cookie=NO, Header=MISSING
+[2026-02-02T19:39:10.288Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=942). Prefix: eyJhbGciOi...
+[2026-02-02T19:39:13.712Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=942). Prefix: eyJhbGciOi...
+[2026-02-02T19:39:14.166Z] ERROR: Insufficient variant stock
+Stack: Error: Insufficient variant stock
+    at Module.POST (eval at runInlinedModule (file:///C:/Users/rafae/Desktop/DAM%202%C2%BA/Sistema%20de%20Gesti%C3%B3n%20Empresarial/FashionStore/node_modules/astro/node_modules/vite/dist/node/module-runner.js:1062:11), <anonymous>:85:48)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async renderEndpoint (file:///C:/Users/rafae/Desktop/DAM%202%C2%BA/Sistema%20de%20Gesti%C3%B3n%20Empresarial/FashionStore/node_modules/astro/dist/runtime/server/endpoint.js:37:18)
+    at async lastNext (file:///C:/Users/rafae/Desktop/DAM%202%C2%BA/Sistema%20de%20Gesti%C3%B3n%20Empresarial/FashionStore/node_modules/astro/dist/core/render-context.js:202:23)
+    at async callMiddleware (file:///C:/Users/rafae/Desktop/DAM%202%C2%BA/Sistema%20de%20Gesti%C3%B3n%20Empresarial/FashionStore/node_modules/astro/dist/core/middleware/callMiddleware.js:11:10)
+    at async RenderContext.render (file:///C:/Users/rafae/Desktop/DAM%202%C2%BA/Sistema%20de%20Gesti%C3%B3n%20Empresarial/FashionStore/node_modules/astro/dist/core/render-context.js:249:22)
+    at async handleRoute (file:///C:/Users/rafae/Desktop/DAM%202%C2%BA/Sistema%20de%20Gesti%C3%B3n%20Empresarial/FashionStore/node_modules/astro/dist/vite-plugin-astro-server/route.js:180:16)
+    at async run (file:///C:/Users/rafae/Desktop/DAM%202%C2%BA/Sistema%20de%20Gesti%C3%B3n%20Empresarial/FashionStore/node_modules/astro/dist/vite-plugin-astro-server/request.js:53:14)
+    at async runWithErrorHandling (file:///C:/Users/rafae/Desktop/DAM%202%C2%BA/Sistema%20de%20Gesti%C3%B3n%20Empresarial/FashionStore/node_modules/astro/dist/vite-plugin-astro-server/controller.js:64:5)
+    at async handleRequest (file:///C:/Users/rafae/Desktop/DAM%202%C2%BA/Sistema%20de%20Gesti%C3%B3n%20Empresarial/FashionStore/node_modules/astro/dist/vite-plugin-astro-server/request.js:47:3)
+
+[2026-02-02T19:39:41.364Z] REQUEST START. Cookie=NO, Header=MISSING
+[2026-02-02T19:40:05.322Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=942). Prefix: eyJhbGciOi...
+[2026-02-02T19:40:05.899Z] ERROR: Insufficient variant stock
+Stack: Error: Insufficient variant stock
+    at Module.POST (eval at runInlinedModule (file:///C:/Users/rafae/Desktop/DAM%202%C2%BA/Sistema%20de%20Gesti%C3%B3n%20Empresarial/FashionStore/node_modules/astro/node_modules/vite/dist/node/module-runner.js:1062:11), <anonymous>:85:48)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async renderEndpoint (file:///C:/Users/rafae/Desktop/DAM%202%C2%BA/Sistema%20de%20Gesti%C3%B3n%20Empresarial/FashionStore/node_modules/astro/dist/runtime/server/endpoint.js:37:18)
+    at async lastNext (file:///C:/Users/rafae/Desktop/DAM%202%C2%BA/Sistema%20de%20Gesti%C3%B3n%20Empresarial/FashionStore/node_modules/astro/dist/core/render-context.js:202:23)
+    at async callMiddleware (file:///C:/Users/rafae/Desktop/DAM%202%C2%BA/Sistema%20de%20Gesti%C3%B3n%20Empresarial/FashionStore/node_modules/astro/dist/core/middleware/callMiddleware.js:11:10)
+    at async RenderContext.render (file:///C:/Users/rafae/Desktop/DAM%202%C2%BA/Sistema%20de%20Gesti%C3%B3n%20Empresarial/FashionStore/node_modules/astro/dist/core/render-context.js:249:22)
+    at async handleRoute (file:///C:/Users/rafae/Desktop/DAM%202%C2%BA/Sistema%20de%20Gesti%C3%B3n%20Empresarial/FashionStore/node_modules/astro/dist/vite-plugin-astro-server/route.js:180:16)
+    at async run (file:///C:/Users/rafae/Desktop/DAM%202%C2%BA/Sistema%20de%20Gesti%C3%B3n%20Empresarial/FashionStore/node_modules/astro/dist/vite-plugin-astro-server/request.js:53:14)
+    at async runWithErrorHandling (file:///C:/Users/rafae/Desktop/DAM%202%C2%BA/Sistema%20de%20Gesti%C3%B3n%20Empresarial/FashionStore/node_modules/astro/dist/vite-plugin-astro-server/controller.js:64:5)
+    at async handleRequest (file:///C:/Users/rafae/Desktop/DAM%202%C2%BA/Sistema%20de%20Gesti%C3%B3n%20Empresarial/FashionStore/node_modules/astro/dist/vite-plugin-astro-server/request.js:47:3)
+
+[2026-02-02T19:42:25.135Z] REQUEST START. Cookie=NO, Header=MISSING
+[2026-02-02T19:42:42.249Z] REQUEST START. Cookie=NO, Header=MISSING
+[2026-02-02T19:45:24.793Z] REQUEST START. Cookie=NO, Header=MISSING
+[2026-02-02T19:45:49.521Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=942). Prefix: eyJhbGciOi...
+[2026-02-02T19:46:11.247Z] REQUEST START. Cookie=NO, Header=MISSING
+[2026-02-02T19:48:41.298Z] REQUEST START. Cookie=NO, Header=MISSING
+[2026-02-02T19:49:44.443Z] REQUEST START. Cookie=NO, Header=PRESENT
+Token found (len=942). Prefix: eyJhbGciOi...
+[2026-02-02T20:03:59.899Z] REQUEST START. Cookie=NO, Header=MISSING

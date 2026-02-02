@@ -1,0 +1,102 @@
+---
+import { supabase } from "@/lib/supabase";
+
+const accessToken = Astro.cookies.get("sb-access-token")?.value;
+const refreshToken = Astro.cookies.get("sb-refresh-token")?.value;
+let user = null;
+let errorAuth = null;
+
+if (accessToken) {
+    const { data, error } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken || "",
+    });
+    user = data.user;
+    errorAuth = error;
+}
+
+let debugReport = {
+    user: user ? { id: user.id, aud: user.aud } : "No user",
+    authError: errorAuth,
+    tableCheck: null,
+    variantFound: null,
+    insertResult: null,
+    insertResultLegacy: null,
+};
+
+// Check table access
+const { error: errTable } = await supabase
+    .from("cart_items")
+    .select("id")
+    .limit(1);
+debugReport.tableCheck = errTable || "Table access OK";
+
+if (user) {
+    // Find a variant
+    const { data: variants } = await supabase
+        .from("variantes_producto")
+        .select("*")
+        .limit(1);
+
+    if (variants && variants.length > 0) {
+        const v = variants[0];
+        debugReport.variantFound = { id: v.id, product_id: v.producto_id };
+
+        // Attempt Insert with variante_id
+        const payload = {
+            user_id: user.id,
+            product_id: v.producto_id,
+            variante_id: v.id,
+            quantity: 1,
+            precio_unitario: v.precio_venta || 0,
+            color: "Debug",
+        };
+
+        const { data, error } = await supabase
+            .from("cart_items")
+            .insert(payload)
+            .select();
+        debugReport.insertResult = error
+            ? {
+                  code: error.code,
+                  message: error.message,
+                  details: error.details,
+              }
+            : "Success";
+
+        // If that failed, try WITHOUT user_id (maybe it's inferred?) or try with different column name?
+        // No, user_id is standard.
+        // Try to insert with just product_id (legacy mode) to check constraints
+        if (error) {
+            const { error: err2 } = await supabase
+                .from("cart_items")
+                .insert({
+                    user_id: user.id,
+                    product_id: v.producto_id,
+                    quantity: 1,
+                    precio_unitario: v.precio_venta || 0,
+                })
+                .select();
+            debugReport.insertResultLegacy = err2
+                ? { code: err2.code, message: err2.message }
+                : "Success Legacy";
+        }
+    } else {
+        debugReport.variantFound = "No variants in DB";
+    }
+}
+---
+
+<html>
+    <body class="p-10 font-mono text-sm">
+        <h1 class="text-2xl font-bold mb-4">Debug Cart Insert</h1>
+        <p class="mb-4">
+            Por favor comparte el contenido de abajo con el desarrollador.
+        </p>
+        <div
+            class="bg-gray-100 p-4 rounded border border-gray-300 whitespace-pre-wrap"
+        >
+            {JSON.stringify(debugReport, null, 2)}
+        </div>
+    </body>
+</html>

@@ -70,7 +70,7 @@ export const POST: APIRoute = async (context) => {
     console.log('\n[WEBHOOK] ================================================');
     console.log('[WEBHOOK] 🔔 WEBHOOK RECIBIDO');
     console.log('[WEBHOOK] ================================================\n');
-    
+
     // ============================================================
     // 1. VALIDAR FIRMA DEL WEBHOOK
     // ============================================================
@@ -182,12 +182,14 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     console.log(`Pedido encontrado: ${order.numero_orden}`);
 
     // ========== VALIDACIÓN DE MONTO (ANTI-FRAUDE) ==========
-    const sessionTotalEUR = Math.round((session.amount_total || 0) / 100); // Convertir de centavos
-    if (order.total !== sessionTotalEUR) {
+    const sessionTotalCents = session.amount_total || 0; // STRICT: CENTS (INTEGER)
+    const dbTotalCents = order.total; // STRICT: DB IS CENTS (INTEGER)
+
+    if (dbTotalCents !== sessionTotalCents) {
       console.error(
-        `[WEBHOOK] ❌ ALERTA: Monto no coincide\n` +
-        `  - BD: ${order.total}€\n` +
-        `  - Stripe: ${sessionTotalEUR}€\n` +
+        `[WEBHOOK] ❌ ALERTA: Monto no coincide (CENTS)\n` +
+        `  - BD: ${dbTotalCents}\n` +
+        `  - Stripe: ${sessionTotalCents}\n` +
         `  - ACCIÓN: Pedido NO actualizado (posible fraude)`
       );
       return;
@@ -236,10 +238,10 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     // ========== LIMPIAR CARRITO ==========
     if (order.usuario_id) {
       console.log(`\n[WEBHOOK] 🛒 Limpiando carrito para usuario: ${order.usuario_id}`);
-      
+
       // Intentar primero con cart_items (estructura actual)
       let cartCleared = false;
-      
+
       const { error: cartItemsError } = await supabase
         .from('cart_items')
         .delete()
@@ -251,7 +253,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       } else {
         console.log('[WEBHOOK] cart_items no disponible, intentando carrito...');
       }
-      
+
       // Fallback a tabla 'carrito' si existe
       if (!cartCleared) {
         const { error: cartError } = await supabase
@@ -271,7 +273,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     console.log('\n[WEBHOOK] === ENVIANDO EMAILS ===');
     const clientEmail = order.email_cliente;
     console.log(`[WEBHOOK] Email del cliente: ${clientEmail}`);
-    
+
     const emailSent = await sendOrderConfirmationEmail({
       numero_orden: order.numero_orden,
       email: clientEmail,
@@ -283,7 +285,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       envio: order.coste_envio,
       total: order.total,
       direccion: order.direccion_envio || {},
-      is_guest: !order.usuario_id,
     });
 
     if (emailSent) {
@@ -294,14 +295,19 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
     // ========== ENVIAR NOTIFICACIÓN AL ADMIN ==========
     console.log(`[WEBHOOK] Email del admin: ${ADMIN_EMAIL}`);
-    
+
+    // Admin notification uses same OrderData structure
     const adminEmailSent = await sendAdminNotificationEmail({
-      type: 'new_order',
-      order_number: order.numero_orden,
-      customer_email: clientEmail,
-      customer_name: order.nombre_cliente,
+      numero_orden: order.numero_orden,
+      email: ADMIN_EMAIL,
+      nombre: order.nombre_cliente,
+      items: orderItems,
+      subtotal: order.subtotal,
+      impuestos: order.impuestos,
+      descuento: order.descuento,
+      envio: order.coste_envio,
       total: order.total,
-      items_count: orderItems.length,
+      direccion: order.direccion_envio || {},
     });
 
     if (adminEmailSent) {
@@ -346,16 +352,14 @@ async function handleChargeDispute(dispute: Stripe.Dispute) {
 
       console.log(`⚠️ Disputa asociada al pedido: ${order.numero_orden}`);
 
-      // Notificar al administrador
-      await sendAdminNotificationEmail({
-        type: 'payment_dispute',
-        order_number: order.numero_orden,
-        customer_email: order.email_cliente,
-        customer_name: order.nombre_cliente,
-        dispute_id: dispute.id,
-      });
+      // Log dispute details for admin to handle manually
+      console.log(`[WEBHOOK] DISPUTA DETECTADA:`);
+      console.log(`[WEBHOOK]   - Pedido: ${order.numero_orden}`);
+      console.log(`[WEBHOOK]   - Cliente: ${order.nombre_cliente} (${order.email_cliente})`);
+      console.log(`[WEBHOOK]   - Dispute ID: ${dispute.id}`);
+      // TODO: Implement a separate dispute notification email if needed
 
-      console.log(`✅ Admin notificado de disputa`);
+      console.log(`✅ Disputa registrada en logs`);
     }
 
     console.log(`[WEBHOOK] === Disputa Procesada ===\n`);

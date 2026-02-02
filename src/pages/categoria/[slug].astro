@@ -1,27 +1,28 @@
 ---
-import Layout from '@/layouts/Layout.astro';
-import Header from '@/components/Header.astro';
-import ProductCard from '@/components/ProductCard.astro';
-import { supabase } from '@/lib/supabase';
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import ProductCard from "@/components/ProductCard.astro";
+import { supabase } from "@/lib/supabase";
 
 const { slug } = Astro.params;
 
 // Obtener categoría de Supabase
 const { data: categoria } = await supabase
-  .from('categorias')
-  .select('id, nombre, slug, descripcion')
-  .eq('slug', slug)
-  .eq('activa', true)
+  .from("categorias")
+  .select("id, nombre, slug, descripcion")
+  .eq("slug", slug)
+  .eq("activa", true)
   .single();
 
 if (!categoria) {
-  return Astro.redirect('/');
+  return Astro.redirect("/");
 }
 
 // Obtener productos de esa categoría
 const { data: productos } = await supabase
-  .from('productos')
-  .select(`
+  .from("productos")
+  .select(
+    `
     id, 
     nombre, 
     slug, 
@@ -29,11 +30,14 @@ const { data: productos } = await supabase
     precio_original, 
     descripcion, 
     stock_total,
+    valoracion_promedio,
+    total_resenas,
     imagenes_producto(id, url, alt_text, es_principal)
-  `)
-  .eq('categoria_id', categoria.id)
-  .eq('activo', true)
-  .order('nombre', { ascending: true });
+  `,
+  )
+  .eq("categoria_id", categoria.id)
+  .eq("activo", true)
+  .order("nombre", { ascending: true });
 
 // Mapear productos
 const products = (productos || []).map((p: any) => ({
@@ -43,18 +47,19 @@ const products = (productos || []).map((p: any) => ({
   price: p.precio_venta,
   originalPrice: p.precio_original,
   image: p.imagenes_producto?.[0]?.url || null,
-  badge: p.precio_original && p.precio_venta < p.precio_original ? "Oferta" : null,
+  badge:
+    p.precio_original && p.precio_venta < p.precio_original ? "Oferta" : null,
   badge_color: "bg-[#e2ff7a]",
   condition: "Excelente estado",
-  rating: 4.8,
-  reviews: 245,
+  rating: p.valoracion_promedio || 0,
+  reviews: p.total_resenas || 0,
   stock: p.stock_total,
 }));
 ---
 
 <Layout title={`${categoria.nombre} - TechStore`}>
   <Header />
-  
+
   <main class="min-h-screen bg-[#f5f5f7]">
     <!-- Breadcrumb -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -68,39 +73,47 @@ const products = (productos || []).map((p: any) => ({
     <!-- Category Header -->
     <section class="bg-[#e2ff7a] text-gray-900 py-12">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 class="text-4xl sm:text-5xl font-black italic mb-4">{categoria.nombre}</h1>
+        <h1 class="text-4xl sm:text-5xl font-black italic mb-4">
+          {categoria.nombre}
+        </h1>
         <p class="text-lg text-gray-700 max-w-2xl">{categoria.descripcion}</p>
-        <p class="text-sm mt-4 text-gray-600">{products.length} productos disponibles</p>
+        <p class="text-sm mt-4 text-gray-600">
+          {products.length} productos disponibles
+        </p>
       </div>
     </section>
 
     <!-- Products Grid -->
     <section class="py-12 sm:py-16">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {products.length > 0 ? (
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {products.map((product: any) => (
-              <ProductCard
-                id={product.id}
-                name={product.name}
-                price={product.price}
-                originalPrice={product.originalPrice}
-                image={product.image}
-                badge={product.badge}
-                badge_color="bg-[#e2ff7a]"
-                condition={product.condition}
-                rating={product.rating}
-                reviews={product.reviews}
-                slug={product.slug}
-                stock={product.stock}
-              />
-            ))}
-          </div>
-        ) : (
-          <div class="text-center py-12">
-            <p class="text-xl text-gray-600">No hay productos en esta categoría</p>
-          </div>
-        )}
+        {
+          products.length > 0 ? (
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {products.map((product: any) => (
+                <ProductCard
+                  id={product.id}
+                  name={product.name}
+                  price={product.price}
+                  originalPrice={product.originalPrice}
+                  image={product.image}
+                  badge={product.badge}
+                  badge_color="bg-[#e2ff7a]"
+                  condition={product.condition}
+                  rating={product.rating}
+                  reviews={product.reviews}
+                  slug={product.slug}
+                  stock={product.stock}
+                />
+              ))}
+            </div>
+          ) : (
+            <div class="text-center py-12">
+              <p class="text-xl text-gray-600">
+                No hay productos en esta categoría
+              </p>
+            </div>
+          )
+        }
       </div>
     </section>
 
@@ -111,7 +124,8 @@ const products = (productos || []).map((p: any) => ({
           ¿Buscas algo específico?
         </h2>
         <p class="text-lg text-gray-700 mb-6">
-          Utiliza nuestra barra de búsqueda para encontrar exactamente lo que necesitas
+          Utiliza nuestra barra de búsqueda para encontrar exactamente lo que
+          necesitas
         </p>
         <a
           href="/"

@@ -3,19 +3,26 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 ---
 
 <BaseLayout title="Favoritos | FashionStore">
-  <main class="min-h-screen bg-gradient-to-br from-[#f5f5f7] via-white to-[#f0fff6] py-12">
+  <main
+    class="min-h-screen bg-gradient-to-br from-[#f5f5f7] via-white to-[#f0fff6] py-12"
+  >
     <div class="max-w-6xl mx-auto px-4">
       {/* Header */}
       <div class="mb-12">
         <div class="inline-block mb-4">
-          <span class="bg-gradient-to-r from-[#00aa45] to-[#008a35] text-white px-4 py-1 rounded-full text-sm font-bold">Colecciones</span>
+          <span
+            class="bg-gradient-to-r from-[#00aa45] to-[#008a35] text-white px-4 py-1 rounded-full text-sm font-bold"
+            >Colecciones</span
+          >
         </div>
         <h1 class="text-5xl font-black text-gray-900 mb-2">Mis Favoritos</h1>
         <p class="text-lg text-gray-600">Tus productos guardados</p>
       </div>
 
       {/* Filtros */}
-      <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 mb-6 hover:shadow-lg transition">
+      <div
+        class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 mb-6 hover:shadow-lg transition"
+      >
         <div class="flex flex-col md:flex-row gap-4">
           <div class="flex-1">
             <input
@@ -44,10 +51,25 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
       </div>
 
       {/* Products Grid */}
-      <div id="favorites-container" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        <div class="col-span-full bg-white rounded-2xl shadow-xl border border-gray-100 p-8 text-center">
-          <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+      <div
+        id="favorites-container"
+        class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6"
+      >
+        <div
+          class="col-span-full bg-white rounded-2xl shadow-xl border border-gray-100 p-8 text-center"
+        >
+          <svg
+            class="w-16 h-16 text-gray-300 mx-auto mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+            ></path>
           </svg>
           <p class="text-gray-600 font-semibold">Cargando favoritos...</p>
         </div>
@@ -85,7 +107,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
               imagen_principal,
               calificacion_promedio
             )
-          `
+          `,
           )
           .eq("usuario_id", user.id)
           .order("fecha_agregado", { ascending: false });
@@ -131,11 +153,15 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
               alt="${fav.productos.nombre}"
               class="w-full h-full object-cover group-hover:scale-110 transition duration-300"
             />
-            ${fav.productos.descuento ? `
+            ${
+              fav.productos.descuento
+                ? `
               <div class="absolute top-3 right-3 bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-1 rounded-lg text-xs font-black shadow-lg">
                 -${fav.productos.descuento}%
               </div>
-            ` : ""}
+            `
+                : ""
+            }
             <button
               data-fav-id="${fav.id}"
               class="absolute top-3 left-3 w-10 h-10 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition shadow-lg remove-favorite"
@@ -154,11 +180,17 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 
             {/* Rating */}
             <div class="flex items-center gap-1 mb-3">
-              ${Array.from({length: Math.round(fav.productos.calificacion_promedio || 0)}).map(() => `
+              ${Array.from({
+                length: Math.round(fav.productos.calificacion_promedio || 0),
+              })
+                .map(
+                  () => `
                 <svg class="w-4 h-4 text-yellow-400 fill-yellow-400" viewBox="0 0 24 24">
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                 </svg>
-              `).join('')}
+              `,
+                )
+                .join("")}
               <span class="text-xs text-gray-500 font-bold">(${fav.productos.calificacion_promedio || 0})</span>
             </div>
 
@@ -167,11 +199,15 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
               <span class="text-xl font-black text-[#00aa45]">
                 ${fav.productos.precio.toFixed(2)}€
               </span>
-              ${fav.productos.descuento ? `
+              ${
+                fav.productos.descuento
+                  ? `
                 <span class="text-xs text-gray-400 line-through font-semibold">
                   ${(fav.productos.precio / (1 - fav.productos.descuento / 100)).toFixed(2)}€
                 </span>
-              ` : ""}
+              `
+                  : ""
+              }
             </div>
 
             {/* Buttons */}
@@ -191,7 +227,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
             </div>
           </div>
         </div>
-      `
+      `,
         )
         .join("");
 
@@ -219,14 +255,15 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
         displayFavorites(allFavorites);
       } catch (error) {
         console.error("Error removing favorite:", error);
-        alert("Error al eliminar de favoritos");
+        // alert("Error al eliminar de favoritos");
       }
     }
 
     function addToCart(e: any) {
       const productId = e.currentTarget.dataset.productId;
-      const existingCart =
-        JSON.parse(localStorage.getItem("fashionstore_cart") || '[]')
+      const existingCart = JSON.parse(
+        localStorage.getItem("fashionstore_cart") || "[]",
+      );
       const existingProduct = existingCart.find((p: any) => p.id === productId);
 
       if (existingProduct) {
@@ -247,52 +284,63 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
     }
 
     // Search and sort
-    document.getElementById("search-fav")?.addEventListener("input", (e: any) => {
-      const query = (e as Event)?.target ? ((e.target as HTMLInputElement).value.toLowerCase()) : '';
-      const filtered = allFavorites.filter((f: any) =>
-        f.productos.nombre.toLowerCase().includes(query)
-      );
-      displayFavorites(filtered);
-    });
+    document
+      .getElementById("search-fav")
+      ?.addEventListener("input", (e: any) => {
+        const query = (e as Event)?.target
+          ? (e.target as HTMLInputElement).value.toLowerCase()
+          : "";
+        const filtered = allFavorites.filter((f: any) =>
+          f.productos.nombre.toLowerCase().includes(query),
+        );
+        displayFavorites(filtered);
+      });
 
-    document.getElementById("sort-fav")?.addEventListener("change", (e: any) => {
-      const sorted = [...allFavorites];
-      switch ((e as Event)?.target ? ((e.target as HTMLSelectElement).value) : '') {
-        case "nombre":
-          sorted.sort((a, b) =>
-            a.productos.nombre.localeCompare(b.productos.nombre)
-          );
-          break;
-        case "precio-asc":
-          sorted.sort((a, b) => a.productos.precio - b.productos.precio);
-          break;
-        case "precio-desc":
-          sorted.sort((a, b) => b.productos.precio - a.productos.precio);
-          break;
-      }
-      displayFavorites(sorted);
-    });
+    document
+      .getElementById("sort-fav")
+      ?.addEventListener("change", (e: any) => {
+        const sorted = [...allFavorites];
+        switch (
+          (e as Event)?.target ? (e.target as HTMLSelectElement).value : ""
+        ) {
+          case "nombre":
+            sorted.sort((a, b) =>
+              a.productos.nombre.localeCompare(b.productos.nombre),
+            );
+            break;
+          case "precio-asc":
+            sorted.sort((a, b) => a.productos.precio - b.productos.precio);
+            break;
+          case "precio-desc":
+            sorted.sort((a, b) => b.productos.precio - a.productos.precio);
+            break;
+        }
+        displayFavorites(sorted);
+      });
 
-    document.getElementById("clear-fav")?.addEventListener("click", async () => {
-      if (!confirm("¿Estás seguro de que deseas eliminar todos los favoritos?"))
+    document
+      .getElementById("clear-fav")
+      ?.addEventListener("click", async () => {
+        // if (!confirm("¿Estás seguro de que deseas eliminar todos los favoritos?")) return;
         return;
 
-      try {
-        const user = await getCurrentUser();
-        const { error } = await supabase
-          .from("favoritos")
-          .delete()
-          .eq("usuario_id", user?.id);
+        try {
+          const user = await getCurrentUser();
+          const { error } = await supabase
+            .from("favoritos")
+            .delete()
+            .eq("usuario_id", user?.id);
 
-        if (error) throw error;
+          if (error) throw error;
 
-        allFavorites = [];
-        displayFavorites([]);
-      } catch (error) {
-        console.error("Error clearing favorites:", error);
-        alert("Error al limpiar favoritos");
-      }
-    });
+          allFavorites = [];
+          displayFavorites([]);
+        } catch (error) {
+          if (error) throw new Error(error.message || error); // Assuming error might be an object with a message property or a string
+          // alert("Error al limpiar favoritos");
+          console.error("Error al limpiar favoritos:", error);
+        }
+      });
 
     loadFavorites();
   </script>

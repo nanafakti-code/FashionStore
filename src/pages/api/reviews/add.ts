@@ -9,7 +9,7 @@ const supabase = createClient(
 export const POST: APIRoute = async (context) => {
   try {
     const body = await context.request.json();
-    const { productId, calificacion, titulo, comentario } = body;
+    const { productId, calificacion, titulo, comentario, id } = body;
 
     // Validar datos
     if (!productId || !calificacion || !titulo || !comentario) {
@@ -19,44 +19,49 @@ export const POST: APIRoute = async (context) => {
       );
     }
 
-    // Obtener usuario logueado desde sesión
-    const session = context.cookies.get('sb-session');
-    if (!session) {
+    // Obtener usuario logueado usando el token Bearer
+    const authHeader = context.request.headers.get('Authorization');
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+
+    if (!token) {
       return new Response(
-        JSON.stringify({ error: 'No estás autenticado' }),
+        JSON.stringify({ error: 'No estás autenticado (Token missing)' }),
         { status: 401, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // Obtener usuario_id del token
-    let usuario_id: string;
-    try {
-      const sessionData = JSON.parse(decodeURIComponent(session.value));
-      usuario_id = sessionData.user?.id;
-      if (!usuario_id) {
-        throw new Error('No user ID found');
-      }
-    } catch (error) {
+    // Verificar token con Supabase
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
       return new Response(
-        JSON.stringify({ error: 'Sesión inválida' }),
+        JSON.stringify({ error: 'Sesión inválida o expirada' }),
         { status: 401, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // Insertar reseña con verificada_compra = false por defecto
+    const usuario_id = user.id;
+
+    const payload: any = {
+      producto_id: productId,
+      usuario_id: usuario_id,
+      calificacion: parseInt(calificacion),
+      titulo: titulo.trim(),
+      comentario: comentario.trim(),
+      verificada_compra: false,
+      estado: 'Pendiente'
+    };
+
+    if (id) {
+      payload.id = id;
+    } else {
+      payload.util = 0;
+      payload.no_util = 0;
+    }
+
     const { data, error } = await supabase
       .from('resenas')
-      .insert([{
-        producto_id: productId,
-        usuario_id: usuario_id,
-        calificacion: parseInt(calificacion),
-        titulo: titulo.trim(),
-        comentario: comentario.trim(),
-        verificada_compra: false, // Las nuevas reseñas siempre se crean desverificadas
-        estado: 'Pendiente', // Esperando aprobación del admin
-        util: 0,
-        no_util: 0
-      }])
+      .upsert(payload)
       .select();
 
     if (error) {
@@ -65,7 +70,7 @@ export const POST: APIRoute = async (context) => {
     }
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         success: true,
         message: 'Reseña agregada correctamente',
         review: data?.[0]

@@ -1,19 +1,12 @@
-import { createClient } from "@supabase/supabase-js";
+// =====================================================
+// AUTH MODULE - USES SHARED SUPABASE CLIENT
+// =====================================================
+// IMPORTANT: This module uses the shared Supabase client from supabase.ts
+// to ensure session state is consistent across the application.
+// DO NOT create a new client here!
+// =====================================================
 
-const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error("Missing Supabase environment variables");
-}
-
-export const supabase = createClient(supabaseUrl, supabaseKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-  },
-});
+import { supabase } from './supabase';
 
 // Funciones de autenticación
 export async function signInWithGoogle() {
@@ -153,7 +146,7 @@ export async function updateUserProfile(
 export function onAuthStateChange(callback: (user: any) => void) {
   const {
     data: { subscription },
-  } = supabase.auth.onAuthStateChange(async (event, session) => {
+  } = supabase.auth.onAuthStateChange(async (event: string, session: { user: any } | null) => {
     const user = session?.user;
 
     if (user) {

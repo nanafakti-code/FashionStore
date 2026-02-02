@@ -11,15 +11,23 @@ export const POST: APIRoute = async (context) => {
     const body = await context.request.json();
     const { action, id, data } = body;
 
-    // Actualizar verificada_compra
-    if (action === 'toggle-verified') {
-      const { verificada_compra } = data;
+    // Actualizar verificada_compra o estado
+    if (action === 'toggle-verified' || action === 'approve' || action === 'reject') {
+      let updateData: any = {};
 
-      console.log('Actualizando reseña:', id, { verificada_compra });
+      if (action === 'toggle-verified') {
+        updateData.verificada_compra = data.verificada_compra;
+      } else if (action === 'approve') {
+        updateData.estado = 'Aprobada';
+      } else if (action === 'reject') {
+        updateData.estado = 'Rechazada';
+      }
+
+      console.log('Actualizando reseña:', id, updateData);
 
       const { error } = await supabase
         .from('resenas')
-        .update({ verificada_compra })
+        .update(updateData)
         .eq('id', id);
 
       if (error) {

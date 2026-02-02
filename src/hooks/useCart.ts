@@ -32,7 +32,7 @@ export function useCart() {
     const checkAuth = async () => {
       const user = await getCurrentUser();
       setIsAuthenticated(!!user);
-      
+
       // Si se autenticó, migrar carrito invitado
       if (user) {
         await migrateGuestCartToUser();
@@ -53,7 +53,7 @@ export function useCart() {
 
     window.addEventListener('authCartUpdated', handleAuthCartUpdate);
     window.addEventListener('guestCartUpdated', handleGuestCartUpdate);
-    
+
     return () => {
       window.removeEventListener('authCartUpdated', handleAuthCartUpdate);
       window.removeEventListener('guestCartUpdated', handleGuestCartUpdate);
@@ -176,9 +176,9 @@ export function useCart() {
    * Vacía el carrito completo
    */
   const clear = useCallback(async () => {
-    if (!confirm('¿Estás seguro de que deseas vaciar todo el carrito?')) {
-      return false;
-    }
+    // if (!confirm('¿Estás seguro de que deseas vaciar todo el carrito?')) {
+    //   return false;
+    // }
 
     setIsProcessing(true);
     setError(null);

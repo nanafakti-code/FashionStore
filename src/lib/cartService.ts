@@ -25,6 +25,8 @@ export interface CartItem {
   product_image?: string;
   product_stock?: number;
   expires_in_seconds?: number;
+  variant_name?: string;
+  capacity?: string;
 }
 
 export interface CartSummary {
@@ -51,27 +53,11 @@ export interface GuestCartItem {
 // =====================================================
 
 const GUEST_CART_KEY = 'fashionstore_guest_cart';
-// const GUEST_SESSION_ID_KEY = 'fashionstore_session_id'; // No se utiliza en la implementación actual
 const LOCAL_STORAGE_AVAILABLE = typeof window !== 'undefined' && !!window.localStorage;
 
 // =====================================================
 // FUNCIONES AUXILIARES
 // =====================================================
-
-/**
- * Obtiene o crea un ID de sesión para usuarios invitados
- * @deprecated - No se utiliza en la implementación actual
- */
-/* function _getGuestSessionId(): string {
-  if (!LOCAL_STORAGE_AVAILABLE) return '';
-  
-  let sessionId = localStorage.getItem(GUEST_SESSION_ID_KEY);
-  if (!sessionId) {
-    sessionId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    localStorage.setItem(GUEST_SESSION_ID_KEY, sessionId);
-  }
-  return sessionId;
-} */
 
 /**
  * Obtiene el carrito invitado del localStorage o sessionStorage
@@ -81,50 +67,36 @@ function getGuestCart(): GuestCartItem[] {
     console.warn('localStorage no disponible');
     return [];
   }
-  
+
   try {
-    console.log('Intentando leer carrito invitado...');
-    console.log('Clave buscada:', GUEST_CART_KEY);
-    console.log('Claves disponibles en localStorage:', Object.keys(localStorage));
-    
     // Primero intentar localStorage
     let cart = localStorage.getItem(GUEST_CART_KEY);
-    
+
     // Si no está en localStorage, intentar sessionStorage
     if (!cart && typeof sessionStorage !== 'undefined') {
-      console.log('No encontrado en localStorage, intentando sessionStorage...');
       cart = sessionStorage.getItem(GUEST_CART_KEY);
-      if (cart) {
-        console.log('✓ Carrito encontrado en sessionStorage');
-      }
     }
-    
+
     if (!cart) {
-      console.warn(`No se encontró "${GUEST_CART_KEY}" en localStorage ni sessionStorage`);
       // Intentar buscar con otros nombres posibles
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key && (key.includes('cart') || key.includes('carrito'))) {
-          console.log(`Encontrada clave alternativa: "${key}"`);
           const alternativeCart = localStorage.getItem(key);
           if (alternativeCart) {
             try {
               const parsed = JSON.parse(alternativeCart);
               if (Array.isArray(parsed)) {
-                console.log(`Usando carrito alternativo de "${key}"`, parsed);
                 return parsed;
               }
-            } catch (e) {
-              console.warn(`No se pudo parsear "${key}"`);
-            }
+            } catch (e) { }
           }
         }
       }
       return [];
     }
-    
+
     const parsed = JSON.parse(cart);
-    console.log('Carrito invitado parseado correctamente:', parsed);
     return parsed;
   } catch (error) {
     console.error('Error parsing guest cart from storage:', error);
@@ -136,26 +108,19 @@ function getGuestCart(): GuestCartItem[] {
  * Guarda el carrito invitado en localStorage Y sessionStorage
  */
 function saveGuestCart(items: GuestCartItem[]): void {
-  if (!LOCAL_STORAGE_AVAILABLE) {
-    console.warn('localStorage no disponible para guardar carrito invitado');
-    return;
-  }
-  
+  if (!LOCAL_STORAGE_AVAILABLE) return;
+
   try {
-    console.log(`Guardando ${items.length} items en carrito invitado...`);
     const cartJSON = JSON.stringify(items);
-    
+
     // Guardar en localStorage
     localStorage.setItem(GUEST_CART_KEY, cartJSON);
-    console.log(`Carrito guardado en localStorage: "${GUEST_CART_KEY}"`);
-    
+
     // TAMBIÉN guardar en sessionStorage como respaldo
     if (typeof sessionStorage !== 'undefined') {
       sessionStorage.setItem(GUEST_CART_KEY, cartJSON);
-      console.log(`Carrito guardado en sessionStorage: "${GUEST_CART_KEY}"`);
     }
-    
-    console.log('Items guardados:', items);
+
     window.dispatchEvent(new Event('guestCartUpdated'));
   } catch (error) {
     console.error('Error saving guest cart to storage:', error);
@@ -167,7 +132,6 @@ function saveGuestCart(items: GuestCartItem[]): void {
  */
 function clearGuestCartStorage(): void {
   if (!LOCAL_STORAGE_AVAILABLE) return;
-  console.log('[clearGuestCartStorage] Limpiando carrito invitado de localStorage y sessionStorage');
   localStorage.removeItem(GUEST_CART_KEY);
   if (typeof sessionStorage !== 'undefined') {
     sessionStorage.removeItem(GUEST_CART_KEY);
@@ -181,28 +145,22 @@ function clearGuestCartStorage(): void {
  */
 export function cleanupExpiredGuestCartItems(): void {
   if (!LOCAL_STORAGE_AVAILABLE) return;
-  
+
   try {
     const cart = getGuestCart();
     const now = Date.now();
     const EXPIRATION_TIME = 10 * 60 * 1000; // 10 minutos en milisegundos
-    
+
     // Filtrar items no expirados
     const activeItems = cart.filter(item => {
       const createdAt = item.created_at || now; // Si no tiene fecha, es reciente
       const expiresAt = createdAt + EXPIRATION_TIME;
       const isExpired = now > expiresAt;
-      
-      if (isExpired) {
-        console.log(`Item expirado eliminado: ${item.product_id} (creado hace ${Math.round((now - createdAt) / 1000)}s)`);
-      }
-      
       return !isExpired;
     });
-    
+
     // Si hay cambios, guardar el carrito actualizado
     if (activeItems.length !== cart.length) {
-      console.log(`Limpieza de carrito invitado: ${cart.length} → ${activeItems.length} items`);
       saveGuestCart(activeItems);
     }
   } catch (error) {
@@ -219,41 +177,93 @@ export function cleanupExpiredGuestCartItems(): void {
  */
 export async function getAuthenticatedCart(): Promise<CartItem[]> {
   try {
-    console.log('Obteniendo carrito autenticado desde Supabase...');
     const user = await getCurrentUser();
-    console.log('Usuario actual:', user?.id, user?.email);
-    if (!user) {
-      console.log('No hay usuario autenticado');
-      return [];
-    }
+    if (!user) return [];
 
-    const { data, error } = await supabase
-      .rpc('get_user_cart');
+    // Consulta directa a las tablas con Joins
+    const { data: cartData, error } = await supabase
+      .from('cart_items')
+      .select(`
+        id,
+        user_id,
+        product_id,
+        variante_id,
+        quantity,
+        talla,
+        color,
+        precio_unitario,
+        created_at,
+        expires_at,
+        productos (
+          id,
+          nombre,
+          stock_total,
+          imagenes_producto (
+            url,
+            es_principal
+          )
+        ),
+        variantes_producto (
+          id,
+          nombre_variante,
+          color,
+          capacidad,
+          precio_venta,
+          imagen_url,
+          stock
+        )
+      `)
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching authenticated cart:', error);
       return [];
     }
 
-    console.log('Datos del carrito autenticado:', data);
+    const now = new Date();
 
-    // Mapear y validar datos
-    const mappedData = (data || [])
-      .filter((item: any) => item && item.id && item.product_id) // Filtrar items inválidos
-      .map((item: any) => ({
+    // Mapear los datos al formato CartItem
+    const mappedData: CartItem[] = cartData.map((item: any) => {
+      // Determinar datos del producto base y variante
+      const product = item.productos;
+      const variant = item.variantes_producto;
+
+      const productName = product?.nombre || 'Producto Desconocido';
+      const finalVariantName = variant?.nombre_variante;
+
+      const productImages = product?.imagenes_producto || [];
+      const mainImageObj = Array.isArray(productImages)
+        ? productImages.find((img: any) => img.es_principal) || productImages[0]
+        : null;
+      const baseImageUrl = mainImageObj?.url || '/placeholder.png';
+
+      const productImage = variant?.imagen_url || baseImageUrl;
+      const productStock = variant ? variant.stock : product?.stock_total || 0;
+
+      // Calcular tiempo restante
+      let expiresInSeconds = 0;
+      if (item.expires_at) {
+        const expiresAt = new Date(item.expires_at).getTime();
+        expiresInSeconds = Math.max(0, Math.floor((expiresAt - now.getTime()) / 1000));
+      }
+
+      return {
         id: item.id,
         product_id: item.product_id,
-        product_name: item.product_name || 'Producto sin nombre',
+        product_name: productName,
         quantity: Math.max(1, item.quantity || 1),
         talla: item.talla || undefined,
-        color: item.color || undefined,
+        color: item.color || variant?.color || undefined,
         precio_unitario: item.precio_unitario || 0,
-        product_image: item.product_image || '/placeholder.png', // Usar imagen por defecto si no existe
-        product_stock: item.product_stock || 0,
-        expires_in_seconds: item.expires_in_seconds && item.expires_in_seconds > 0 ? item.expires_in_seconds : 0,
-      }));
-    
-    console.log('Carrito autenticado mapeado:', mappedData);
+        product_image: productImage,
+        product_stock: productStock,
+        expires_in_seconds: expiresInSeconds,
+        variant_name: finalVariantName || undefined,
+        capacity: variant?.capacidad || undefined,
+      };
+    });
+
     return mappedData;
   } catch (error) {
     console.error('Error in getAuthenticatedCart:', error);
@@ -277,64 +287,26 @@ export async function addToAuthenticatedCart(
     const user = await getCurrentUser();
     if (!user) throw new Error('Usuario no autenticado');
 
-    // Construir query para buscar item existente
-    let query = supabase
-      .from('cart_items')
-      .select('id, quantity')
-      .eq('user_id', user.id)
-      .eq('product_id', productId);
+    const { data, error } = await supabase.rpc('add_to_cart_with_stock_check', {
+      p_product_id: productId,
+      p_quantity: quantity,
+      p_talla: talla || null,
+      p_color: color || null,
+      p_precio_unitario: price
+    });
 
-    // Manejar talla y color correctamente (incluir NULL values)
-    if (talla) {
-      query = query.eq('talla', talla);
-    } else {
-      query = query.is('talla', null);
+    if (error) throw error;
+    if (data && !data.success) {
+      throw new Error(data.message || 'Error al añadir al carrito (posible falta de stock)');
     }
 
-    if (color) {
-      query = query.eq('color', color);
-    } else {
-      query = query.is('color', null);
-    }
-
-    const { data: existingItems, error: selectError } = await query;
-
-    if (selectError) throw selectError;
-
-    const existingItem = existingItems?.[0];
-
-    if (existingItem) {
-      // Actualizar cantidad
-      const { error: updateError } = await supabase
-        .from('cart_items')
-        .update({ 
-          quantity: existingItem.quantity + quantity,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', existingItem.id);
-
-      if (updateError) throw updateError;
-    } else {
-      // Insertar nuevo item
-      const { error: insertError } = await supabase
-        .from('cart_items')
-        .insert({
-          user_id: user.id,
-          product_id: productId,
-          quantity,
-          talla: talla || null,
-          color: color || null,
-          precio_unitario: price,
-        });
-
-      if (insertError) throw insertError;
-    }
+    if (!data) throw new Error('No se recibió respuesta del servidor');
 
     window.dispatchEvent(new Event('authCartUpdated'));
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error adding to authenticated cart:', error);
-    return false;
+    throw error;
   }
 }
 
@@ -353,16 +325,17 @@ export async function updateAuthenticatedCartItem(
       return removeFromAuthenticatedCart(itemId);
     }
 
-    const { error } = await supabase
-      .from('cart_items')
-      .update({ 
-        quantity,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', itemId)
-      .eq('user_id', user.id);
+    const { data, error } = await supabase.rpc('update_cart_item_quantity_with_stock_check', {
+      p_cart_item_id: itemId,
+      p_new_quantity: quantity
+    });
 
     if (error) throw error;
+
+    if (data && !data.success) {
+      console.warn('Fallo al actualizar cantidad:', data.message);
+      return false;
+    }
 
     window.dispatchEvent(new Event('authCartUpdated'));
     return true;
@@ -380,13 +353,16 @@ export async function removeFromAuthenticatedCart(itemId: string): Promise<boole
     const user = await getCurrentUser();
     if (!user) throw new Error('Usuario no autenticado');
 
-    const { error } = await supabase
-      .from('cart_items')
-      .delete()
-      .eq('id', itemId)
-      .eq('user_id', user.id);
+    const { data, error } = await supabase.rpc('remove_from_cart_restore_stock', {
+      p_cart_item_id: itemId
+    });
 
     if (error) throw error;
+
+    if (!data) {
+      console.warn('Item no encontrado o no pertenece al usuario');
+      return false;
+    }
 
     window.dispatchEvent(new Event('authCartUpdated'));
     return true;
@@ -404,8 +380,7 @@ export async function clearAuthenticatedCart(): Promise<boolean> {
     const user = await getCurrentUser();
     if (!user) throw new Error('Usuario no autenticado');
 
-    const { error } = await supabase
-      .rpc('clear_user_cart');
+    const { data, error } = await supabase.rpc('clear_user_cart_restore_stock');
 
     if (error) throw error;
 
@@ -418,93 +393,101 @@ export async function clearAuthenticatedCart(): Promise<boolean> {
 }
 
 // =====================================================
-// FUNCIONES PARA CARRITO INVITADO (LOCALSTORAGE)
+// FUNCIONES PARA CARRITO INVITADO (BD VIA SESSION_ID)
 // =====================================================
 
-/**
- * Obtiene el carrito invitado del localStorage
- */
-export function getGuestCartItems(): CartItem[] {
-  console.log('Obteniendo items del carrito invitado...');
-  const items = getGuestCart();
-  const now = Date.now();
-  const EXPIRATION_TIME = 10 * 60 * 1000; // 10 minutos en milisegundos
-  
-  // Mapear items invitados a CartItem (agregar id sintético y expires_in_seconds)
-  const mappedItems: CartItem[] = items.map(item => {
-    const id = `${item.product_id}_${item.talla || 'sin-talla'}_${item.color || 'sin-color'}`; // ID sintético único
-    const createdAt = item.created_at || now;
-    const expiresAt = createdAt + EXPIRATION_TIME;
-    const expiresInSeconds = Math.max(0, Math.floor((expiresAt - now) / 1000));
-    
-    return {
-      id,
-      product_id: item.product_id,
-      product_name: item.product_name,
-      quantity: item.quantity,
-      talla: item.talla,
-      color: item.color,
-      precio_unitario: item.precio_unitario,
-      product_image: item.product_image,
-      expires_in_seconds: expiresInSeconds, // Tiempo restante igual que usuarios autenticados
-    };
-  });
-  console.log(`Se obtuvieron ${mappedItems.length} items del carrito invitado`, mappedItems);
-  return mappedItems;
+export function getOrCreateGuestSessionId(): string {
+  if (typeof window === 'undefined') return '';
+  let sessionId = localStorage.getItem('fashionstore_guest_session_id');
+  if (!sessionId) {
+    sessionId = crypto.randomUUID();
+    localStorage.setItem('fashionstore_guest_session_id', sessionId);
+  }
+  return sessionId;
 }
 
 /**
- * Añade un producto al carrito invitado
+ * Obtiene el carrito invitado desde la BD usando Session ID
  */
-export function addToGuestCart(
-  productId: string,
-  productName: string,
-  price: number,
-  image: string,
-  quantity: number = 1,
-  talla?: string,
-  color?: string
-): boolean {
+export async function getGuestCartItems(): Promise<CartItem[]> {
   try {
-    const cart = getGuestCart();
-    console.log(`[addToGuestCart] Agregando: ${productId}, talla: ${talla || 'N/A'}, color: ${color || 'N/A'}`);
-    console.log(`[addToGuestCart] Carrito actual:`, cart);
-    
-    // Buscar si el producto ya existe con las mismas características
-    const existingIndex = cart.findIndex(
-      item =>
-        item.product_id === productId &&
-        item.talla === talla &&
-        item.color === color
-    );
+    const sessionId = getOrCreateGuestSessionId();
+    if (!sessionId) return [];
 
-    console.log(`[addToGuestCart] Existe en index: ${existingIndex}`);
+    const { data, error } = await supabase.rpc('get_guest_cart', { p_session_id: sessionId });
 
-    if (existingIndex >= 0 && existingIndex < cart.length) {
-      // Actualizar cantidad (mantener el created_at original)
-      const existingItem = cart[existingIndex];
-      if (existingItem) {
-        console.log(`[addToGuestCart] Item existe, actualizar cantidad de ${existingItem.quantity} a ${existingItem.quantity + quantity}`);
-        existingItem.quantity += quantity;
-      }
-    } else {
-      // Añadir nuevo item con timestamp de creación
-      console.log(`[addToGuestCart] Item no existe, añadiendo nuevo`);
-      cart.push({
-        product_id: productId,
-        product_name: productName,
-        quantity,
-        talla,
-        color,
-        precio_unitario: price,
-        product_image: image,
-        created_at: Date.now(), // Timestamp para expiración en 10 minutos
-      });
+    if (error) {
+      console.error('Error fetching guest cart RPC:', error);
+      return [];
     }
 
-    saveGuestCart(cart);
-    console.log(`[addToGuestCart] Carrito guardado:`, cart);
-    return true;
+    const now = new Date();
+
+    const mappedItems: CartItem[] = (data || []).map((item: any) => {
+      // Calcular tiempo restante
+      let expiresInSeconds = 0;
+      if (item.expires_at) {
+        const expiresAt = new Date(item.expires_at).getTime();
+        expiresInSeconds = Math.max(0, Math.floor((expiresAt - now.getTime()) / 1000));
+      }
+
+      return {
+        id: item.id,
+        product_id: item.product_id,
+        product_name: item.product_name || 'Producto',
+        quantity: item.quantity,
+        talla: item.talla,
+        color: item.color,
+        precio_unitario: item.precio_unitario,
+        product_image: item.variant_image || item.product_image,
+        product_stock: item.variant_stock ?? item.product_stock ?? 0,
+        expires_in_seconds: expiresInSeconds,
+        variant_name: item.variant_name,
+        capacity: item.variant_capacity
+      };
+    });
+
+    return mappedItems;
+  } catch (error) {
+    console.error('Error getting guest cart items:', error);
+    return [];
+  }
+}
+
+/**
+ * Añade un producto al carrito invitado (BD)
+ */
+export async function addToGuestCart(
+  productId: string,
+  _productName: string,
+  price: number,
+  _image: string,
+  quantity: number = 1,
+  _talla?: string,
+  _color?: string
+): Promise<boolean> {
+  try {
+    const sessionId = getOrCreateGuestSessionId();
+
+    // Llamada a la API que maneja la lógica compleja (v2)
+    const response = await fetch('/api/cart/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-guest-session-id': sessionId
+      },
+      body: JSON.stringify({
+        productId,
+        quantity,
+        price,
+        variantId: null // Fallback
+      })
+    });
+
+    if (response.ok) {
+      window.dispatchEvent(new Event('guestCartUpdated'));
+    }
+    return response.ok;
   } catch (error) {
     console.error('Error adding to guest cart:', error);
     return false;
@@ -512,65 +495,58 @@ export function addToGuestCart(
 }
 
 /**
- * Actualiza la cantidad de un item en carrito invitado
+ * Actualiza la cantidad de un item en carrito invitado (BD)
  */
-export function updateGuestCartItem(
-  productId: string,
-  quantity: number,
-  talla?: string,
-  color?: string
-): boolean {
+export async function updateGuestCartItem(
+  itemId: string,
+  quantity: number
+): Promise<boolean> {
   try {
-    let cart = getGuestCart();
+    if (quantity <= 0) return removeFromGuestCart(itemId);
+    const sessionId = getOrCreateGuestSessionId();
 
-    if (quantity <= 0) {
-      return removeFromGuestCart(productId, talla, color);
+    // Usar RPC específico para guests que valida stock
+    const { data, error } = await supabase.rpc('update_guest_cart_item', {
+      p_session_id: sessionId,
+      p_cart_item_id: itemId,
+      p_quantity: quantity
+    });
+
+    if (error) {
+      console.error('Error RPC update_guest_cart_item:', error);
+      return false;
     }
 
-    const index = cart.findIndex(
-      item =>
-        item.product_id === productId &&
-        item.talla === talla &&
-        item.color === color
-    );
-
-    if (index >= 0 && index < cart.length) {
-      const itemToUpdate = cart[index];
-      if (itemToUpdate) {
-        itemToUpdate.quantity = quantity;
-        saveGuestCart(cart);
-        return true;
-      }
+    if (data && !data.success) {
+      console.warn('Fallo actualización stock guest:', data.message);
+      return false;
     }
 
-    return false;
+    window.dispatchEvent(new Event('guestCartUpdated'));
+    return true;
   } catch (error) {
-    console.error('Error updating guest cart item:', error);
+    console.error('Error updating guest cart:', error);
     return false;
   }
 }
 
 /**
- * Elimina un item del carrito invitado
+ * Elimina un item del carrito invitado (BD)
  */
-export function removeFromGuestCart(
-  productId: string,
-  talla?: string,
-  color?: string
-): boolean {
+export async function removeFromGuestCart(
+  itemId: string, // UUID
+  _oldTalla?: string,
+  _oldColor?: string
+): Promise<boolean> {
   try {
-    let cart = getGuestCart();
+    const sessionId = getOrCreateGuestSessionId();
+    const { error } = await supabase.rpc('remove_from_guest_cart', {
+      p_session_id: sessionId,
+      p_cart_item_id: itemId
+    });
 
-    cart = cart.filter(
-      item =>
-        !(
-          item.product_id === productId &&
-          item.talla === talla &&
-          item.color === color
-        )
-    );
-
-    saveGuestCart(cart);
+    if (error) throw error;
+    window.dispatchEvent(new Event('guestCartUpdated'));
     return true;
   } catch (error) {
     console.error('Error removing from guest cart:', error);
@@ -579,11 +555,15 @@ export function removeFromGuestCart(
 }
 
 /**
- * Vacía completamente el carrito invitado
+ * Vacía el carrito invitado (BD)
  */
-export function clearGuestCart(): boolean {
+export async function clearGuestCart(): Promise<boolean> {
   try {
-    clearGuestCartStorage();
+    const sessionId = getOrCreateGuestSessionId();
+    const { error } = await supabase.rpc('clear_guest_cart', { p_session_id: sessionId });
+    if (error) throw error;
+
+    window.dispatchEvent(new Event('guestCartUpdated'));
     return true;
   } catch (error) {
     console.error('Error clearing guest cart:', error);
@@ -598,21 +578,13 @@ export function clearGuestCart(): boolean {
 /**
  * Obtiene el carrito del usuario (autenticado o invitado)
  */
-export async function getCart(): Promise<CartItem[] | GuestCartItem[]> {
-  console.log('=== INICIANDO getCart ===');
+export async function getCart(): Promise<CartItem[]> {
   const user = await getCurrentUser();
-  console.log('Usuario actual:', user);
-  
   if (user) {
-    console.log('Usuario autenticado, obteniendo carrito de BD...');
-    const cartItems = await getAuthenticatedCart();
-    console.log('Carrito autenticado:', cartItems);
-    return cartItems;
+    return await getAuthenticatedCart();
   } else {
-    console.log('Usuario no autenticado, obteniendo carrito invitado...');
-    const guestItems = getGuestCartItems();
-    console.log('Carrito invitado:', guestItems);
-    return guestItems;
+    // Ahora retorna Promise<CartItem[]>
+    return await getGuestCartItems();
   }
 }
 
@@ -620,8 +592,7 @@ export async function getCart(): Promise<CartItem[] | GuestCartItem[]> {
  * Obtiene el carrito del usuario actual desde Supabase (compatibilidad)
  */
 export async function getCartForCurrentUser(): Promise<CartItem[]> {
-  const result = await getCart();
-  return result as CartItem[];
+  return await getCart();
 }
 
 /**
@@ -637,7 +608,7 @@ export async function addToCart(
   color?: string
 ): Promise<boolean> {
   const user = await getCurrentUser();
-  
+
   if (user) {
     return addToAuthenticatedCart(productId, productName, price, image, quantity, talla, color);
   } else {
@@ -651,27 +622,16 @@ export async function addToCart(
 export async function updateCartItem(
   itemId: string,
   quantity: number,
-  talla?: string,
-  color?: string
+  _talla?: string,
+  _color?: string
 ): Promise<boolean> {
   const user = await getCurrentUser();
-  
+
   if (user) {
     return updateAuthenticatedCartItem(itemId, quantity);
   } else {
-    // Para carrito invitado, itemId es sintético: "product_id_talla_color"
-    const cart = getGuestCart();
-    const item = cart.find(i => {
-      const id = `${i.product_id}_${i.talla || 'sin-talla'}_${i.color || 'sin-color'}`;
-      return id === itemId;
-    });
-    
-    if (!item) {
-      console.warn(`Item no encontrado para actualizar: ${itemId}`);
-      return false;
-    }
-    
-    return updateGuestCartItem(item.product_id, quantity, item.talla, item.color);
+    // Para carrito invitado BD, itemId ya es UUID
+    return updateGuestCartItem(itemId, quantity);
   }
 }
 
@@ -680,24 +640,12 @@ export async function updateCartItem(
  */
 export async function removeFromCart(itemId: string): Promise<boolean> {
   const user = await getCurrentUser();
-  
+
   if (user) {
     return removeFromAuthenticatedCart(itemId);
   } else {
-    // Para carrito invitado, itemId es sintético: "product_id_talla_color"
-    // Necesitamos extraer los componentes
-    const cart = getGuestCart();
-    const item = cart.find(i => {
-      const id = `${i.product_id}_${i.talla || 'sin-talla'}_${i.color || 'sin-color'}`;
-      return id === itemId;
-    });
-    
-    if (!item) {
-      console.warn(`Item no encontrado en carrito invitado: ${itemId}`);
-      return false;
-    }
-    
-    return removeFromGuestCart(item.product_id, item.talla, item.color);
+    // Para carrito invitado BD, itemId ya es UUID
+    return removeFromGuestCart(itemId);
   }
 }
 
@@ -706,7 +654,7 @@ export async function removeFromCart(itemId: string): Promise<boolean> {
  */
 export async function clearCart(): Promise<boolean> {
   const user = await getCurrentUser();
-  
+
   if (user) {
     return clearAuthenticatedCart();
   } else {
@@ -736,31 +684,11 @@ export async function migrateGuestCartToUser(): Promise<boolean> {
     const user = await getCurrentUser();
     if (!user) throw new Error('Usuario no autenticado');
 
-    const guestCart = getGuestCart();
-    if (guestCart.length === 0) {
-      clearGuestCartStorage();
-      return true;
-    }
-
-    // Convertir a formato esperado por la función RPC
-    const guestItems = guestCart.map(item => ({
-      product_id: item.product_id,
-      quantity: item.quantity,
-      talla: item.talla || null,
-      color: item.color || null,
-      precio_unitario: item.precio_unitario,
-    }));
-
-    // Llamar a la función RPC de Supabase
-    const { error } = await supabase
-      .rpc('migrate_guest_cart_to_user', {
-        guest_items: guestItems,
-      });
-
-    if (error) throw error;
-
-    // Limpiar localStorage después de migración exitosa
+    // TODO: Implement migration for DB guest cart (Update user_id where session_id matches)
+    // For now, simpler: clear local storage legacy
     clearGuestCartStorage();
+
+    // Trigger update
     window.dispatchEvent(new Event('authCartUpdated'));
     return true;
   } catch (error) {
@@ -805,14 +733,14 @@ export function calculateTotal(subtotal: number, tax: number): number {
  * Obtiene el resumen completo del carrito
  */
 export async function getCartSummary(): Promise<CartSummary> {
-  const items = await getCart() as CartItem[] | GuestCartItem[];
+  const items = await getCart();
   const subtotal = calculateSubtotal(items);
   const tax = calculateTax(subtotal);
   const total = calculateTotal(subtotal, tax);
   const itemCount = calculateItemCount(items);
 
   return {
-    items: items as CartItem[],
+    items: items,
     subtotal,
     tax,
     total,
@@ -832,5 +760,5 @@ export async function getCartTotal(): Promise<CartSummary> {
  */
 export async function getCartItemCount(): Promise<number> {
   const items = await getCart();
-  return calculateItemCount(items as CartItem[] | GuestCartItem[]);
+  return calculateItemCount(items);
 }
