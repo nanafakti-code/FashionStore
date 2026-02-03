@@ -194,25 +194,41 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     }
 
     // ============================================================
-    // 6. LIMPIAR RESERVAS Y CARRITO (si existe usuario)
+    // 6. LIMPIAR RESERVAS Y CARRITO
     // ============================================================
 
-    if (order.usuario_id) {
-      await supabase
+    // Identificar el usuario (desde la orden o metadata)
+    const userId = order.usuario_id || metadata.user_id;
+
+    if (userId) {
+      console.log(`[WEBHOOK] Intentando limpiar carrito para usuario: ${userId}`);
+
+      const { error: cartError } = await supabase
         .from('cart_items')
         .delete()
-        .eq('user_id', order.usuario_id);
+        .eq('user_id', userId);
 
-      await supabase
+      if (cartError) {
+        console.error('[WEBHOOK] Error limpiando cart_items:', cartError);
+      } else {
+        console.log('[WEBHOOK] cart_items limpiado correctamente');
+      }
+
+      const { error: resError } = await supabase
         .from('cart_reservations')
         .delete()
-        .eq('user_id', order.usuario_id);
+        .eq('user_id', userId);
 
-      console.log(`[WEBHOOK] Carrito limpiado para usuario: ${order.usuario_id}`);
-    } else if (metadata.guest_session_id) {
-      // LIMPIAR CARRITO DE INVITADO
-      // IMPORTANTE: Hacemos delete directo para NO restaurar stock
-      // (asumiendo que no hay triggers que restauren stock al borrar)
+      if (resError) {
+        console.error('[WEBHOOK] Error limpiando cart_reservations:', resError);
+      }
+    }
+
+    // SIEMPRE intentar limpiar carrito de invitado si existe session_id
+    // (Un usuario logueado podría tener una sesión de invitado remanente)
+    if (metadata.guest_session_id) {
+      console.log(`[WEBHOOK] Intentando limpiar carrito invitado: ${metadata.guest_session_id}`);
+
       const { error: deleteError } = await supabase
         .from('cart_items')
         .delete()
