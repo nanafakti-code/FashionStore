@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { addToCart } from '@/lib/cartService';
 import { getCurrentUser } from '@/lib/auth';

@@ -15,7 +15,7 @@ if (accessToken) {
     errorAuth = error;
 }
 
-let debugReport = {
+let debugReport: any = {
     user: user ? { id: user.id, aud: user.aud } : "No user",
     authError: errorAuth,
     tableCheck: null,

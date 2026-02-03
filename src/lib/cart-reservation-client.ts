@@ -31,7 +31,7 @@ export class CartReservationClient {
   async getReservations(): Promise<CartReservation[]> {
     try {
       const response = await fetch(this.baseUrl);
-      
+
       if (!response.ok) {
         if (response.status === 401) {
           console.warn('Usuario no autenticado');
@@ -68,14 +68,14 @@ export class CartReservationClient {
   async createReservation(productId: string, quantity: number): Promise<boolean> {
     try {
       // Importar auth para obtener el token
-      const { supabase } = await import('./auth');
+      const { supabase } = await import('@/lib/supabase');
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       const headers: any = { 'Content-Type': 'application/json' };
       if (session?.access_token) {
         headers['Authorization'] = `Bearer ${session.access_token}`;
       }
-      
+
       const response = await fetch(this.baseUrl, {
         method: 'POST',
         headers,
@@ -106,14 +106,14 @@ export class CartReservationClient {
   async updateReservation(productId: string, quantity: number): Promise<boolean> {
     try {
       // Importar auth para obtener el token
-      const { supabase } = await import('./auth');
+      const { supabase } = await import('@/lib/supabase');
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       const headers: any = { 'Content-Type': 'application/json' };
       if (session?.access_token) {
         headers['Authorization'] = `Bearer ${session.access_token}`;
       }
-      
+
       const response = await fetch(this.baseUrl, {
         method: 'PUT',
         headers,
@@ -144,14 +144,14 @@ export class CartReservationClient {
   async deleteReservation(productId: string): Promise<boolean> {
     try {
       // Importar auth para obtener el token
-      const { supabase } = await import('./auth');
+      const { supabase } = await import('@/lib/supabase');
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       const headers: any = { 'Content-Type': 'application/json' };
       if (session?.access_token) {
         headers['Authorization'] = `Bearer ${session.access_token}`;
       }
-      
+
       const response = await fetch(this.baseUrl, {
         method: 'DELETE',
         headers,

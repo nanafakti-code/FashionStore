@@ -252,9 +252,7 @@ export async function getStaticPaths() {
 
   <script>
     import VariantSelector from "@/components/VariantSelector";
-
-    import { createRoot } from "react-dom/client";
-    import { createElement } from "react";
+    import { render, h } from "preact";
 
     const container = document.getElementById("variant-selector-container");
 
@@ -264,10 +262,9 @@ export async function getStaticPaths() {
     const productSlug = window.location.pathname.split("/").pop() || "";
 
     if (container && imageElement) {
-      const root = createRoot(container);
-
-      root.render(
-        createElement(VariantSelector, {
+      // Usar preact render
+      render(
+        h(VariantSelector, {
           productSlug: productSlug,
           onImageChange: (imageUrl: string | null) => {
             if (imageUrl) {
@@ -275,6 +272,7 @@ export async function getStaticPaths() {
             }
           },
         }),
+        container,
       );
     }
   </script>
