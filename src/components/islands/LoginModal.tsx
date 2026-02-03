@@ -167,10 +167,22 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           .scrollbar-hide::-webkit-scrollbar {
             display: none;
           }
+          /* Fix for iOS date input appearance */
+          input[type="date"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background-color: white;
+            min-height: 46px; /* Match standard input height */
+          }
+          /* Ensures the date value is vertically centered on iOS */
+          input[type="date"]::-webkit-date-and-time-value {
+            min-height: 1.5em;
+            text-align: left;
+           }
         `}</style>
-        <div className="flex items-center justify-center min-h-full">
+        <div className="flex items-center justify-center min-h-full py-4">
           <div
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-sm px-6 py-8 sm:px-8 sm:py-10 relative pointer-events-auto"
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-sm px-5 py-6 sm:px-8 sm:py-10 relative pointer-events-auto mx-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close Button */}
@@ -292,7 +304,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                       type="date"
                       value={fechaNacimiento}
                       onChange={(e: any) => setFechaNacimiento(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm appearance-none bg-white font-sans"
                     />
                   </div>
                 </>
