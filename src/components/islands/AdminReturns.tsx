@@ -108,13 +108,12 @@ const AdminReturns = () => {
   const getStatusColor = (estado: string) => {
     switch (estado) {
       case 'aprobada':
+      case 'reembolsada':
         return 'bg-green-100 text-green-800 border-green-200';
       case 'rechazada':
         return 'bg-red-100 text-red-800 border-red-200';
       case 'recibida':
         return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'reembolsada':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
       default: // pendiente
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
     }
@@ -133,11 +132,11 @@ const AdminReturns = () => {
       <div className="bg-white rounded-lg shadow">
         <div className="px-4 sm:px-6 py-4 border-b border-gray-200 bg-gray-50">
           <div className="flex items-center gap-2 mb-4">
-            <svg className="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
             </svg>
             <h3 className="text-xl sm:text-2xl font-bold text-gray-900">Gestión de Devoluciones</h3>
-            <span className="ml-2 bg-pink-100 text-pink-800 px-3 py-1 rounded-full text-sm font-semibold">
+            <span className="ml-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">
               {returns.length}
             </span>
           </div>
@@ -149,7 +148,7 @@ const AdminReturns = () => {
                 key={status}
                 onClick={() => setFilter(status)}
                 className={`px-4 py-2 rounded-xl font-bold text-sm transition-all duration-200 whitespace-nowrap shadow-sm ${filter === status
-                  ? 'bg-gradient-to-r from-pink-500 to-rose-600 text-white shadow-pink-200 ring-2 ring-pink-400 ring-offset-1'
+                  ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-green-200 ring-2 ring-green-400 ring-offset-1'
                   : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-100'
                   }`}
               >
@@ -171,58 +170,58 @@ const AdminReturns = () => {
           <div>
             {/* Desktop Header - only visible on lg screens */}
             <div className="hidden lg:flex lg:items-center lg:gap-4 px-5 py-3 bg-gray-50 border-b border-gray-200 text-[11px] uppercase tracking-wider font-semibold text-gray-500">
-              <div className="min-w-[120px]">ID / Orden</div>
-              <div className="min-w-[180px]">Motivo</div>
-              <div className="min-w-[140px]">Cliente</div>
-              <div className="min-w-[100px]">Estado</div>
-              <div className="min-w-[90px]">Reembolso</div>
-              <div className="min-w-[90px]">Fecha</div>
-              <div className="flex-1 text-right">Acción</div>
+              <div className="w-[120px] flex-shrink-0">ID / Orden</div>
+              <div className="flex-1 min-w-0">Motivo</div>
+              <div className="w-[160px] flex-shrink-0">Cliente</div>
+              <div className="w-[110px] flex-shrink-0">Estado</div>
+              <div className="w-[90px] flex-shrink-0">Reembolso</div>
+              <div className="w-[100px] flex-shrink-0">Fecha</div>
+              <div className="w-[130px] flex-shrink-0 text-right">Acción</div>
             </div>
 
-            <div className="divide-y divide-gray-100">
+            <div className="space-y-4 lg:space-y-0 lg:divide-y lg:divide-gray-100 p-4 lg:p-0">
               {returns.map((ret) => {
                 const refundAmount = ret.importe_reembolso || ret.orden?.total || 0;
 
                 return (
-                  <div key={ret.id} className="p-4 sm:p-5 hover:bg-gray-50/50 transition-colors duration-200">
+                  <div key={ret.id} className="bg-white lg:bg-transparent border lg:border-none rounded-xl lg:rounded-none p-4 sm:p-5 hover:bg-gray-50/50 transition-colors duration-200 shadow-sm lg:shadow-none">
                     {/* Desktop: Horizontal row layout */}
                     <div className="hidden lg:flex lg:items-center lg:gap-4">
-                      <div className="min-w-[120px]">
+                      <div className="w-[120px] flex-shrink-0">
                         <span className="font-mono text-xs font-bold text-gray-900">{ret.id.substring(0, 8)}...</span>
                         {ret.orden && (
                           <p className="text-[10px] text-gray-500 mt-0.5">{ret.orden.numero_orden}</p>
                         )}
                       </div>
-                      <div className="min-w-[180px]">
-                        <p className="text-sm text-gray-700 truncate">{ret.motivo}</p>
+                      <div className="flex-1 min-w-0 overflow-hidden">
+                        <p className="text-sm text-gray-700 truncate" title={ret.motivo}>{ret.motivo}</p>
                       </div>
-                      <div className="min-w-[140px]">
+                      <div className="w-[160px] flex-shrink-0 overflow-hidden">
                         <p className="text-sm text-gray-900 font-medium truncate">{ret.orden?.nombre_cliente || 'N/A'}</p>
                         {ret.orden?.email_cliente && (
                           <p className="text-[10px] text-gray-500 truncate">{ret.orden.email_cliente}</p>
                         )}
                       </div>
-                      <div className="min-w-[100px]">
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${getStatusColor(ret.estado)}`}>
+                      <div className="w-[110px] flex-shrink-0">
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${getStatusColor(ret.estado.toLowerCase())}`}>
                           {ret.estado}
                         </span>
                       </div>
-                      <div className="min-w-[90px]">
-                        <span className="font-bold text-pink-600">{(refundAmount / 100).toFixed(2)}€</span>
+                      <div className="w-[90px] flex-shrink-0">
+                        <span className="font-bold text-green-600">{(refundAmount / 100).toFixed(2)}€</span>
                       </div>
-                      <div className="min-w-[90px] text-xs text-gray-500">
+                      <div className="w-[100px] flex-shrink-0 text-xs text-gray-500">
                         {new Date(ret.fecha_solicitud).toLocaleDateString('es-ES', {
                           day: '2-digit',
                           month: 'short',
                           year: 'numeric'
                         })}
                       </div>
-                      <div className="flex-1 flex justify-end">
+                      <div className="w-[130px] flex-shrink-0 flex justify-end">
                         <select
-                          value={ret.estado}
+                          value={ret.estado.toLowerCase()}
                           onChange={(e: any) => updateStatus(ret.id, e.target.value)}
-                          className="px-2 py-1.5 rounded-lg text-xs font-medium bg-white text-gray-700 border border-gray-200 hover:border-gray-300 focus:outline-none focus:ring-1 focus:ring-pink-500 cursor-pointer"
+                          className="w-full px-2 py-1.5 rounded-lg text-xs font-medium bg-white text-gray-700 border border-gray-200 hover:border-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 cursor-pointer"
                         >
                           <option value="pendiente">Pendiente</option>
                           <option value="aprobada">Aprobada</option>
@@ -258,7 +257,7 @@ const AdminReturns = () => {
                         </div>
                         <div className="text-right">
                           <p className="text-[10px] uppercase tracking-widest text-gray-400 font-medium mb-0.5">Reembolso</p>
-                          <p className="font-black text-lg text-pink-600">{(refundAmount / 100).toFixed(2)}€</p>
+                          <p className="font-black text-lg text-green-600">{(refundAmount / 100).toFixed(2)}€</p>
                         </div>
                       </div>
 
@@ -284,9 +283,9 @@ const AdminReturns = () => {
                       {/* Action */}
                       <div className="pt-1">
                         <select
-                          value={ret.estado}
+                          value={ret.estado.toLowerCase()}
                           onChange={(e: any) => updateStatus(ret.id, e.target.value)}
-                          className="w-full px-3 py-2 rounded-lg text-xs font-bold bg-white text-gray-700 border border-gray-200 hover:border-gray-300 focus:outline-none focus:ring-1 focus:ring-pink-500 cursor-pointer text-center"
+                          className="w-full px-3 py-2 rounded-lg text-xs font-bold bg-white text-gray-700 border border-gray-200 hover:border-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 cursor-pointer text-center"
                         >
                           <option value="pendiente">Pendiente</option>
                           <option value="aprobada">Aprobada</option>

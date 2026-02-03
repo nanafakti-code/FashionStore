@@ -46,41 +46,40 @@ const { title } = Astro.props;
     </style>
   </head>
   <body>
-    <div class="flex h-screen bg-gray-100">
+    <div class="flex h-screen bg-gray-100 overflow-hidden">
       <!-- Overlay para móvil -->
       <div
         id="mobile-overlay"
-        class="hidden fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+        class="hidden fixed inset-0 top-16 bg-black bg-opacity-50 z-40 md:hidden"
       >
       </div>
 
       <!-- Sidebar -->
       <aside
         id="sidebar"
-        class="w-64 bg-gray-900 text-white shadow-lg fixed h-screen overflow-y-auto transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-50 md:z-auto md:relative flex flex-col"
+        class="w-64 bg-gray-900 text-white shadow-lg fixed md:relative top-16 md:top-0 h-[calc(100vh-64px)] md:h-screen overflow-y-auto transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-50 flex flex-col border-r border-gray-800 flex-shrink-0"
       >
-        <!-- Logo -->
-        <div class="sidebar-logo hidden md:flex p-6 border-b border-gray-800">
+        <!-- Branding (Solo PC) -->
+        <div class="hidden md:flex p-6 border-b border-gray-800">
           <a
             href="/admin/dashboard"
-            class="flex items-center gap-2 hover:opacity-80 transition"
+            class="flex items-center gap-3 hover:opacity-80 transition"
           >
-            <img
-              src="/admin-logo.png"
-              alt="FashionStore"
-              class="w-10 h-10 rounded-lg"
-            />
-            <div>
-              <div class="font-black text-lg">
-                Fashion<span class="text-[#00aa45]">Store</span>
-              </div>
-              <div class="text-xs text-gray-400">Admin</div>
+            <img src="/admin-logo.png" alt="Logo" class="w-8 h-8 rounded-lg" />
+            <div class="flex flex-col">
+              <span class="font-black italic text-xl leading-tight"
+                >Fashion<span class="text-[#00aa45]">Store</span></span
+              >
+              <span
+                class="text-[10px] text-gray-400 font-mono tracking-widest uppercase"
+                >Admin</span
+              >
             </div>
           </a>
         </div>
 
         <!-- Navigation -->
-        <nav class="px-3 py-6 space-y-2 flex-1">
+        <nav class="px-3 py-6 space-y-1 flex-1">
           <!-- Dashboard -->
           <a
             href="/admin/dashboard?section=dashboard"
@@ -96,294 +95,246 @@ const { title } = Astro.props;
                 d="M3 13h2v8H3zm4-8h2v16H7zm4-2h2v18h-2zm4 4h2v14h-2zm4-2h2v16h-2z"
               ></path>
             </svg>
-            <span class="font-semibold">Dashboard</span>
+            <span class="font-semibold text-sm">Dashboard</span>
           </a>
 
-          <!-- Productos -->
-          <div class="pt-2">
+          <!-- Gestión Group -->
+          <div class="pt-4 pb-2">
             <h3
-              class="px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider"
+              class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[2px] mb-2"
             >
               Gestión
             </h3>
             <a
               href="/admin/dashboard?section=productos"
-              class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition-all duration-200"
+              class="nav-link flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-800 transition-all duration-200 group"
               data-page="productos"
             >
-              <svg
-                class="w-5 h-5 text-gray-400"
-                fill="currentColor"
-                viewBox="0 0 24 24"
+              <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-600 group-hover:bg-[#00aa45]"
               >
-                <path
-                  d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-0.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l0.03-.12 0.9-1.63h7.45c0.75 0 1.41-.41 1.75-1.03l3.58-6.49c0.08-.14 0.12-.31 0.12-.48 0-.55-.45-1-1-1H5.21l-0.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s0.89 2 1.99 2 2-0.9 2-2-0.9-2-2-2z"
-                ></path>
-              </svg>
-              <span class="font-semibold">Productos</span>
+              </div>
+              <span class="font-medium text-sm">Productos</span>
             </a>
             <a
               href="/admin/dashboard?section=categorias"
-              class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition-all duration-200"
+              class="nav-link flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-800 transition-all duration-200 group"
               data-page="categorias"
             >
-              <svg
-                class="w-5 h-5 text-gray-400"
-                fill="currentColor"
-                viewBox="0 0 24 24"
+              <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-600 group-hover:bg-[#00aa45]"
               >
-                <path
-                  d="M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27-7.38 5.74zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27L12 16z"
-                ></path>
-              </svg>
-              <span class="font-semibold">Categorías</span>
+              </div>
+              <span class="font-medium text-sm">Categorías</span>
             </a>
             <a
               href="/admin/dashboard?section=marcas"
-              class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition-all duration-200"
+              class="nav-link flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-800 transition-all duration-200 group"
               data-page="marcas"
             >
-              <svg
-                class="w-5 h-5 text-gray-400"
-                fill="currentColor"
-                viewBox="0 0 24 24"
+              <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-600 group-hover:bg-[#00aa45]"
               >
-                <path
-                  d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"
-                ></path>
-              </svg>
-              <span class="font-semibold">Marcas</span>
+              </div>
+              <span class="font-medium text-sm">Marcas</span>
             </a>
           </div>
 
-          <!-- Pedidos y Ventas -->
-          <div class="pt-2">
+          <!-- Ventas Group -->
+          <div class="pt-2 pb-2">
             <h3
-              class="px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider"
+              class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[2px] mb-2"
             >
               Ventas
             </h3>
             <a
               href="/admin/dashboard?section=pedidos"
-              class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition-all duration-200"
+              class="nav-link flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-800 transition-all duration-200 group"
               data-page="pedidos"
             >
-              <svg
-                class="w-5 h-5 text-gray-400"
-                fill="currentColor"
-                viewBox="0 0 24 24"
+              <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-600 group-hover:bg-[#00aa45]"
               >
-                <path
-                  d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-0.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l0.03-.12 0.9-1.63h7.45c0.75 0 1.41-.41 1.75-1.03l3.58-6.49c0.08-.14 0.12-.31 0.12-.48 0-.55-.45-1-1-1H5.21l-0.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s0.89 2 1.99 2 2-0.9 2-2-0.9-2-2-2z"
-                ></path>
-              </svg>
-              <span class="font-semibold">Pedidos</span>
+              </div>
+              <span class="font-medium text-sm">Pedidos</span>
             </a>
-
             <a
               href="/admin/dashboard?section=devoluciones"
-              class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition-all duration-200"
+              class="nav-link flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-800 transition-all duration-200 group"
               data-page="devoluciones"
             >
-              <svg
-                class="w-5 h-5 text-gray-400"
-                fill="currentColor"
-                viewBox="0 0 24 24"
+              <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-600 group-hover:bg-[#00aa45]"
               >
-                <path d="M7 10l5 5 5-5z"></path>
-              </svg>
-              <span class="font-semibold">Devoluciones</span>
+              </div>
+              <span class="font-medium text-sm">Devoluciones</span>
             </a>
             <a
               href="/admin/dashboard?section=resenas"
-              class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition-all duration-200"
+              class="nav-link flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-800 transition-all duration-200 group"
               data-page="resenas"
             >
-              <svg
-                class="w-5 h-5 text-gray-400"
-                fill="currentColor"
-                viewBox="0 0 24 24"
+              <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-600 group-hover:bg-[#00aa45]"
               >
-                <path
-                  d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2l-2.81 6.63L2 9.24l5.46 4.73L5.82 21 12 17.27z"
-                ></path>
-              </svg>
-              <span class="font-semibold">Reseñas</span>
+              </div>
+              <span class="font-medium text-sm">Reseñas</span>
             </a>
           </div>
 
-          <!-- Marketing -->
-          <div class="pt-2">
+          <!-- Marketing Group -->
+          <div class="pt-2 pb-2">
             <h3
-              class="px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider"
+              class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[2px] mb-2"
             >
               Marketing
             </h3>
             <a
               href="/admin/dashboard?section=cupones"
-              class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition-all duration-200"
+              class="nav-link flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-800 transition-all duration-200 group"
               data-page="cupones"
             >
-              <svg
-                class="w-5 h-5 text-gray-400"
-                fill="currentColor"
-                viewBox="0 0 24 24"
+              <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-600 group-hover:bg-[#00aa45]"
               >
-                <path
-                  d="M21.5.5H2.5C1.12 1.62.5 2.5.5 4v16c0 1.5.62 2.38 2 3.5h19c1.38-1.12 2-2 2-3.5V4c0-1.5-.62-2.38-2-3.5zm-2 17h-15v-2h15v2zm0-4h-15v-2h15v2zm0-4h-15v-2h15v2z"
-                ></path>
-              </svg>
-              <span class="font-semibold">Cupones</span>
+              </div>
+              <span class="font-medium text-sm">Cupones</span>
             </a>
             <a
               href="/admin/dashboard?section=campanas"
-              class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition-all duration-200"
+              class="nav-link flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-800 transition-all duration-200 group"
               data-page="campanas"
             >
-              <svg
-                class="w-5 h-5 text-gray-400"
-                fill="currentColor"
-                viewBox="0 0 24 24"
+              <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-600 group-hover:bg-[#00aa45]"
               >
-                <path
-                  d="M21 7c0-.55-.45-1-1-1h-1V4c0-.55-.45-1-1-1h-2c-.55 0-1 .45-1 1v2h-6V4c0-.55-.45-1-1-1H7c-.55 0-1 .45-1 1v2H4c-.55 0-1 .45-1 1v14c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V7z"
-                ></path>
-              </svg>
-              <span class="font-semibold">Campañas</span>
+              </div>
+              <span class="font-medium text-sm">Campañas</span>
             </a>
           </div>
 
-          <!-- Reportes -->
-          <div class="pt-2">
+          <!-- Reportes Group -->
+          <div class="pt-2 pb-2">
             <h3
-              class="px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider"
+              class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[2px] mb-2"
             >
               Reportes
             </h3>
             <a
               href="/admin/dashboard?section=ventas"
-              class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition-all duration-200"
+              class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition-all duration-200 group"
               data-page="ventas"
             >
-              <svg
-                class="w-5 h-5 text-gray-400"
-                fill="currentColor"
-                viewBox="0 0 24 24"
+              <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-600 group-hover:bg-[#00aa45]"
               >
-                <path
-                  d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2V17zm4 0h-2V7h2V17zm4 0h-2v-4h2V17z"
-                ></path>
-              </svg>
-              <span class="font-semibold">Ventas</span>
+              </div>
+              <span class="font-medium text-sm">Ventas</span>
             </a>
             <a
               href="/admin/dashboard?section=inventario"
-              class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition-all duration-200"
+              class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition-all duration-200 group"
               data-page="inventario"
             >
-              <svg
-                class="w-5 h-5 text-gray-400"
-                fill="currentColor"
-                viewBox="0 0 24 24"
+              <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-600 group-hover:bg-[#00aa45]"
               >
-                <path
-                  d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"
-                ></path>
-              </svg>
-              <span class="font-semibold">Inventario</span>
+              </div>
+              <span class="font-medium text-sm">Inventario</span>
             </a>
           </div>
 
-          <!-- Configuración -->
-          <div class="pt-2">
+          <!-- Sistema Group -->
+          <div class="pt-2 pb-2">
             <h3
-              class="px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider"
+              class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[2px] mb-2"
             >
               Sistema
             </h3>
             <a
               href="/admin/dashboard?section=configuracion"
-              class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition-all duration-200"
+              class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition-all duration-200 group"
               data-page="configuracion"
             >
-              <svg
-                class="w-5 h-5 text-gray-400"
-                fill="currentColor"
-                viewBox="0 0 24 24"
+              <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-600 group-hover:bg-[#00aa45]"
               >
-                <path
-                  d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.64l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.22-.07.5.12.64l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.64l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.5-.12-.64l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"
-                ></path>
-              </svg>
-              <span class="font-semibold">Configuración</span>
+              </div>
+              <span class="font-medium text-sm">Configuración</span>
             </a>
           </div>
         </nav>
 
-        <!-- Logout Button -->
-        <div
-          class="px-3 py-6 border-t border-gray-800 flex-shrink-0 flex justify-center"
-        >
-          <button
-            onclick="showLogoutModal()"
-            class="flex items-center gap-2 px-6 py-3 rounded-xl bg-red-600 hover:bg-red-700 transition-all duration-200 font-semibold text-white text-sm whitespace-nowrap"
-          >
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <path
-                d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"
-              ></path>
-            </svg>
-            <span>Cerrar Sesión</span>
-          </button>
-        </div>
-      </aside>
-
-      <!-- Main Content -->
-      <div class="flex-1 flex flex-col overflow-hidden">
-        <!-- Top Bar -->
-        <header
-          class="md:bg-white bg-gray-900 border-b md:border-gray-200 border-gray-800 shadow-sm sticky top-0 z-50"
-        >
-          <div
-            class="px-4 py-3 flex justify-between items-center md:justify-start md:px-8"
-          >
-            <button
-              id="menu-toggle"
-              class="md:hidden p-2 hover:bg-gray-800 rounded-lg transition"
-            >
-              <svg
-                class="w-6 h-6 text-white"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"></path>
-              </svg>
-            </button>
-            <div class="flex-1 md:hidden flex justify-center">
-              <span class="text-white font-black italic text-lg sm:text-2xl"
-                >Fashion<span class="text-[#00aa45]">Store</span></span
-              >
-            </div>
+        <!-- User & Logout at bottom of Sidebar -->
+        <div class="p-4 border-t border-gray-800 mt-auto bg-gray-900/50">
+          <div class="flex flex-col gap-3">
             <button
               onclick="showLogoutModal()"
-              class="md:hidden p-2 hover:bg-gray-800 rounded-lg transition flex-shrink-0"
-              title="Cerrar Sesión"
+              class="flex items-center gap-3 px-4 py-3 rounded-xl bg-red-600/10 hover:bg-red-600/20 text-red-500 transition-all duration-200 group border border-red-900/20"
             >
               <svg
-                class="w-6 h-6 text-white"
-                fill="currentColor"
+                class="w-5 h-5 transition-transform group-hover:scale-110"
+                fill="none"
+                stroke="currentColor"
                 viewBox="0 0 24 24"
               >
                 <path
-                  d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                 ></path>
               </svg>
+              <span class="font-bold text-sm uppercase tracking-wider"
+                >Cerrar Sesión</span
+              >
             </button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content Area -->
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <!-- Top Header -->
+        <header
+          class="bg-gray-900 md:hidden border-b border-gray-800 shadow-sm z-[60] h-16 flex-shrink-0"
+        >
+          <div
+            class="px-4 h-full flex justify-between items-center md:px-8 relative"
+          >
+            <!-- Left Side: Mobile Toggle -->
+            <div class="flex items-center gap-4">
+              <button
+                id="menu-toggle"
+                class="md:hidden p-2 hover:bg-gray-800 rounded-lg transition"
+              >
+                <svg
+                  class="w-6 h-6 text-white"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"></path>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Centered Branding (Only Mobile) -->
+            <div
+              class="md:hidden absolute left-1/2 -translate-x-1/2 flex items-center"
+            >
+              <span
+                class="text-white font-black italic text-xl whitespace-nowrap"
+                >Fashion<span class="text-[#00aa45]">Store</span></span
+              >
+            </div>
+
+            <!-- Right Side (Empty but reserved for spacing) -->
+            <div class="w-10 md:w-auto"></div>
           </div>
         </header>
 
-        <!-- Content Area -->
-        <main class="flex-1 overflow-auto p-8">
+        <!-- Main Content -->
+        <main class="flex-1 overflow-auto p-4 md:p-8">
           <slot />
         </main>
       </div>
@@ -392,38 +343,47 @@ const { title } = Astro.props;
     <!-- Modal de Logout -->
     <div
       id="logout-modal"
-      class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4"
-      style="display: none;"
+      class="fixed inset-0 bg-black bg-opacity-50 z-[100] hidden items-center justify-center p-4 transition-all duration-300 backdrop-blur-sm"
     >
-      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+      <div
+        class="bg-white rounded-2xl shadow-2xl max-w-md w-full transform transition-all"
+      >
         <div class="p-8">
           <div class="flex justify-center mb-6">
-            <svg
-              class="w-16 h-16 text-red-600"
-              fill="currentColor"
-              viewBox="0 0 24 24"
+            <div
+              class="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center"
             >
-              <path
-                d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"
-              ></path>
-            </svg>
+              <svg
+                class="w-10 h-10 text-red-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                ></path>
+              </svg>
+            </div>
           </div>
           <h3 class="text-2xl font-bold text-gray-900 text-center mb-3">
             Cerrar Sesión
           </h3>
-          <p class="text-gray-600 text-center mb-8 text-lg">
-            ¿Estás seguro de que deseas cerrar sesión?
+          <p class="text-gray-600 text-center mb-8">
+            ¿Estás seguro de que deseas salir del panel de administración?
           </p>
           <div class="flex gap-4">
             <button
               onclick="closeLogoutModal()"
-              class="flex-1 px-6 py-3 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-900 font-bold transition-all duration-200"
+              class="flex-1 px-6 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold transition-all duration-200"
             >
               Cancelar
             </button>
             <button
               onclick="confirmLogout()"
-              class="flex-1 px-6 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold transition-all duration-200"
+              class="flex-1 px-6 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold transition-all duration-200 shadow-lg shadow-red-200"
             >
               Cerrar Sesión
             </button>
@@ -447,23 +407,20 @@ const { title } = Astro.props;
       const sidebar = document.getElementById("sidebar");
       const mobileOverlay = document.getElementById("mobile-overlay");
 
-      menuToggle?.addEventListener("click", () => {
+      function toggleSidebar() {
         sidebar?.classList.toggle("-translate-x-full");
         mobileOverlay?.classList.toggle("hidden");
-      });
+        document.body.classList.toggle("overflow-hidden");
+      }
 
-      mobileOverlay?.addEventListener("click", () => {
-        sidebar?.classList.add("-translate-x-full");
-        mobileOverlay?.classList.add("hidden");
-      });
+      menuToggle?.addEventListener("click", toggleSidebar);
+      mobileOverlay?.addEventListener("click", toggleSidebar);
 
       // Cerrar menú al hacer click en un link
       document.querySelectorAll(".nav-link").forEach((link) => {
         link.addEventListener("click", () => {
-          const isMobile = window.innerWidth < 768;
-          if (isMobile) {
-            sidebar?.classList.add("-translate-x-full");
-            mobileOverlay?.classList.add("hidden");
+          if (window.innerWidth < 768) {
+            toggleSidebar();
           }
         });
       });
@@ -476,26 +433,19 @@ const { title } = Astro.props;
         if (!token || !username) {
           window.location.href = "/admin-secret-login";
         } else {
-          // Mostrar username
-          const usernameElements =
-            document.querySelectorAll('[id*="username"]');
-          usernameElements.forEach((el) => {
-            if (el.id.includes("sidebar") || el.id.includes("user")) {
-              el.textContent = username;
-            }
-          });
+          // Mostrar username en sidebar y header (si hubiese)
+          const userEl = document.getElementById("header-username");
+          const sidebarUserEl = document.getElementById(
+            "sidebar-username-display",
+          );
+          if (userEl) userEl.textContent = `Hola, ${username}`;
+          if (sidebarUserEl) sidebarUserEl.textContent = username;
         }
 
-        // Event listener del modal al cargar
-        const logoutModal = document.getElementById("logout-modal");
-        if (logoutModal) {
-          logoutModal.addEventListener("click", (e: Event) => {
-            const target = e.target as HTMLElement;
-            if (target.id === "logout-modal") {
-              closeLogoutModal();
-            }
-          });
-        }
+        // Close modal on escape
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") closeLogoutModal();
+        });
 
         // Funciones globales
         window.showLogoutModal = showLogoutModal;
@@ -503,11 +453,11 @@ const { title } = Astro.props;
         window.confirmLogout = confirmLogout;
       });
 
-      // Logout Modal
       function showLogoutModal() {
         const modal = document.getElementById("logout-modal");
         if (modal) {
           modal.classList.remove("hidden");
+          modal.classList.add("flex");
         }
       }
 
@@ -515,6 +465,7 @@ const { title } = Astro.props;
         const modal = document.getElementById("logout-modal");
         if (modal) {
           modal.classList.add("hidden");
+          modal.classList.remove("flex");
         }
       }
 
@@ -529,26 +480,35 @@ const { title } = Astro.props;
         document.querySelectorAll(".nav-link").forEach((link) => {
           link.classList.remove("bg-gray-800", "text-[#00aa45]");
           if (link.getAttribute("data-page") === pageName) {
-            link.classList.add("bg-gray-800");
+            link.classList.add("bg-gray-800", "text-[#00aa45]");
           }
         });
       }
 
-      // Hacer setActivePage global
       window.setActivePage = setActivePage;
 
-      // Interceptar clicks en los links de navegación para actualizar estado sin recargar
+      // Interceptar clicks para SPA-like feel
       document.querySelectorAll(".nav-link").forEach((link) => {
         link.addEventListener("click", (e: Event) => {
           e.preventDefault();
           const href = (link as HTMLAnchorElement).getAttribute("href");
           if (href) {
             window.history.pushState({}, "", href);
-            // Disparar evento personalizado para que AdminDashboard se entere
             window.dispatchEvent(new Event("admin-nav-change"));
+
+            // Get page name from href
+            const url = new URL(href, window.location.origin);
+            const section = url.searchParams.get("section") || "dashboard";
+            setActivePage(section);
           }
         });
       });
+
+      // Initial active state
+      const initialSection =
+        new URLSearchParams(window.location.search).get("section") ||
+        "dashboard";
+      setActivePage(initialSection);
     </script>
   </body>
 </html>

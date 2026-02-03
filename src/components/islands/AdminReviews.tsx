@@ -224,10 +224,10 @@ const AdminReviews = () => {
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
           <div className="flex items-center gap-2 mb-4">
-            <svg className="w-6 h-6 text-yellow-600" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
             </svg>
-            <h3 className="text-2xl font-bold text-gray-900">Reseñas de Productos</h3>
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900">Reseñas de Productos</h3>
           </div>
 
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-2 px-2 sm:mx-0 sm:px-0 sm:flex-wrap">
@@ -236,7 +236,7 @@ const AdminReviews = () => {
                 key={status}
                 onClick={() => setFilter(status)}
                 className={`px-4 py-2 rounded-xl font-bold text-sm transition-all duration-200 whitespace-nowrap shadow-sm ${filter === status
-                  ? 'bg-gradient-to-r from-yellow-500 to-amber-600 text-white shadow-yellow-200 ring-2 ring-yellow-400 ring-offset-1'
+                  ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-green-200 ring-2 ring-green-400 ring-offset-1'
                   : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-100'
                   }`}
               >
@@ -250,7 +250,7 @@ const AdminReviews = () => {
           </div>
         </div>
 
-        <div className="divide-y divide-gray-100">
+        <div className="space-y-4 lg:space-y-0 lg:divide-y lg:divide-gray-100 p-4 lg:p-0">
           {reviews.map((review) => {
             // Obtener propiedades con fallback a diferentes nombres
             const rating = review.calificacion || 0;
@@ -261,7 +261,7 @@ const AdminReviews = () => {
             const text = review.comentario || review.comment || review.texto || '';
 
             return (
-              <div key={review.id} className="p-4 sm:p-6 hover:bg-gray-50/50 transition-colors duration-200 group border-b border-gray-100 last:border-0">
+              <div key={review.id} className="bg-white lg:bg-transparent border lg:border-none rounded-xl lg:rounded-none p-4 sm:p-6 hover:bg-gray-50/50 transition-colors duration-200 group lg:border-b lg:border-gray-100 last:border-0 shadow-sm lg:shadow-none">
                 <div className="flex flex-col space-y-4">
                   {/* Header: Rating & Status Badges */}
                   <div className="flex flex-wrap items-center justify-between gap-3">
@@ -277,9 +277,9 @@ const AdminReviews = () => {
                           </svg>
                         ))}
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider shadow-sm border ${review.estado === 'Aprobada' ? 'bg-green-50 text-green-700 border-green-200' :
-                        review.estado === 'Rechazada' ? 'bg-red-50 text-red-700 border-red-200' :
-                          'bg-amber-50 text-amber-700 border-amber-200'
+                      <span className={`px-3 py-1 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider shadow-sm border ${review.estado === 'Aprobada' ? 'bg-green-100 text-green-800 border-green-200' :
+                        review.estado === 'Rechazada' ? 'bg-red-100 text-red-800 border-red-200' :
+                          'bg-yellow-100 text-yellow-800 border-yellow-200'
                         }`}>
                         {review.estado || 'Pendiente'}
                       </span>

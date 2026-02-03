@@ -140,8 +140,8 @@ const AdminOrders = () => {
       case 'Enviado':
       case 'En Proceso':
         return 'bg-blue-100 text-blue-800';
-      case 'Cancelado':
-        return 'bg-red-100 text-red-800';
+      case 'Devolucion_Solicitada':
+        return 'bg-amber-100 text-amber-800 border-amber-200';
       case 'Pendiente':
       default:
         return 'bg-yellow-100 text-yellow-800';
@@ -215,41 +215,41 @@ const AdminOrders = () => {
           <div>
             {/* Desktop Header - only visible on lg screens */}
             <div className="hidden lg:flex lg:items-center lg:gap-4 px-5 py-3 bg-gray-50 border-b border-gray-200 text-[11px] uppercase tracking-wider font-semibold text-gray-500">
-              <div className="min-w-[140px]">Nº Pedido</div>
-              <div className="min-w-[180px]">Cliente</div>
-              <div className="min-w-[100px]">Total</div>
-              <div className="min-w-[100px]">Estado</div>
-              <div className="min-w-[120px]">Fecha</div>
+              <div className="w-[140px] flex-shrink-0">Nº Pedido</div>
+              <div className="w-[200px] flex-shrink-0">Cliente</div>
+              <div className="w-[100px] flex-shrink-0">Total</div>
+              <div className="w-[140px] flex-shrink-0">Estado</div>
+              <div className="w-[140px] flex-shrink-0">Fecha</div>
               <div className="flex-1 text-right">Acciones</div>
             </div>
 
-            <div className="divide-y divide-gray-100">
+            <div className="space-y-4 lg:space-y-0 lg:divide-y lg:divide-gray-100 p-4 lg:p-0">
               {orders.filter(order =>
                 order.numero_orden.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 (order.email_cliente && order.email_cliente.toLowerCase().includes(searchTerm.toLowerCase()))
               ).map((order) => (
-                <div key={order.id} className="p-5 sm:p-6 hover:bg-gray-50/50 transition-colors duration-200">
+                <div key={order.id} className="bg-white lg:bg-transparent border lg:border-none rounded-xl lg:rounded-none p-5 sm:p-6 hover:bg-gray-50/50 transition-colors duration-200 shadow-sm lg:shadow-none">
                   {/* Desktop: Horizontal row layout */}
                   <div className="hidden lg:flex lg:items-center lg:gap-4">
-                    <div className="min-w-[140px]">
+                    <div className="w-[140px] flex-shrink-0">
                       <span className="font-mono text-sm font-bold text-gray-900">{order.numero_orden}</span>
                       {order.is_guest && (
                         <span className="ml-2 text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">Invitado</span>
                       )}
                     </div>
-                    <div className="min-w-[180px]">
-                      <p className="font-semibold text-gray-900 text-sm">{order.nombre_cliente || 'Sin nombre'}</p>
+                    <div className="w-[200px] flex-shrink-0 overflow-hidden">
+                      <p className="font-semibold text-gray-900 text-sm truncate">{order.nombre_cliente || 'Sin nombre'}</p>
                       <p className="text-xs text-gray-500 truncate">{order.email_cliente}</p>
                     </div>
-                    <div className="min-w-[100px]">
+                    <div className="w-[100px] flex-shrink-0">
                       <span className="font-bold text-green-600">{(order.total / 100).toFixed(2)}€</span>
                     </div>
-                    <div className="min-w-[100px]">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${getStatusColor(order.estado)}`}>
+                    <div className="w-[140px] flex-shrink-0 overflow-hidden">
+                      <span className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-bold border ${getStatusColor(order.estado)}`}>
                         {order.estado}
                       </span>
                     </div>
-                    <div className="min-w-[120px] text-xs text-gray-500">
+                    <div className="w-[140px] flex-shrink-0 text-xs text-gray-500">
                       {new Date(order.fecha_creacion).toLocaleDateString('es-ES', {
                         day: '2-digit',
                         month: 'short',
@@ -265,18 +265,20 @@ const AdminOrders = () => {
                       >
                         Ver
                       </button>
-                      <select
-                        value={order.estado}
-                        onChange={(e: any) => updateStatus(order.id, e.target.value)}
-                        className="px-2 py-1.5 rounded-lg text-xs font-medium bg-white text-gray-700 border border-gray-200 hover:border-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 cursor-pointer"
-                      >
-                        <option value="Pendiente">Pendiente</option>
-                        <option value="Pagado">Pagado</option>
-                        <option value="En Proceso">En Proceso</option>
-                        <option value="Enviado">Enviado</option>
-                        <option value="Completado">Completado</option>
-                        <option value="Cancelado">Cancelado</option>
-                      </select>
+                      {order.estado !== 'Devolucion_Solicitada' && (
+                        <select
+                          value={order.estado}
+                          onChange={(e: any) => updateStatus(order.id, e.target.value)}
+                          className="px-2 py-1.5 rounded-lg text-xs font-medium bg-white text-gray-700 border border-gray-200 hover:border-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 cursor-pointer"
+                        >
+                          <option value="Pendiente">Pendiente</option>
+                          <option value="Pagado">Pagado</option>
+                          <option value="En Proceso">En Proceso</option>
+                          <option value="Enviado">Enviado</option>
+                          <option value="Completado">Completado</option>
+                          <option value="Cancelado">Cancelado</option>
+                        </select>
+                      )}
                     </div>
                   </div>
 
@@ -321,7 +323,7 @@ const AdminOrders = () => {
                     </div>
 
                     {/* Actions */}
-                    <div className="grid grid-cols-2 gap-2 pt-1">
+                    <div className={`grid ${order.estado !== 'Devolucion_Solicitada' ? 'grid-cols-2' : 'grid-cols-1'} gap-2 pt-1`}>
                       <button
                         onClick={() => viewOrderDetails(order)}
                         className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-blue-600 text-white hover:bg-blue-700 active:scale-95 transition-all"
@@ -329,18 +331,20 @@ const AdminOrders = () => {
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                         Ver Detalles
                       </button>
-                      <select
-                        value={order.estado}
-                        onChange={(e: any) => updateStatus(order.id, e.target.value)}
-                        className="px-3 py-2 rounded-lg text-xs font-bold bg-white text-gray-700 border border-gray-200 hover:border-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 cursor-pointer text-center"
-                      >
-                        <option value="Pendiente">Pendiente</option>
-                        <option value="Pagado">Pagado</option>
-                        <option value="En Proceso">En Proceso</option>
-                        <option value="Enviado">Enviado</option>
-                        <option value="Completado">Completado</option>
-                        <option value="Cancelado">Cancelado</option>
-                      </select>
+                      {order.estado !== 'Devolucion_Solicitada' && (
+                        <select
+                          value={order.estado}
+                          onChange={(e: any) => updateStatus(order.id, e.target.value)}
+                          className="px-3 py-2 rounded-lg text-xs font-bold bg-white text-gray-700 border border-gray-200 hover:border-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 cursor-pointer text-center"
+                        >
+                          <option value="Pendiente">Pendiente</option>
+                          <option value="Pagado">Pagado</option>
+                          <option value="En Proceso">En Proceso</option>
+                          <option value="Enviado">Enviado</option>
+                          <option value="Completado">Completado</option>
+                          <option value="Cancelado">Cancelado</option>
+                        </select>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -354,9 +358,9 @@ const AdminOrders = () => {
       {
         showModal && selectedOrder && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-auto">
-              <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-                <h3 className="text-xl font-bold text-gray-900">
+            <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-auto">
+              <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center sticky top-0 z-10">
+                <h3 className="text-lg font-bold text-gray-900">
                   Pedido {selectedOrder.numero_orden}
                 </h3>
                 <button
@@ -371,38 +375,38 @@ const AdminOrders = () => {
                 {/* Info del cliente */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-semibold text-gray-700 mb-3">Cliente</h4>
-                    <p className="text-gray-900 font-medium">{selectedOrder.nombre_cliente}</p>
-                    <p className="text-gray-600 text-sm mt-1">{selectedOrder.email_cliente}</p>
-                    <p className="text-gray-600 text-sm">{selectedOrder.telefono_cliente}</p>
+                    <h4 className="font-semibold text-gray-700 mb-2 text-xs uppercase">Cliente</h4>
+                    <p className="text-gray-900 font-medium text-sm">{selectedOrder.nombre_cliente}</p>
+                    <p className="text-gray-600 text-xs mt-1">{selectedOrder.email_cliente}</p>
+                    <p className="text-gray-600 text-xs">{selectedOrder.telefono_cliente}</p>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-semibold text-gray-700 mb-3">Dirección de envío</h4>
+                    <h4 className="font-semibold text-gray-700 mb-2 text-xs uppercase">Dirección de envío</h4>
                     {selectedOrder.direccion_envio ? (
-                      <div className="text-gray-600 text-sm space-y-0.5">
+                      <div className="text-gray-600 text-xs space-y-0.5">
                         <p>{selectedOrder.direccion_envio.calle}</p>
                         <p>{selectedOrder.direccion_envio.ciudad}, {selectedOrder.direccion_envio.codigo_postal}</p>
                         <p>{selectedOrder.direccion_envio.pais}</p>
                       </div>
                     ) : (
-                      <p className="text-gray-500 text-sm">No especificada</p>
+                      <p className="text-gray-500 text-xs">No especificada</p>
                     )}
                   </div>
                 </div>
 
                 {/* Productos */}
                 <div>
-                  <h4 className="font-semibold text-gray-700 mb-2">Productos</h4>
+                  <h4 className="font-semibold text-gray-700 mb-2 text-xs uppercase">Productos</h4>
                   <div className="space-y-2">
                     {orderItems.map((item) => (
                       <div key={item.id} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
                         <div className="flex items-center gap-3">
                           {item.producto_imagen && (
-                            <img src={item.producto_imagen} alt={item.producto_nombre} className="w-12 h-12 object-cover rounded" />
+                            <img src={item.producto_imagen} alt={item.producto_nombre} className="w-10 h-10 object-cover rounded" />
                           )}
                           <div>
-                            <p className="font-semibold text-gray-900">{item.producto_nombre}</p>
-                            <p className="text-xs text-gray-500">
+                            <p className="font-semibold text-gray-900 text-sm truncate max-w-[150px]">{item.producto_nombre}</p>
+                            <p className="text-[10px] text-gray-500">
                               {item.talla && `Talla: ${item.talla}`}
                               {item.talla && item.color && ' | '}
                               {item.color && `Color: ${item.color}`}
@@ -410,8 +414,8 @@ const AdminOrders = () => {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-semibold">{(item.precio_unitario / 100).toFixed(2)}€ x {item.cantidad}</p>
-                          <p className="text-green-600 font-bold">{(item.subtotal / 100).toFixed(2)}€</p>
+                          <p className="text-xs font-semibold text-gray-700">{(item.precio_unitario / 100).toFixed(2)}€ x {item.cantidad}</p>
+                          <p className="text-green-600 font-bold text-sm">{(item.subtotal / 100).toFixed(2)}€</p>
                         </div>
                       </div>
                     ))}
@@ -419,38 +423,38 @@ const AdminOrders = () => {
                 </div>
 
                 {/* Totales */}
-                <div className="border-t pt-4">
-                  <div className="flex justify-between text-sm text-gray-600 mb-1">
+                <div className="border-t border-gray-100 pt-4 space-y-1">
+                  <div className="flex justify-between text-xs text-gray-600">
                     <span>Subtotal:</span>
                     <span>{(selectedOrder.subtotal / 100).toFixed(2)}€</span>
                   </div>
-                  <div className="flex justify-between text-sm text-gray-600 mb-1">
+                  <div className="flex justify-between text-xs text-gray-600">
                     <span>Impuestos (IVA):</span>
                     <span>{(selectedOrder.impuestos / 100).toFixed(2)}€</span>
                   </div>
                   {selectedOrder.descuento > 0 && (
-                    <div className="flex justify-between text-sm text-green-600 mb-1">
+                    <div className="flex justify-between text-xs text-green-600">
                       <span>Descuento:</span>
                       <span>-{(selectedOrder.descuento / 100).toFixed(2)}€</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-xl font-bold text-gray-900 mt-2 pt-2 border-t">
+                  <div className="flex justify-between text-lg font-bold text-gray-900 mt-2 pt-2 border-t border-gray-100 font-mono">
                     <span>Total:</span>
                     <span className="text-green-600">{(selectedOrder.total / 100).toFixed(2)}€</span>
                   </div>
                 </div>
 
                 {/* Acciones */}
-                <div className="flex gap-3 pt-4 border-t">
+                <div className="flex gap-2 pt-4 border-t border-gray-100">
                   <button
                     onClick={() => deleteOrder(selectedOrder.id)}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold"
+                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-bold text-xs uppercase"
                   >
-                    Eliminar Pedido
+                    Eliminar
                   </button>
                   <button
                     onClick={() => setShowModal(false)}
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-semibold"
+                    className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-bold text-xs uppercase"
                   >
                     Cerrar
                   </button>
