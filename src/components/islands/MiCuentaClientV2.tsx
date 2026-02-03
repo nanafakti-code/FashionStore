@@ -283,7 +283,20 @@ export default function MiCuentaClientV2() {
         .eq("orden_id", order.id);
 
       if (!error && items) {
-        setSelectedOrder({ ...order, items: items as OrderItem[] });
+        // Cargar reseñas para estos productos
+        const productIds = items.map((i: any) => i.producto_id);
+        const { data: reviews } = await supabase
+          .from('resenas')
+          .select('*')
+          .eq('usuario_id', userData?.id) // Use userData.id directly if available in closure or passed to function
+          .in('producto_id', productIds);
+
+        const itemsWithReviews = items.map((item: any) => {
+          const review = reviews?.find((r: any) => r.producto_id === item.producto_id);
+          return { ...item, resena: review };
+        });
+
+        setSelectedOrder({ ...order, items: itemsWithReviews as any[] });
       } else {
         setSelectedOrder(order);
       }
@@ -1253,7 +1266,7 @@ export default function MiCuentaClientV2() {
               <div className="mb-8">
                 <h3 className="font-bold text-gray-900 mb-4">Productos</h3>
                 <div className="space-y-3">
-                  {selectedOrder.items?.map((item) => (
+                  {selectedOrder.items?.map((item: any) => (
                     <div
                       key={item.id}
                       className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-gray-50 rounded-lg p-4"
@@ -1273,9 +1286,22 @@ export default function MiCuentaClientV2() {
                             {item.talla && ` | Talla: ${item.talla}`}
                             {item.color && ` | Color: ${item.color}`}
                           </p>
+
+                          {/* Botón de reseña si el pedido está entregado */}
+                          {['Entregado', 'Completado'].includes(selectedOrder.estado) && (
+                            <div className="mt-2 text-left">
+                              <div className="inline-block">
+                                <AddReviewButton
+                                  productId={item.producto_id}
+                                  existingReview={item.resena}
+                                  onReviewAdded={() => loadOrderDetails(selectedOrder)}
+                                />
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
-                      <p className="font-bold text-gray-900 mt-2 sm:mt-0 ml-20 sm:ml-0">
+                      <p className="font-bold text-gray-900 mt-2 sm:mt-0 ml-20 sm:ml-0 whitespace-nowrap">
                         {formatPrice(item.subtotal)}
                       </p>
                     </div>

@@ -107,11 +107,12 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         setFechaNacimiento("");
         setIsSignUp(false);
 
-        // Limpiar el mensaje de éxito después de 5 segundos
+        // Limpiar el mensaje de éxito después de 2 segundos y redirigir
         setTimeout(() => {
           setSuccessMessage("");
           onClose();
-        }, 5000);
+          window.location.href = "/";
+        }, 2000);
       } else {
         // Iniciar sesión
         const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -119,7 +120,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           password,
         });
         if (signInError) throw signInError;
-        window.location.reload();
+        window.location.href = "/";
       }
     } catch (err: any) {
       // Traducir errores al español
