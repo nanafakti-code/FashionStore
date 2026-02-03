@@ -143,21 +143,22 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
   return (
     <>
-      {/* Overlay */}
+      {/* Modal Container - Scrollable overlay */}
       <div
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity"
+        className="fixed inset-0 z-50 overflow-y-auto bg-black/40 backdrop-blur-sm p-4 scrollbar-hide transition-opacity"
         onClick={onClose}
-      ></div>
-
-      {/* Modal Container - Scrollable on mobile without visible scrollbar */}
-      <div className="fixed inset-0 z-50 overflow-y-auto p-4 pointer-events-none scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
         <style>{`
           .scrollbar-hide::-webkit-scrollbar {
             display: none;
           }
         `}</style>
         <div className="flex items-center justify-center min-h-full">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm px-6 py-8 sm:px-8 sm:py-10 relative pointer-events-auto">
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-sm px-6 py-8 sm:px-8 sm:py-10 relative pointer-events-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Close Button */}
             <button
               onClick={onClose}
