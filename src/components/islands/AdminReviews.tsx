@@ -250,7 +250,7 @@ const AdminReviews = () => {
           </div>
         </div>
 
-        <div className="space-y-4 lg:space-y-0 lg:divide-y lg:divide-gray-100 p-4 lg:p-0">
+        <div className="space-y-6 p-4 lg:p-0">
           {reviews.map((review) => {
             // Obtener propiedades con fallback a diferentes nombres
             const rating = review.calificacion || 0;
@@ -261,7 +261,7 @@ const AdminReviews = () => {
             const text = review.comentario || review.comment || review.texto || '';
 
             return (
-              <div key={review.id} className="bg-white lg:bg-transparent border lg:border-none rounded-xl lg:rounded-none p-4 sm:p-6 hover:bg-gray-50/50 transition-colors duration-200 group lg:border-b lg:border-gray-100 last:border-0 shadow-sm lg:shadow-none">
+              <div key={review.id} className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
                 <div className="flex flex-col space-y-4">
                   {/* Header: Rating & Status Badges */}
                   <div className="flex flex-wrap items-center justify-between gap-3">
@@ -299,7 +299,7 @@ const AdminReviews = () => {
                   {/* Body: Title & Text */}
                   <div>
                     {title && <h4 className="font-black text-gray-900 mb-1 leading-tight sm:text-lg">{title}</h4>}
-                    <p className="text-gray-600 text-sm sm:text-base leading-relaxed line-clamp-3 group-hover:line-clamp-none transition-all duration-300">
+                    <p className="text-gray-600 text-sm sm:text-base leading-relaxed group-hover:line-clamp-none transition-all duration-300">
                       {text || 'Sin comentario'}
                     </p>
                   </div>
@@ -315,15 +315,12 @@ const AdminReviews = () => {
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                         {new Date(date).toLocaleDateString('es-ES')}
                       </span>
-                      <span className="flex items-center gap-1">
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10h2m-6 0h2m-6 4h2m4 0h2m-7 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                        {helpful} útiles
-                      </span>
+
                     </div>
                   </div>
 
                   {/* Actions: Grid/Flex for mobile accessibility */}
-                  <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2.5 pt-2">
+                  <div className="flex flex-wrap gap-2.5 pt-2 border-t border-gray-100 mt-2">
                     <button
                       onClick={() => toggleVerified(review.id, isVerified)}
                       disabled={isVerified}
@@ -346,7 +343,7 @@ const AdminReviews = () => {
                       </button>
                     )}
 
-                    {review.estado !== 'Rechazada' && (
+                    {review.estado !== 'Rechazada' && review.estado !== 'Aprobada' && (
                       <button
                         onClick={() => updateStatus(review.id, 'reject')}
                         className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-tight bg-white text-gray-700 border-2 border-gray-200 hover:bg-gray-50 hover:border-gray-300 active:scale-95 transition-all duration-200"
@@ -358,7 +355,7 @@ const AdminReviews = () => {
 
                     <button
                       onClick={() => setDeleteConfirm(review.id)}
-                      className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-tight bg-red-50 text-red-600 border-2 border-red-100 hover:bg-red-100 hover:border-red-200 active:scale-95 transition-all duration-200 sm:ml-auto"
+                      className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-tight bg-red-50 text-red-600 border-2 border-red-100 hover:bg-red-100 hover:border-red-200 active:scale-95 transition-all duration-200"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       Eliminar

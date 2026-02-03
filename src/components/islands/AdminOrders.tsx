@@ -50,6 +50,18 @@ const AdminOrders = () => {
     loadOrders();
   }, [filter]);
 
+  // Bloquear scroll cuando el modal está abierto
+  useEffect(() => {
+    if (showModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showModal]);
+
   const loadOrders = async () => {
     try {
       setLoading(true);
