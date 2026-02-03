@@ -47,6 +47,16 @@ interface DisputeData {
   dispute_id: string;
 }
 
+interface ReturnData {
+  type: 'return_request';
+  order_number: string;
+  customer_email: string;
+  customer_name: string;
+  total: number;
+  items_count: number;
+  return_reason: string;
+}
+
 import {
   generateInvoicePDF,
 } from './invoiceService';
@@ -76,6 +86,18 @@ const ADMIN_EMAIL = import.meta.env.ADMIN_EMAIL || '';
 const LOGO_URL = 'https://res.cloudinary.com/djvj32zic/image/upload/v1769980559/admin-logo_qq0qlz.png';
 
 // =============================================================================
+// TYPE GUARDS
+// =============================================================================
+
+function isDisputeData(data: any): data is DisputeData {
+  return 'type' in data && data.type === 'payment_dispute';
+}
+
+function isReturnData(data: any): data is ReturnData {
+  return 'type' in data && data.type === 'return_request';
+}
+
+// =============================================================================
 // HELPER: FORMAT PRICE (ONLY place that divides by 100)
 // =============================================================================
 
@@ -88,7 +110,7 @@ function formatPrice(cents: number): string {
 }
 
 // =============================================================================
-// HELPER: VALIDATE ORDER DATA
+// HELPER: VALIDATE DATA
 // =============================================================================
 
 function validateOrderData(order: OrderData): void {
@@ -104,6 +126,14 @@ function validateOrderData(order: OrderData): void {
       throw new Error('[EMAIL CRITICAL] Item precio_unitario must be integer cents, got: ' + item.precio_unitario);
     }
   }
+}
+
+function validateReturnData(data: ReturnData): void {
+  if (!Number.isInteger(data.total)) {
+    throw new Error('[EMAIL CRITICAL] Return total must be integer cents, got: ' + data.total);
+  }
+  if (!data.order_number) throw new Error('Missing order_number');
+  if (!data.customer_email) throw new Error('Missing customer_email');
 }
 
 // =============================================================================
@@ -412,31 +442,30 @@ export async function sendOrderConfirmationEmail(order: OrderData): Promise<bool
 // ADMIN NOTIFICATION EMAIL
 // =============================================================================
 
-export async function sendAdminNotificationEmail(data: OrderData | DisputeData): Promise<boolean> {
+export async function sendAdminNotificationEmail(data: OrderData | DisputeData | ReturnData): Promise<boolean> {
   if (!ADMIN_EMAIL) {
     console.log('[EMAIL] No ADMIN_EMAIL configured, skipping admin notification');
     return true;
   }
 
   // HANDLE DISPUTE
-  if ('type' in data && data.type === 'payment_dispute') {
+  if (isDisputeData(data)) {
     try {
-      const disputeData = data as DisputeData;
       const html = `<!DOCTYPE html>
       <html><body>
         <h1>⚠️ DISPUTA DE PAGO ABIERTA</h1>
         <p>Se ha abierto una disputa en Stripe.</p>
         <ul>
-          <li><strong>Pedido:</strong> #${disputeData.order_number}</li>
-          <li><strong>Cliente:</strong> ${disputeData.customer_name} (${disputeData.customer_email})</li>
-          <li><strong>ID Disputa:</strong> ${disputeData.dispute_id}</li>
+          <li><strong>Pedido:</strong> #${data.order_number}</li>
+          <li><strong>Cliente:</strong> ${data.customer_name} (${data.customer_email})</li>
+          <li><strong>ID Disputa:</strong> ${data.dispute_id}</li>
         </ul>
-        <p><a href="https://dashboard.stripe.com/disputes/${disputeData.dispute_id}">Ver en Stripe Dashboard</a></p>
+        <p><a href="https://dashboard.stripe.com/disputes/${data.dispute_id}">Ver en Stripe Dashboard</a></p>
       </body></html>`;
 
       return await sendEmail({
         to: ADMIN_EMAIL,
-        subject: `[DISPUTA] Pedido #${disputeData.order_number} - Disputa Abierta`,
+        subject: `[DISPUTA] Pedido #${data.order_number} - Disputa Abierta`,
         html: html,
       });
     } catch (error) {
@@ -445,7 +474,38 @@ export async function sendAdminNotificationEmail(data: OrderData | DisputeData):
     }
   }
 
-  // HANDLE NEW ORDER
+  // HANDLE RETURN REQUEST
+  if (isReturnData(data)) {
+    try {
+      validateReturnData(data);
+
+      const html = `<!DOCTYPE html>
+      <html><body>
+        <h1>↩️ SOLICITUD DE DEVOLUCIÓN</h1>
+        <p>Se ha solicitado una devolución.</p>
+        <ul>
+          <li><strong>Pedido:</strong> #${data.order_number}</li>
+          <li><strong>Cliente:</strong> ${data.customer_name} (${data.customer_email})</li>
+          <li><strong>Total Pedido:</strong> ${formatPrice(data.total)}</li>
+          <li><strong>Items:</strong> ${data.items_count}</li>
+          <li><strong>Motivo:</strong> ${data.return_reason}</li>
+        </ul>
+        <p>Revisa el panel de administración para aprobar o rechazar.</p>
+      </body></html>`;
+
+      return await sendEmail({
+        to: ADMIN_EMAIL,
+        subject: `[DEVOLUCIÓN] Solicitud para Pedido #${data.order_number}`,
+        html: html,
+      });
+    } catch (error) {
+      console.error('[EMAIL] Error sending return notification:', error);
+      return false;
+    }
+  }
+
+  // HANDLE NEW ORDER (Fallback)
+  // We assume it's OrderData if not the others, but we must treat it as such
   const order = data as OrderData;
   try {
     validateOrderData(order);
