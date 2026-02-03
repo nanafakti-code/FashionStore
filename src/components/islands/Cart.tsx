@@ -314,13 +314,13 @@ export default function Cart() {
         {/* Productos */}
         <div className="lg:col-span-2">
           <div className="bg-white rounded-2xl shadow-sm p-6">
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-0 mb-6">
               <h2 className="text-2xl font-bold text-gray-900">Artículos en tu carrito ({cartItems.length})</h2>
               {cartItems.length > 0 && (
                 <button
                   onClick={handleClearCart}
                   disabled={isProcessing}
-                  className="text-sm text-red-600 hover:text-red-800 hover:underline font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="self-start sm:self-auto text-sm text-red-600 hover:text-red-800 hover:underline font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Vaciar carrito
                 </button>
@@ -329,7 +329,7 @@ export default function Cart() {
 
             <div className="space-y-4">
               {cartItems.map((item) => (
-                <div key={item.id} className="flex flex-col sm:flex-row gap-4 pb-4 border-b border-gray-200 last:border-b-0 opacity-75 hover:opacity-100 transition-opacity">
+                <div key={item.id} className="flex flex-col sm:flex-row gap-6 p-4 sm:p-6 border-b border-gray-200 last:border-b-0 opacity-75 hover:opacity-100 transition-opacity">
                   {/* Wrapper Imagen + Detalles */}
                   <div className="flex gap-4 flex-grow w-full">
                     {/* Imagen */}
@@ -368,62 +368,69 @@ export default function Cart() {
                     </div>
                   </div>
 
-                  {/* Cantidad y Precio Total - Bottom row on mobile, Right column on desktop */}
-                  <div className="flex flex-row sm:flex-col justify-between sm:justify-end items-center sm:items-end gap-2 w-full sm:w-auto border-t sm:border-t-0 pt-4 sm:pt-0 border-gray-100 mt-2 sm:mt-0">
-                    {item.product_stock !== 1 && (
-                      <div className="flex items-center gap-2 border border-gray-300 rounded-lg bg-gray-50">
-                        <button
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          disabled={isProcessing || item.quantity <= 1}
-                          className="px-3 py-1 text-gray-600 hover:text-[#00aa45] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                          −
-                        </button>
-                        <input
-                          type="number"
-                          min="1"
-                          max={item.product_stock || 999}
-                          value={item.quantity}
-                          onChange={(e: any) => {
-                            const newQty = parseInt(e.target.value) || 1;
-                            if (newQty > 0) {
-                              updateQuantity(item.id, newQty, item.product_stock);
-                            }
-                          }}
-                          disabled={isProcessing}
-                          className="w-12 text-center py-1 border-l border-r border-gray-300 text-gray-900 font-semibold disabled:bg-white"
-                        />
-                        <button
-                          onClick={() => updateQuantity(item.id, item.quantity + 1, item.product_stock)}
-                          disabled={isProcessing || item.quantity >= (item.product_stock || 999)}
-                          className="px-3 py-1 text-gray-600 hover:text-[#00aa45] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                          +
-                        </button>
-                      </div>
-                    )}
-                    <p className="text-lg font-bold text-gray-900 hidden sm:block">
-                      {((item.precio_unitario * item.quantity) / 100).toFixed(2)}€
-                    </p>
-                    <p className="text-lg font-bold text-gray-900 sm:hidden">
-                      Total: {((item.precio_unitario * item.quantity) / 100).toFixed(2)}€
-                    </p>
+                  {/* Cantidad y Precio Total - Mobile: Stacked Rows / Desktop: Right Column */}
+                  <div className="flex flex-col w-full sm:w-auto gap-3 mt-4 sm:mt-0 border-t sm:border-t-0 pt-4 sm:pt-0 border-gray-100">
 
-                    {item.expires_in_seconds && item.expires_in_seconds > 0 ? (
-                      <p className="text-xs text-red-600 font-semibold bg-red-50 px-2 py-1 rounded flex items-center gap-1">
-                        <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clipRule="evenodd" />
-                        </svg>
-                        Expira en {formatTime(item.expires_in_seconds)}
+                    {/* Row 1: Quantity + Price */}
+                    <div className="flex flex-row sm:flex-col justify-between sm:items-end items-center gap-2">
+                      {item.product_stock !== 1 ? (
+                        <div className="flex items-center gap-2 border border-gray-300 rounded-lg bg-gray-50">
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            disabled={isProcessing || item.quantity <= 1}
+                            className="px-3 py-1 text-gray-600 hover:text-[#00aa45] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            −
+                          </button>
+                          <input
+                            type="number"
+                            min="1"
+                            max={item.product_stock || 999}
+                            value={item.quantity}
+                            onChange={(e: any) => {
+                              const newQty = parseInt(e.target.value) || 1;
+                              if (newQty > 0) {
+                                updateQuantity(item.id, newQty, item.product_stock);
+                              }
+                            }}
+                            disabled={isProcessing}
+                            className="w-12 text-center py-1 border-l border-r border-gray-300 text-gray-900 font-semibold disabled:bg-white"
+                          />
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity + 1, item.product_stock)}
+                            disabled={isProcessing || item.quantity >= (item.product_stock || 999)}
+                            className="px-3 py-1 text-gray-600 hover:text-[#00aa45] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            +
+                          </button>
+                        </div>
+                      ) : <div className="sm:hidden"></div> /* Spacer for alignment */}
+
+                      <p className="text-lg font-bold text-gray-900">
+                        {((item.precio_unitario * item.quantity) / 100).toFixed(2)}€
                       </p>
-                    ) : null}
-                    <button
-                      onClick={() => removeItem(item.id)}
-                      disabled={isProcessing}
-                      className="text-sm text-red-600 hover:text-red-800 hover:underline font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Eliminar
-                    </button>
+                    </div>
+
+                    {/* Row 2: Timer + Remove */}
+                    <div className="flex flex-row sm:flex-col justify-between sm:items-end items-center gap-2">
+                      {item.expires_in_seconds && item.expires_in_seconds > 0 ? (
+                        <p className="text-xs text-red-600 font-semibold bg-red-50 px-2 py-1 rounded flex items-center gap-1">
+                          <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clipRule="evenodd" />
+                          </svg>
+                          Expira en {formatTime(item.expires_in_seconds)}
+                        </p>
+                      ) : <div className="sm:hidden"></div> /* Spacer */}
+
+                      <button
+                        onClick={() => removeItem(item.id)}
+                        disabled={isProcessing}
+                        className="text-sm text-red-600 hover:text-red-800 hover:underline font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+
                   </div>
                 </div>
               ))}
@@ -433,7 +440,7 @@ export default function Cart() {
 
         {/* Resumen de Pedido */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-4">
+          <div className="bg-white rounded-2xl shadow-sm p-6 sm:p-8 sticky top-4">
             <h2 className="text-xl font-bold mb-6 text-gray-900">Resumen del pedido</h2>
 
             {/* Cupón de descuento */}

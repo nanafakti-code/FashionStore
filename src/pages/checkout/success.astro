@@ -34,7 +34,7 @@ import Header from "@/components/Header.astro";
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
           <!-- Header con icono de éxito -->
           <div
-            class="bg-gradient-to-r from-[#00aa45] to-[#008a35] p-8 text-center"
+            class="bg-gradient-to-r from-[#00aa45] to-[#008a35] p-6 sm:p-8 text-center"
           >
             <div
               class="w-20 h-20 mx-auto bg-white/20 rounded-full flex items-center justify-center mb-4"
@@ -59,7 +59,9 @@ import Header from "@/components/Header.astro";
           </div>
 
           <!-- Número de pedido destacado -->
-          <div class="bg-gray-50 border-b border-gray-200 p-6 text-center">
+          <div
+            class="bg-gray-50 border-b border-gray-200 p-4 sm:p-6 text-center"
+          >
             <p class="text-sm text-gray-600 mb-1">Numero de pedido</p>
             <p id="order-number" class="text-2xl font-black text-gray-900">
               ---
@@ -67,7 +69,7 @@ import Header from "@/components/Header.astro";
           </div>
 
           <!-- Detalles del pedido -->
-          <div class="p-8">
+          <div class="p-4 sm:p-8">
             <!-- Información principal -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <div class="bg-gray-50 rounded-xl p-5">
@@ -178,7 +180,7 @@ import Header from "@/components/Header.astro";
           <!-- Próximos pasos -->
           <div class="bg-blue-50 border-t border-blue-100 p-6">
             <h3 class="font-bold text-blue-900 mb-4">Proximos pasos</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4">
               <div class="flex items-start gap-3">
                 <div
                   class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0"
@@ -222,7 +224,7 @@ import Header from "@/components/Header.astro";
           </div>
 
           <!-- Botones -->
-          <div class="p-6 bg-gray-50 flex flex-col sm:flex-row gap-4">
+          <div class="p-4 sm:p-6 bg-gray-50 flex flex-col sm:flex-row gap-4">
             <a
               href="/mi-cuenta#pedidos"
               class="flex-1 bg-[#00aa45] text-white py-3 px-6 rounded-xl font-bold hover:bg-[#009340] transition-colors text-center flex items-center justify-center gap-2"
@@ -414,22 +416,26 @@ import Header from "@/components/Header.astro";
           orderItemsEl.innerHTML = items
             .map(
               (item: any) => `
-            <div class="flex items-center gap-4 bg-gray-50 rounded-lg p-4">
-              <img 
-                src="${item.producto_imagen || "/productos/placeholder.jpg"}" 
-                alt="${item.producto_nombre}"
-                class="w-16 h-16 object-cover rounded-lg"
-              />
-              <div class="flex-1">
-                <p class="font-medium text-gray-900">${item.producto_nombre}</p>
-                <p class="text-sm text-gray-600">
-                  Cantidad: ${item.cantidad}
-                  ${item.talla ? ` | Talla: ${item.talla}` : ""}
-                  ${item.color ? ` | Color: ${item.color}` : ""}
-                </p>
-                </p>
+            <div class="flex flex-col sm:flex-row sm:items-center gap-4 bg-gray-50 rounded-lg p-4">
+              <div class="flex items-center gap-4 flex-1 w-full">
+                <img 
+                  src="${item.producto_imagen || "/productos/placeholder.jpg"}" 
+                  alt="${item.producto_nombre}"
+                  class="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                />
+                <div class="flex-1 min-w-0">
+                  <p class="font-medium text-gray-900 truncate">${item.producto_nombre}</p>
+                  <p class="text-sm text-gray-600 mt-0.5">
+                    <span class="font-medium">${item.cantidad}x</span>
+                    ${item.talla ? ` | ${item.talla}` : ""}
+                    ${item.color ? ` | ${item.color}` : ""}
+                  </p>
+                </div>
               </div>
-              <p class="font-bold text-gray-900">${(item.subtotal / 100).toFixed(2)} EUR</p>
+              <div class="w-full sm:w-auto flex justify-between sm:block items-center border-t sm:border-t-0 border-gray-200 pt-3 sm:pt-0 mt-2 sm:mt-0">
+                 <span class="sm:hidden text-xs text-gray-500 font-medium uppercase">Precio</span>
+                 <p class="font-bold text-gray-900 text-right">${(item.subtotal / 100).toFixed(2)} EUR</p>
+              </div>
             </div>
           `,
             )
@@ -504,6 +510,14 @@ import Header from "@/components/Header.astro";
               localStorage.removeItem(key);
             }
           });
+
+          // ALSO CLEAR GUEST SESSION ID to force a fresh cart
+          if (localStorage.getItem("fashionstore_guest_session_id")) {
+            console.log(
+              "[SUCCESS] Eliminando fashionstore_guest_session_id para forzar carrito nuevo",
+            );
+            localStorage.removeItem("fashionstore_guest_session_id");
+          }
 
           // 3. Limpiar sessionStorage
           if (typeof sessionStorage !== "undefined") {

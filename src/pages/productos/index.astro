@@ -5,8 +5,11 @@ import ProductCard from "@/components/ProductCard.astro";
 import ProductFilter from "@/components/islands/ProductFilter";
 import { supabase } from "@/lib/supabase";
 
-// Obtener todos los productos de la BD
-const { data: allProducts } = await supabase
+// Obtener parámetro de búsqueda
+const query = Astro.url.searchParams.get("q");
+
+// Construir consulta base
+let queryBuilder = supabase
   .from("productos")
   .select(
     `
@@ -24,8 +27,22 @@ const { data: allProducts } = await supabase
     imagenes_producto(url)
   `,
   )
-  .eq("activo", true)
-  .order("nombre", { ascending: true });
+  .eq("activo", true);
+
+// Aplicar filtro de búsqueda si existe
+if (query && query.trim().length > 0) {
+  // Sanitize logic: remove special chars to avoid breaking the query
+  const safeQuery = query.replace(/[^\w\s]/gi, "");
+
+  // Lógica de búsqueda inteligente: Empieza por el término O contiene palabra que empieza por él
+  queryBuilder = queryBuilder.or(
+    `nombre.ilike.${safeQuery}%,nombre.ilike.% ${safeQuery}%`,
+  );
+}
+
+const { data: allProducts } = await queryBuilder.order("nombre", {
+  ascending: true,
+});
 
 // Obtener todas las categorías
 const { data: categories } = await supabase

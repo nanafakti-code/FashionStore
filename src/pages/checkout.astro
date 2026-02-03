@@ -753,6 +753,9 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
                 nombre: `${nombre} ${apellidos}`,
                 telefono: telefono,
                 direccion: direccion,
+                guestSessionId: isGuest
+                  ? localStorage.getItem("fashionstore_guest_session_id")
+                  : null,
                 successUrl:
                   window.location.origin +
                   "/checkout/success?session_id={CHECKOUT_SESSION_ID}",

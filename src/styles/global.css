@@ -42,10 +42,10 @@ h2 {
   line-height: 1.2;
 }
 
-/* Scrollbar personalizado */
+/* Scrollbar personalizado - Oculto pero funcional */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 0px;
+  background: transparent;
 }
 
 /* Admin Dashboard Styles */
@@ -151,18 +151,18 @@ aside::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.5);
 }
 
+/* Global scrollbar track/thumb hidden */
 ::-webkit-scrollbar-track {
-  background: var(--color-bg);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-primary);
-  border-radius: 5px;
-  cursor: pointer;
+  background: transparent;
+  border-radius: 0;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #008c38;
+  background: transparent;
 }
 
 /* Smooth transitions */

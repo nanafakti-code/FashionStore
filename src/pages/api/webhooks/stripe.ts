@@ -139,14 +139,14 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
     const orderItems: OrderItem[] = items
       ? items.map((item) => ({
-          nombre: item.producto_nombre,
-          cantidad: item.cantidad,
-          precio_unitario: item.precio_unitario,
-          precio_original: item.precio_original,
-          imagen: item.producto_imagen,
-          talla: item.talla,
-          color: item.color,
-        }))
+        nombre: item.producto_nombre,
+        cantidad: item.cantidad,
+        precio_unitario: item.precio_unitario,
+        precio_original: item.precio_original,
+        imagen: item.producto_imagen,
+        talla: item.talla,
+        color: item.color,
+      }))
       : [];
 
     // ============================================================
@@ -164,7 +164,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       envio: order.coste_envio,
       total: order.total,
       direccion: order.direccion_envio || {},
-      is_guest: !order.usuario_id,
     });
 
     if (emailSent) {
@@ -178,12 +177,16 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     // ============================================================
 
     const adminEmailSent = await sendAdminNotificationEmail({
-      type: 'new_order',
-      order_number: order.numero_orden,
-      customer_email: order.email_cliente,
-      customer_name: order.nombre_cliente,
+      numero_orden: order.numero_orden,
+      email: order.email_cliente,
+      nombre: order.nombre_cliente,
+      items: orderItems,
+      subtotal: order.subtotal,
+      impuestos: order.impuestos,
+      descuento: order.descuento,
+      envio: order.coste_envio,
       total: order.total,
-      items_count: orderItems.length,
+      direccion: order.direccion_envio || {},
     });
 
     if (adminEmailSent) {
@@ -206,6 +209,20 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         .eq('user_id', order.usuario_id);
 
       console.log(`[WEBHOOK] Carrito limpiado para usuario: ${order.usuario_id}`);
+    } else if (metadata.guest_session_id) {
+      // LIMPIAR CARRITO DE INVITADO
+      // IMPORTANTE: Hacemos delete directo para NO restaurar stock
+      // (asumiendo que no hay triggers que restauren stock al borrar)
+      const { error: deleteError } = await supabase
+        .from('cart_items')
+        .delete()
+        .eq('session_id', metadata.guest_session_id);
+
+      if (deleteError) {
+        console.error('[WEBHOOK] Error limpiando carrito de invitado:', deleteError);
+      } else {
+        console.log(`[WEBHOOK] Carrito de invitado limpiado: ${metadata.guest_session_id}`);
+      }
     }
 
     console.log(`[WEBHOOK] ✅ Pedido ${order.numero_orden} procesado exitosamente`);

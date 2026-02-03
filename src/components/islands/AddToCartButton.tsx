@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { addToCart } from '@/lib/cartService';
 import { getCurrentUser } from '@/lib/auth';
 import { reservationClient } from '@/lib/cart-reservation-client';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface AddToCartButtonProps {
   productId: string;
@@ -44,23 +45,22 @@ export default function AddToCartButton({
     setError(null);
 
     try {
-      // Verificar autenticación
+      // Verificar autenticación (opcional, ya lo hacemos en useEffect pero por seguridad)
       const user = await getCurrentUser();
 
-      // Agregar al carrito (funciona para usuarios y invitados)
+      // Agregar al carrito
       const success = await addToCart(productId, productName, price, image, 1);
-      
+
       if (!success) {
         setError('Error al añadir producto');
         setLoading(false);
         return;
       }
 
-      // Intentar crear reserva en BD (solo usuarios autenticados)
+      // Intentar crear reserva
       if (user) {
         try {
           const reserved = await reservationClient.createReservation(productId, 1);
-        
           if (!reserved) {
             setError('Stock insuficiente');
             setLoading(false);
@@ -68,31 +68,26 @@ export default function AddToCartButton({
           }
         } catch (err) {
           console.warn('Error al crear reserva:', err);
-          // Si falla la reserva pero se agregó al carrito, mostrar warning
-          setError('Agregado al carrito pero sin reserva de stock');
         }
       }
 
       setIsAdded(true);
 
-      // Sincronizar carrito entre localStorage y sessionStorage
+      // Sincronizar carrito
       try {
         const cartKey = 'fashionstore_guest_cart';
         const localCart = localStorage.getItem(cartKey);
-        if (localCart) {
+        if (localCart && typeof sessionStorage !== 'undefined') {
           sessionStorage.setItem(cartKey, localCart);
-          console.log('[AddToCart] Carrito sincronizado a sessionStorage');
         }
-      } catch (error) {
-        console.warn('[AddToCart] Error sincronizando carrito:', error);
-      }
+      } catch (error) { }
 
-      // Disparar eventos para actualizar UI
+      // Disparar eventos
       window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { productId } }));
       window.dispatchEvent(new CustomEvent('authCartUpdated', { detail: { productId } }));
       window.dispatchEvent(new CustomEvent('guestCartUpdated', { detail: { productId } }));
 
-      // Limpiar estado de "añadido"
+      // Resetear estado después de 2s
       setTimeout(() => setIsAdded(false), 2000);
     } catch (err) {
       console.error('Error al añadir al carrito:', err);
@@ -105,55 +100,105 @@ export default function AddToCartButton({
   // Si aún estamos verificando autenticación, mostrar estado de carga
   if (isAuthenticated === null) {
     return (
-      <div className="mt-4 w-full">
-        <button
-          disabled
-          className="w-full py-2 sm:py-3 font-bold rounded-lg transition-all duration-300 text-sm sm:text-base bg-gray-400 text-white cursor-not-allowed opacity-50"
-        >
-          <span>Cargando...</span>
-        </button>
-      </div>
+      <div className="mt-4 w-full h-12 bg-gray-200 rounded-xl animate-pulse"></div>
     );
   }
 
   const isDisabled = loading || stock <= 0;
-  const buttonText = loading
-    ? 'Añadiendo...'
-    : stock <= 0
-    ? 'No disponible'
-    : stock === 1
-    ? 'Último en stock'
-    : isAdded
-    ? '✓ Añadido al carrito'
-    : 'Añadir al carrito';
 
   return (
     <div className="mt-4 w-full">
-      <button
+      <motion.button
         onClick={handleAddToCart}
         disabled={isDisabled}
-        className={`w-full py-2 sm:py-3 font-bold rounded-lg transition-all duration-300 text-sm sm:text-base ${
-          stock <= 0
-            ? 'bg-gray-400 text-white cursor-not-allowed opacity-60'
-            : stock === 1
-            ? 'bg-amber-500 text-white hover:bg-amber-600'
-            : isAdded
-            ? 'bg-green-600 text-white'
-            : 'bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50'
-        }`}
+        whileTap={{ scale: 0.95 }}
+        initial={false}
+        animate={{
+          backgroundColor: stock <= 0 ? '#e5e7eb' : isAdded ? '#22c55e' : '#111827',
+          color: stock <= 0 ? '#9ca3af' : '#ffffff',
+        }}
+        transition={{ duration: 0.3 }}
+        className={`w-full py-3.5 px-6 rounded-xl font-bold text-base flex items-center justify-center gap-2 shadow-sm
+          ${stock <= 0 ? 'cursor-not-allowed' : 'hover:shadow-lg hover:-translate-y-0.5 transition-shadow'}
+        `}
         aria-label={`Añadir ${productName} al carrito`}
-        title={stock <= 0 ? 'Producto agotado' : stock === 1 ? 'Último en stock' : ''}
       >
-        <span>{buttonText}</span>
-      </button>
+        <AnimatePresence mode="wait">
+          {(loading ? (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="flex items-center gap-2"
+            >
+              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Añadiendo...</span>
+            </motion.div>
+          ) : isAdded ? (
+            <motion.div
+              key="success"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="flex items-center gap-2"
+            >
+              <motion.svg
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 200, damping: 10 }}
+                className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}
+              >
+                <motion.path
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={{ duration: 0.3 }}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M5 13l4 4L19 7"
+                />
+              </motion.svg>
+              <span>¡Añadido!</span>
+            </motion.div>
+          ) : stock <= 0 ? (
+            <motion.span
+              key="out-of-stock"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              Agotado
+            </motion.span>
+          ) : (
+            <motion.div
+              key="idle"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+              <span>Añadir al carrito</span>
+            </motion.div>
+          )) as any}
+        </AnimatePresence>
+      </motion.button>
+
       {error && (
-        <p className="mt-2 text-red-600 text-sm text-center">{error}</p>
+        <motion.p
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          className="mt-2 text-red-600 text-sm text-center"
+        >
+          {error}
+        </motion.p>
       )}
-      {stock <= 0 && (
-        <p className="mt-2 text-gray-600 text-xs text-center font-semibold">
-          Este producto está agotado
-        </p>
-      )}
+
       {stock === 1 && stock > 0 && (
         <p className="mt-2 text-amber-600 text-xs text-center font-semibold flex items-center justify-center gap-1">
           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">

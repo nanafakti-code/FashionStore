@@ -102,94 +102,14 @@ export const GET: APIRoute = async (context) => {
 
       if (updateError) {
         console.error('[ORDER-BY-SESSION] Error actualizando estado:', updateError);
-        // No lanzar error, solo loguear - el pedido ya está pagado en Stripe
       } else {
         console.log(`[ORDER-BY-SESSION] ✅ Pedido actualizado a PAGADO: ${order.numero_orden}`);
-        // Actualizar el objeto order con el nuevo estado
+        // Actualizar el objeto order con el nuevo estado para que el frontend lo vea reflejado
         order.estado = 'Pagado';
         order.fecha_pago = new Date().toISOString();
 
-        // ============================================================
-        // ENVIAR EMAILS (RESPALDO SI WEBHOOK NO SE EJECUTÓ)
-        // ============================================================
-        console.log(`[ORDER-BY-SESSION] 📧 Enviando emails de confirmación...`);
-
-        // Obtener items para los emails
-        const { data: itemsForEmail } = await supabase
-          .from('items_orden')
-          .select('*')
-          .eq('orden_id', orderId);
-
-        // Preparar datos para emails - formato OrderData
-        // CRITICAL: ALL values must be INTEGER CENTS - emailService handles formatting
-        const orderDataForEmail = {
-          numero_orden: order.numero_orden,
-          email: order.email_cliente,
-          nombre: order.nombre_cliente || 'Cliente',
-          telefono: order.telefono_cliente || '',
-          direccion: order.direccion_envio ?
-            (typeof order.direccion_envio === 'string'
-              ? JSON.parse(order.direccion_envio)
-              : order.direccion_envio)
-            : undefined,
-          items: (itemsForEmail || []).map((item: any) => ({
-            nombre: item.producto_nombre,
-            cantidad: item.cantidad,
-            precio_unitario: item.precio_unitario, // INTEGER CENTS - NO DIVISION
-            precio_original: item.precio_original, // INTEGER CENTS - NO DIVISION
-            talla: item.talla,
-            color: item.color,
-            imagen: item.producto_imagen,
-          })),
-          subtotal: order.subtotal,           // INTEGER CENTS - NO DIVISION
-          impuestos: order.impuestos || 0,    // INTEGER CENTS - NO DIVISION
-          descuento: order.descuento || 0,    // INTEGER CENTS - NO DIVISION
-          envio: order.coste_envio || 0,      // INTEGER CENTS - NO DIVISION
-          total: order.total,                 // INTEGER CENTS - NO DIVISION
-        };
-
-        try {
-          // Email al cliente
-          await sendOrderConfirmationEmail(orderDataForEmail);
-          console.log(`[ORDER-BY-SESSION] ✅ Email de confirmación enviado a: ${order.email_cliente}`);
-
-          // Email al administrador - uses same OrderData structure
-          await sendAdminNotificationEmail({
-            numero_orden: order.numero_orden,
-            email: ADMIN_EMAIL,
-            nombre: order.nombre_cliente || 'Cliente',
-            items: orderDataForEmail.items,
-            subtotal: order.subtotal,
-            impuestos: order.impuestos || 0,
-            descuento: order.descuento || 0,
-            envio: order.coste_envio || 0,
-            total: order.total,
-            direccion: orderDataForEmail.direccion,
-          });
-          console.log(`[ORDER-BY-SESSION] ✅ Email de notificación enviado a admin: ${ADMIN_EMAIL}`);
-
-          emailsSent = true;
-        } catch (emailError) {
-          console.error('[ORDER-BY-SESSION] ❌ Error enviando emails:', emailError);
-        }
-
-        // ============================================================
-        // LIMPIAR CARRITO DEL USUARIO EN BD
-        // ============================================================
-        if (order.usuario_id) {
-          console.log(`[ORDER-BY-SESSION] 🛒 Limpiando carrito del usuario ${order.usuario_id}...`);
-
-          const { error: cartError } = await supabase
-            .from('carrito')
-            .delete()
-            .eq('usuario_id', order.usuario_id);
-
-          if (cartError) {
-            console.error('[ORDER-BY-SESSION] Error limpiando carrito:', cartError);
-          } else {
-            console.log(`[ORDER-BY-SESSION] ✅ Carrito limpiado correctamente`);
-          }
-        }
+        // NOTA: El envío de emails y la limpieza del carrito se delegan al WEBHOOK de Stripe
+        // para asegurar una respuesta rápida en este endpoint.
       }
     }
 

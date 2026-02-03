@@ -50,7 +50,7 @@ function generateOrderNumber(): string {
 export const POST: APIRoute = async (context) => {
   try {
     console.log('[CREATE-SESSION] Iniciando creación de sesión de Stripe');
-    
+
     // Verificar configuración
     if (!stripeKey || !supabaseUrl || !supabaseKey) {
       console.error('[CREATE-SESSION] ❌ Variables de entorno faltantes:', {
@@ -66,7 +66,7 @@ export const POST: APIRoute = async (context) => {
 
     const body = await context.request.json();
     console.log('[CREATE-SESSION] Body recibido:', JSON.stringify(body, null, 2));
-    
+
     const {
       totalAmount,
       userEmail,
@@ -78,6 +78,7 @@ export const POST: APIRoute = async (context) => {
       items = [],
       userId,
       isGuest = false,
+      guestSessionId,
     } = body;
 
     // ============================================================
@@ -215,7 +216,7 @@ export const POST: APIRoute = async (context) => {
       id: i.producto_id,
       q: i.cantidad
     }));
-    
+
     // Si el JSON es demasiado largo, solo guardar IDs
     let itemsMetadata = JSON.stringify(itemsSummary);
     if (itemsMetadata.length > 400) {
@@ -251,6 +252,7 @@ export const POST: APIRoute = async (context) => {
         numero_orden: numeroOrden,
         user_id: userId || '',
         is_guest: isGuest ? 'true' : 'false',
+        guest_session_id: guestSessionId || '',
         email: userEmail,
         nombre: (nombre || '').substring(0, 100),
         telefono: (telefono || '').substring(0, 50),
@@ -283,14 +285,14 @@ export const POST: APIRoute = async (context) => {
     );
   } catch (error) {
     console.error('[CREATE-SESSION] ❌ Error completo:', error);
-    
+
     // Detectar tipo de error
     let errorMessage = 'Error al crear la sesión de pago';
     let errorDetails = 'Unknown error';
-    
+
     if (error instanceof Error) {
       errorDetails = error.message;
-      
+
       // Errores específicos de Stripe
       if (error.message.includes('Invalid API Key')) {
         errorMessage = 'Error de configuración de Stripe';
@@ -299,7 +301,7 @@ export const POST: APIRoute = async (context) => {
         errorMessage = 'Error de Stripe';
       }
     }
-    
+
     return new Response(
       JSON.stringify({
         error: errorMessage,

@@ -61,7 +61,10 @@ export async function getCurrentUser() {
   } = await supabase.auth.getUser();
 
   if (error) {
-    console.error("Error getting user:", error);
+    // Ignore session missing error (expected for guests)
+    if (!error.message.includes("Auth session missing")) {
+      console.error("Error getting user:", error);
+    }
     return null;
   }
 
