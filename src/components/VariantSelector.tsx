@@ -236,7 +236,7 @@ export default function VariantSelector({ productSlug, onVariantChange, onImageC
             )}
 
             {/* Selector de color/conectividad (variantes dentro de la misma capacidad) */}
-            {selectedVariant && groupedVariants[selectedVariant.capacity || 'Sin especificar'] && groupedVariants[selectedVariant.capacity || 'Sin especificar']?.length > 1 && (
+            {selectedVariant && groupedVariants?.[selectedVariant.capacity || 'Sin especificar'] && groupedVariants[selectedVariant.capacity || 'Sin especificar']!.length > 1 && (
                 <div className="space-y-3">
                     <label className="block text-sm font-medium text-gray-700">
                         Color

@@ -373,7 +373,7 @@ export default function MiCuentaClientV2() {
         return;
       }
 
-      const orderIds = deliveredOrders.map(o => o.id);
+      const orderIds = deliveredOrders.map((o: any) => o.id);
 
       // 2. Obtener items de esos pedidos
       const { data: items } = await supabase
@@ -383,7 +383,7 @@ export default function MiCuentaClientV2() {
 
       if (items) {
         // 3. Obtener reseñas del usuario para estos productos
-        const productIds = items.map(i => i.producto_id);
+        const productIds = items.map((i: any) => i.producto_id);
         const { data: reviews } = await supabase
           .from('resenas')
           .select('*')
@@ -391,9 +391,9 @@ export default function MiCuentaClientV2() {
           .in('producto_id', productIds);
 
         // Enriquecer con fecha y reseña
-        const enrichedItems = items.map(item => {
-          const order = deliveredOrders.find(o => o.id === item.orden_id);
-          const review = reviews?.find(r => r.producto_id === item.producto_id);
+        const enrichedItems = items.map((item: any) => {
+          const order = deliveredOrders.find((o: any) => o.id === item.orden_id);
+          const review = reviews?.find((r: any) => r.producto_id === item.producto_id);
           return { ...item, fecha_compra: order?.fecha_creacion, resena: review };
         });
         setReviewableItems(enrichedItems);

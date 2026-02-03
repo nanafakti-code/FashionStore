@@ -32,6 +32,7 @@ interface InvoiceData {
   subtotal: number;
   descuento: number;
   impuestos: number;
+  envio?: number;
   total: number;
 }
 

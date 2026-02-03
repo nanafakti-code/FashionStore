@@ -93,7 +93,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     // Actualizar estado de la orden
     const { error: updateError } = await supabase
       .from('ordenes')
-      .update({ 
+      .update({
         estado: 'Devolucion_Solicitada',
         actualizado_en: new Date().toISOString()
       })
@@ -110,15 +110,15 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     // TODO: Enviar email con etiqueta de devolución
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         message: 'Solicitud de devolución creada correctamente',
         numeroAutorizacion: numeroAutorizacion
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error requesting return:', error);
     return new Response(
       JSON.stringify({ success: false, message: 'Error del servidor' }),

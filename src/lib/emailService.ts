@@ -36,6 +36,15 @@ interface OrderData {
   envio: number;       // INTEGER CENTS
   descuento: number;   // INTEGER CENTS
   total: number;       // INTEGER CENTS
+  type?: string;       // Optional discriminator
+}
+
+interface DisputeData {
+  type: 'payment_dispute';
+  order_number: string;
+  customer_email: string;
+  customer_name: string;
+  dispute_id: string;
 }
 
 import {
@@ -101,7 +110,7 @@ function validateOrderData(order: OrderData): void {
 // SEND EMAIL (LOW LEVEL)
 // =============================================================================
 
-async function sendEmail(options: EmailOptions): Promise<boolean> {
+export async function sendEmail(options: EmailOptions): Promise<boolean> {
   console.log('[EMAIL] ========================================');
   console.log('[EMAIL] sendEmail() CALLED');
   console.log('[EMAIL] To:', options.to);
@@ -403,12 +412,41 @@ export async function sendOrderConfirmationEmail(order: OrderData): Promise<bool
 // ADMIN NOTIFICATION EMAIL
 // =============================================================================
 
-export async function sendAdminNotificationEmail(order: OrderData): Promise<boolean> {
+export async function sendAdminNotificationEmail(data: OrderData | DisputeData): Promise<boolean> {
   if (!ADMIN_EMAIL) {
     console.log('[EMAIL] No ADMIN_EMAIL configured, skipping admin notification');
     return true;
   }
 
+  // HANDLE DISPUTE
+  if ('type' in data && data.type === 'payment_dispute') {
+    try {
+      const disputeData = data as DisputeData;
+      const html = `<!DOCTYPE html>
+      <html><body>
+        <h1>⚠️ DISPUTA DE PAGO ABIERTA</h1>
+        <p>Se ha abierto una disputa en Stripe.</p>
+        <ul>
+          <li><strong>Pedido:</strong> #${disputeData.order_number}</li>
+          <li><strong>Cliente:</strong> ${disputeData.customer_name} (${disputeData.customer_email})</li>
+          <li><strong>ID Disputa:</strong> ${disputeData.dispute_id}</li>
+        </ul>
+        <p><a href="https://dashboard.stripe.com/disputes/${disputeData.dispute_id}">Ver en Stripe Dashboard</a></p>
+      </body></html>`;
+
+      return await sendEmail({
+        to: ADMIN_EMAIL,
+        subject: `[DISPUTA] Pedido #${disputeData.order_number} - Disputa Abierta`,
+        html: html,
+      });
+    } catch (error) {
+      console.error('[EMAIL] Error sending dispute notification:', error);
+      return false;
+    }
+  }
+
+  // HANDLE NEW ORDER
+  const order = data as OrderData;
   try {
     validateOrderData(order);
 
@@ -562,6 +600,41 @@ export async function sendOrderStatusUpdateEmail(
 
   } catch (error) {
     console.error('[EMAIL] Error in sendOrderStatusUpdateEmail:', error);
+    return false;
+  }
+}
+
+// =============================================================================
+// WELCOME EMAIL
+// =============================================================================
+
+export async function sendWelcomeEmail(email: string, nombre: string): Promise<boolean> {
+  try {
+    const html = '<!DOCTYPE html>' +
+      '<html><head><meta charset="utf-8"><title>Bienvenido a FashionStore</title></head>' +
+      '<body style="margin:0;padding:20px;background-color:#f5f5f5;font-family:Arial,sans-serif;">' +
+      '<table cellpadding="0" cellspacing="0" border="0" width="600" style="background-color:#ffffff;border:1px solid #e0e0e0;margin:0 auto;">' +
+      '<tr><td style="padding:30px;text-align:center;border-bottom:2px solid #000;">' +
+      '<img src="' + LOGO_URL + '" alt="FashionStore" style="max-height:50px;">' +
+      '</td></tr>' +
+      '<tr><td style="padding:40px 30px;text-align:center;">' +
+      '<h1 style="margin:0 0 20px 0;font-size:24px;color:#333;">¡Bienvenido/a, ' + nombre + '!</h1>' +
+      '<p style="margin:0 0 30px 0;color:#666;line-height:1.6;">Gracias por unirte a FashionStore. Estamos encantados de tenerte con nosotros.</p>' +
+      '<a href="' + SITE_URL + '" style="display:inline-block;background-color:#000;color:#ffffff;padding:14px 40px;text-decoration:none;font-size:14px;font-weight:bold;border-radius:4px;">EMPEZAR A COMPRAR</a>' +
+      '</td></tr>' +
+      '<tr><td style="padding:30px;background-color:#f9f9f9;text-align:center;font-size:12px;color:#999;">' +
+      '&copy; ' + new Date().getFullYear() + ' FashionStore' +
+      '</td></tr>' +
+      '</table>' +
+      '</body></html>';
+
+    return await sendEmail({
+      to: email,
+      subject: '¡Bienvenido a FashionStore! 🎉',
+      html: html,
+    });
+  } catch (error) {
+    console.error('[EMAIL] Error in sendWelcomeEmail:', error);
     return false;
   }
 }

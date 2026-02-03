@@ -93,8 +93,8 @@ export const POST: APIRoute = async ({ request }) => {
 
         console.log(`[WELCOME-EMAIL] Productos obtenidos: ${productosFormateados.length}`);
 
-        // Enviar email de bienvenida con productos
-        const emailSent = await sendWelcomeEmail(email, nombre, productosFormateados);
+        // Enviar email de bienvenida
+        const emailSent = await sendWelcomeEmail(email, nombre);
 
         if (emailSent) {
             console.log(`[WELCOME-EMAIL] ✅ Email de bienvenida enviado exitosamente a ${email}`);

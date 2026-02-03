@@ -56,7 +56,7 @@ function verifyWebhookSignature(
     const event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
     console.log(`[WEBHOOK] Evento validado: ${event.type}`);
     return event;
-  } catch (error) {
+  } catch (error: any) {
     console.error('[WEBHOOK] Error validando firma:', error);
     return null;
   }
@@ -226,7 +226,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     }
 
     console.log(`[WEBHOOK] ✅ Pedido ${order.numero_orden} procesado exitosamente`);
-  } catch (error) {
+  } catch (error: any) {
     console.error('[WEBHOOK] Error en handleCheckoutCompleted:', error);
   }
 }
@@ -269,7 +269,7 @@ async function handleChargeDispute(dispute: Stripe.Dispute) {
         dispute_id: dispute.id,
       });
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('[WEBHOOK] Error en handleChargeDispute:', error);
   }
 }
@@ -336,7 +336,7 @@ export const POST: APIRoute = async ({ request }) => {
         },
       }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error('[WEBHOOK] Error en POST:', error);
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,

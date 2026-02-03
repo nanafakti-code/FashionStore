@@ -335,8 +335,8 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 
           allFavorites = [];
           displayFavorites([]);
-        } catch (error) {
-          if (error) throw new Error(error.message || error); // Assuming error might be an object with a message property or a string
+        } catch (error: any) {
+          if (error) throw new Error(error.message || String(error)); // Assuming error might be an object with a message property or a string
           // alert("Error al limpiar favoritos");
           console.error("Error al limpiar favoritos:", error);
         }

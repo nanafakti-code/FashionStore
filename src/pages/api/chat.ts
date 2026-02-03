@@ -133,7 +133,7 @@ export const POST: APIRoute = async ({ request }) => {
                     response_format: { type: "json_object" }
                 });
 
-                const aiResponseContent = completion.choices[0].message.content || "{}";
+                const aiResponseContent = completion.choices[0]?.message?.content || "{}";
                 let aiData: AiResponse;
 
                 // 1. JSON Validation
