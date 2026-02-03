@@ -108,8 +108,69 @@ export const GET: APIRoute = async (context) => {
         order.estado = 'Pagado';
         order.fecha_pago = new Date().toISOString();
 
-        // NOTA: El envío de emails y la limpieza del carrito se delegan al WEBHOOK de Stripe
-        // para asegurar una respuesta rápida en este endpoint.
+        // ============================================================
+        // FALLBACK: ENVIAR EMAILS SI EL WEBHOOK NO LO HIZO
+        // ============================================================
+        console.log('[ORDER-BY-SESSION] Iniciando envío de emails (Fallback)...');
+
+        // 1. Preparar items para el email
+        const { data: orderItemsData } = await supabase
+          .from('items_orden')
+          .select('*')
+          .eq('orden_id', orderId);
+
+        const emailItems = (orderItemsData || []).map((item) => ({
+          nombre: item.producto_nombre,
+          cantidad: item.cantidad,
+          precio_unitario: item.precio_unitario,
+          precio_original: item.precio_original,
+          imagen: item.producto_imagen,
+          talla: item.talla,
+          color: item.color,
+        }));
+
+        // 2. Enviar email al cliente
+        const emailSentResult = await sendOrderConfirmationEmail({
+          numero_orden: order.numero_orden,
+          email: order.email_cliente,
+          nombre: order.nombre_cliente,
+          items: emailItems,
+          subtotal: order.subtotal,
+          impuestos: order.impuestos,
+          descuento: order.descuento,
+          envio: order.coste_envio,
+          total: order.total,
+          direccion: order.direccion_envio || {},
+        });
+
+        if (emailSentResult) {
+          console.log(`[ORDER-BY-SESSION] Email enviado a ${order.email_cliente}`);
+          emailsSent = true;
+        }
+
+        // 3. Enviar email al admin
+        if (order.email_cliente !== ADMIN_EMAIL) {
+          await sendAdminNotificationEmail({
+            numero_orden: order.numero_orden,
+            email: order.email_cliente,
+            nombre: order.nombre_cliente,
+            items: emailItems,
+            subtotal: order.subtotal,
+            impuestos: order.impuestos,
+            descuento: order.descuento,
+            envio: order.coste_envio,
+            total: order.total,
+            direccion: order.direccion_envio || {},
+          });
+          console.log('[ORDER-BY-SESSION] Notificación enviada al admin');
+        }
+
+        // 4. Limpiar carrito (Fallback)
+        if (order.usuario_id) {
+          await supabase.from('cart_items').delete().eq('user_id', order.usuario_id);
+          await supabase.from('cart_reservations').delete().eq('user_id', order.usuario_id);
+          console.log('[ORDER-BY-SESSION] Carrito limpiado (Usuario)');
+        }
       }
     }
 

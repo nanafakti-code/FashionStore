@@ -67,23 +67,26 @@ async function buildPdfContent(doc: PDFKit.PDFDocument, data: InvoiceData): Prom
   // 1. HEADER
   const logoBuffer = await fetchImageBuffer(LOGO_URL);
 
+  // Logo reduced to avoid overlapping
   if (logoBuffer) {
-    doc.image(logoBuffer, 50, 45, { width: 140 });
+    doc.image(logoBuffer, 50, 40, { width: 100 });
   } else {
     doc.fontSize(20).font('Helvetica-Bold').fillColor('#000000').text('FASHIONSTORE', 50, 50);
   }
 
-  // Company Info (Right Aligned) - NO EMOJIS to avoid encoding issues
-  doc.fontSize(9).font('Helvetica').fillColor('#666666');
-  doc.text('Tienda Online de Moda', 350, 50, { align: 'right' });
-  doc.text('info@fashionstore.com', 350, 65, { align: 'right' });
-  doc.text('fashionstorerbv3.victoriafp.online', 350, 80, { align: 'right' });
+  // Company Info (Right Aligned) - Cleaner layout
+  doc.fontSize(10).font('Helvetica-Bold').fillColor('#111827');
+  doc.text('FASHIONSTORE', 350, 45, { align: 'right' });
+  doc.fontSize(9).font('Helvetica').fillColor('#6b7280');
+  doc.text('Tienda Online de Moda', 350, 60, { align: 'right' });
+  doc.text('info@fashionstore.com', 350, 75, { align: 'right' });
+  doc.text('fashionstorerbv3.victoriafp.online', 350, 90, { align: 'right' });
 
   // Divider
-  doc.moveTo(50, 115).lineTo(545, 115).stroke('#e5e7eb');
+  doc.moveTo(50, 120).lineTo(545, 120).stroke('#e5e7eb');
 
   // 2. INVOICE DETAILS & BILLING INFO
-  const startY = 140;
+  const startY = 150; // More space below header
 
   // Column 1: Client Info
   doc.fontSize(10).font('Helvetica-Bold').fillColor('#111827').text('FACTURADO A', 50, startY);
@@ -99,31 +102,32 @@ async function buildPdfContent(doc: PDFKit.PDFDocument, data: InvoiceData): Prom
     doc.text(`${data.direccion.codigo_postal || ''} ${data.direccion.ciudad || ''} ${data.direccion.pais || ''}`);
   }
 
-  // Column 2: Invoice Meta
+  // Column 2: Invoice Meta (Aligned correctly)
   doc.fontSize(10).font('Helvetica-Bold').fillColor('#111827').text('Nº FACTURA', 350, startY, { align: 'right' });
   doc.fontSize(10).font('Helvetica').fillColor('#374151').text(data.numero_orden, 350, doc.y, { align: 'right' });
 
   doc.moveDown(1);
-  doc.fontSize(10).font('Helvetica-Bold').fillColor('#111827').text('FECHA', 350, doc.y, { align: 'right' });
+  doc.fontSize(10).font('Helvetica-Bold').fillColor('#111827').text('FECHA DE EMISIÓN', 350, doc.y, { align: 'right' });
   doc.fontSize(10).font('Helvetica').fillColor('#374151').text(new Date(data.fecha).toLocaleDateString('es-ES', {
     day: 'numeric', month: 'long', year: 'numeric'
   }), 350, doc.y, { align: 'right' });
 
   // 3. ITEMS TABLE
-  const tableTop = 260;
+  const tableTop = 280; // Pushed down slightly
   const colProduct = 50;
-  const colQty = 330;
-  const colPrice = 380;
-  const colTotal = 470;
-  const colTotalRight = 545; // Right edge for alignment
+  const colQty = 340;  // Shifted right
+  const colPrice = 390; // Shifted right
+  const colTotal = 480; // Shifted right
 
-  // Table Header
-  doc.rect(50, tableTop - 15, 495, 25).fill('#f9fafb');
+  // Table Header Background
+  doc.rect(50, tableTop - 20, 495, 30).fill('#f9fafb');
+
+  // Table Header Text
   doc.fillColor('#111827').font('Helvetica-Bold').fontSize(9);
-  doc.text('PRODUCTO', colProduct + 10, tableTop - 7);
-  doc.text('CANT.', colQty, tableTop - 7, { align: 'center', width: 40 });
-  doc.text('PRECIO', colPrice, tableTop - 7, { align: 'right', width: 70 });
-  doc.text('TOTAL', colTotal, tableTop - 7, { align: 'right', width: 75 });
+  doc.text('DESCRIPCIÓN', colProduct + 10, tableTop - 10);
+  doc.text('CANT.', colQty, tableTop - 10, { align: 'center', width: 40 });
+  doc.text('PRECIO', colPrice, tableTop - 10, { align: 'right', width: 70 });
+  doc.text('TOTAL', colTotal, tableTop - 10, { align: 'right', width: 65 });
 
   let y = tableTop + 25;
 
@@ -132,29 +136,32 @@ async function buildPdfContent(doc: PDFKit.PDFDocument, data: InvoiceData): Prom
 
   data.items.forEach((item) => {
     const totalItem = item.precio_unitario * item.cantidad;
-    const itemDesc = `${item.nombre} ${item.talla ? `(${item.talla})` : ''} ${item.color ? `- ${item.color}` : ''}`;
+    const itemDesc = `${item.nombre} ${item.talla ? ` - Talla: ${item.talla}` : ''} ${item.color ? ` - Color: ${item.color}` : ''}`;
 
     // Calculate height needed
-    const nameHeight = doc.heightOfString(itemDesc, { width: 260 });
+    const nameHeight = doc.heightOfString(itemDesc, { width: 280 }); // More width for name
     const rowHeight = Math.max(nameHeight, 20); // Min height
 
     // Check page break
-    if (y + rowHeight > 700) {
+    if (y + rowHeight > 720) {
       doc.addPage();
       y = 50;
     }
 
-    doc.text(itemDesc, colProduct + 10, y, { width: 260 });
+    // Name column (wrapped)
+    doc.text(itemDesc, colProduct + 10, y, { width: 280 });
+
+    // Values columns (Vertical center aligned roughly)
     doc.text(item.cantidad.toString(), colQty, y, { align: 'center', width: 40 });
     doc.text(formatPrice(item.precio_unitario), colPrice, y, { align: 'right', width: 70 });
-    doc.text(formatPrice(totalItem), colTotal, y, { align: 'right', width: 75 });
+    doc.text(formatPrice(totalItem), colTotal, y, { align: 'right', width: 65 });
 
-    y += rowHeight + 10;
+    y += rowHeight + 15; // More breathing room rows
 
     // Tiny divider line
     doc.save()
-      .moveTo(50, y - 5)
-      .lineTo(545, y - 5)
+      .moveTo(50, y - 7)
+      .lineTo(545, y - 7)
       .lineWidth(0.5)
       .stroke('#f3f4f6')
       .restore();
@@ -162,9 +169,15 @@ async function buildPdfContent(doc: PDFKit.PDFDocument, data: InvoiceData): Prom
 
   // 4. SUMMARY
   y += 20;
-  const summaryXLabel = 350;
-  const summaryXValue = 450;
-  const valueWidth = 95;
+  // If near bottom, add page
+  if (y > 700) {
+    doc.addPage();
+    y = 50;
+  }
+
+  const summaryXLabel = 340;
+  const summaryXValue = 440;
+  const valueWidth = 105;
 
   doc.fontSize(10);
 
@@ -172,39 +185,41 @@ async function buildPdfContent(doc: PDFKit.PDFDocument, data: InvoiceData): Prom
   doc.font('Helvetica').fillColor('#374151');
   doc.text('Subtotal', summaryXLabel, y, { align: 'right', width: 90 });
   doc.text(formatPrice(data.subtotal), summaryXValue, y, { align: 'right', width: valueWidth });
-  y += 18;
+  y += 20;
 
   // Envío
   doc.text('Envío', summaryXLabel, y, { align: 'right', width: 90 });
   doc.text(data.envio !== undefined && data.envio > 0 ? formatPrice(data.envio) : 'Gratis', summaryXValue, y, { align: 'right', width: valueWidth });
-  y += 18;
-
-  // Descuento (only if exists)
-  if (data.descuento > 0) {
-    doc.fillColor('#16a34a');
-    doc.text('Descuento', summaryXLabel, y, { align: 'right', width: 90 });
-    doc.text('-' + formatPrice(data.descuento), summaryXValue, y, { align: 'right', width: valueWidth });
-    y += 18;
-  }
+  y += 20;
 
   // Impuestos
-  doc.fillColor('#374151');
-  doc.text('IVA (incluido)', summaryXLabel, y, { align: 'right', width: 90 });
+  doc.text('IVA (21%)', summaryXLabel, y, { align: 'right', width: 90 });
   doc.text(formatPrice(data.impuestos), summaryXValue, y, { align: 'right', width: valueWidth });
-  y += 25;
+  y += 20;
 
-  // Total
-  doc.rect(summaryXLabel, y - 8, 200, 30).fill('#f9fafb');
+  // Descuento
+  if (data.descuento > 0) {
+    doc.fillColor('#16a34a'); // Green
+    doc.text('Descuento', summaryXLabel, y, { align: 'right', width: 90 });
+    doc.text('-' + formatPrice(data.descuento), summaryXValue, y, { align: 'right', width: valueWidth });
+    y += 20;
+  }
+
+  y += 10;
+
+  // Total Box
+  doc.rect(summaryXLabel, y - 10, 215, 35).fill('#f9fafb').stroke('#e5e7eb');
+
   doc.fillColor('#111827').font('Helvetica-Bold').fontSize(12);
-  doc.text('TOTAL', summaryXLabel + 10, y, { align: 'left', width: 90 });
-  doc.text(formatPrice(data.total), summaryXValue, y, { align: 'right', width: valueWidth });
+  doc.text('TOTAL', summaryXLabel + 15, y, { align: 'left', width: 90 }); // Vertically centered roughly by calc
+  doc.text(formatPrice(data.total), summaryXValue, y, { align: 'right', width: valueWidth - 10 });
 
 
   // 5. FOOTER
   const footerY = 750;
   doc.fontSize(8).font('Helvetica').fillColor('#9ca3af');
-  doc.text('Gracias por su confianza', 50, footerY, { align: 'center' });
-  doc.text('FashionStore - Tienda Online de Moda', 50, footerY + 12, { align: 'center' });
+  doc.text('Gracias por su compra en FashionStore', 50, footerY, { align: 'center' });
+  doc.text('Este documento es un comprobante de venta electrónica.', 50, footerY + 12, { align: 'center' });
 }
 
 export function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {

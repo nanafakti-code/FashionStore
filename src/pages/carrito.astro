@@ -1,12 +1,10 @@
 ---
-import Layout from '@/layouts/Layout.astro';
-import Header from '@/components/Header.astro';
-import Cart from '@/components/islands/Cart';
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Cart from "@/components/islands/Cart";
 ---
 
 <Layout title="Carrito - FashionStore">
-  <Header />
-  
   <main class="min-h-screen bg-[#f5f5f7]">
     <!-- Breadcrumb -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -18,10 +16,14 @@ import Cart from '@/components/islands/Cart';
     </div>
 
     {/* Cart Header */}
-    <section class="bg-gradient-to-r from-[#00aa45] to-green-600 text-white py-12">
+    <section
+      class="bg-gradient-to-r from-[#00aa45] to-green-600 text-white py-12"
+    >
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 class="text-4xl sm:text-5xl font-black italic mb-4">Tu Carrito</h1>
-        <p class="text-lg text-white/90">Revisa y confirma tus productos antes de tramitar el pedido</p>
+        <p class="text-lg text-white/90">
+          Revisa y confirma tus productos antes de tramitar el pedido
+        </p>
       </div>
     </section>
 

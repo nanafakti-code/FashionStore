@@ -1,6 +1,5 @@
 ---
 import Layout from '@/layouts/Layout.astro';
-import Header from '@/components/Header.astro';
 import ProductCard from '@/components/ProductCard.astro';
 import { categories, categoryProducts } from '@/lib/categoryData';
 
@@ -21,7 +20,7 @@ export function getStaticPaths() {
 ---
 
 <Layout title={`${category.name} - FashionStore`}>
-  <Header />
+
   
   <main class="min-h-screen bg-[#f5f5f7]">
     <!-- Breadcrumb -->

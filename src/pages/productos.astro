@@ -1,6 +1,5 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import Header from "@/components/Header.astro";
 import ProductCard from "@/components/ProductCard.astro";
 import PriceRangeFilter from "@/components/islands/PriceRangeFilter";
 import CollapsibleFilter from "@/components/islands/CollapsibleFilter";
@@ -108,7 +107,7 @@ const maxPriceInEuros = Math.ceil(maxPriceInDB / 100);
 ---
 
 <Layout title="Productos - FashionStore">
-  <Header />
+
 
   <div class="min-h-screen bg-gray-50">
     {/* Header Section */}

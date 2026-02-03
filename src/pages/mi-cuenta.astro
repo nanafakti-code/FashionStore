@@ -8,16 +8,16 @@
  * - Solicitar devoluciones
  * - Cambiar contraseña
  */
-import BaseLayout from "@/layouts/BaseLayout.astro";
-import Header from "@/components/Header.astro";
+import Layout from "@/layouts/Layout.astro";
 import MiCuentaClientV2 from "@/components/islands/MiCuentaClientV2";
 ---
 
-<BaseLayout title="Mi Cuenta | FashionStore">
-  <Header />
-  <main class="min-h-screen bg-gradient-to-br from-[#f5f5f7] via-white to-[#f0fff6] py-12">
+<Layout title="Mi Cuenta | FashionStore">
+  <main
+    class="min-h-screen bg-gradient-to-br from-[#f5f5f7] via-white to-[#f0fff6] py-12"
+  >
     <div class="max-w-7xl mx-auto px-4">
       <MiCuentaClientV2 client:load />
     </div>
   </main>
-</BaseLayout>
+</Layout>

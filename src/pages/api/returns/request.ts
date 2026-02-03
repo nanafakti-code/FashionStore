@@ -14,7 +14,7 @@
 
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
-import { sendAdminNotificationEmail } from '@/lib/emailService';
+import { sendAdminNotificationEmail, sendReturnInstructionsEmail } from '@/lib/emailService';
 
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -85,8 +85,8 @@ export const POST: APIRoute = async (context) => {
     if (!validStates.includes(order.estado)) {
       console.log(`[RETURNS] Estado inválido: ${order.estado}`);
       return new Response(
-        JSON.stringify({ 
-          error: `No se puede solicitar devolución para un pedido en estado "${order.estado}"` 
+        JSON.stringify({
+          error: `No se puede solicitar devolución para un pedido en estado "${order.estado}"`
         }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
@@ -101,8 +101,8 @@ export const POST: APIRoute = async (context) => {
     if (daysSince > 30) {
       console.log(`[RETURNS] Plazo expirado: ${daysSince} días`);
       return new Response(
-        JSON.stringify({ 
-          error: 'El plazo de 30 días para solicitar devolución ha expirado' 
+        JSON.stringify({
+          error: 'El plazo de 30 días para solicitar devolución ha expirado'
         }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
@@ -122,7 +122,7 @@ export const POST: APIRoute = async (context) => {
     // 6. CREAR REGISTRO DE DEVOLUCIÓN (si existe la tabla)
     // ============================================================
     const returnNumber = `RET-${order.numero_orden.replace('FS-', '')}`;
-    
+
     try {
       await supabase
         .from('devoluciones')
@@ -172,6 +172,7 @@ export const POST: APIRoute = async (context) => {
     // 9. ENVIAR EMAIL AL ADMINISTRADOR
     // ============================================================
     try {
+      // 1. Notificar al Admin
       await sendAdminNotificationEmail({
         type: 'return_request',
         order_number: order.numero_orden,
@@ -182,6 +183,16 @@ export const POST: APIRoute = async (context) => {
         return_reason: reason || 'No especificado',
       });
       console.log('[RETURNS] Email enviado al administrador');
+
+      // 2. Enviar instrucciones al Cliente
+      await sendReturnInstructionsEmail(
+        order.email_cliente,
+        order.nombre_cliente,
+        order.numero_orden,
+        returnNumber
+      );
+      console.log('[RETURNS] Email de instrucciones enviado al cliente');
+
     } catch (emailError) {
       console.error('[RETURNS] Error enviando email:', emailError);
       // No fallamos la solicitud por error de email

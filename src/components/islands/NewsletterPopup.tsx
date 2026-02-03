@@ -38,6 +38,18 @@ export default function NewsletterPopup({ delay = 5000 }: NewsletterPopupProps) 
     return () => clearTimeout(timer);
   }, [delay]);
 
+  // Bloquear scroll cuando el popup está abierto
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   const handleClose = () => {
     setIsOpen(false);
     // Guardar que el usuario cerró el popup (expira en 7 días)
@@ -46,7 +58,7 @@ export default function NewsletterPopup({ delay = 5000 }: NewsletterPopupProps) 
 
   const handleSubmit = async (e: JSX.TargetedEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     if (!email || !email.includes('@')) {
       setStatus('error');
       setMessage('Por favor, introduce un email válido');
@@ -123,26 +135,26 @@ export default function NewsletterPopup({ delay = 5000 }: NewsletterPopupProps) 
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">¡Gracias por suscribirte!</h3>
               <p className="text-gray-600 mb-4">Tu código de descuento:</p>
-              
+
               {/* Código de descuento */}
               <div className="bg-gray-100 rounded-lg p-4 mb-4">
                 <p className="text-2xl font-mono font-bold text-[#00aa45] tracking-wider">{discountCode}</p>
               </div>
-              
+
               <button
                 onClick={copyCode}
                 className="w-full bg-[#00aa45] text-white py-3 rounded-lg font-bold hover:bg-green-700 transition-colors mb-3"
               >
                 Copiar código
               </button>
-              
+
               <button
                 onClick={handleClose}
                 className="w-full text-gray-600 py-2 font-medium hover:text-gray-900 transition-colors"
               >
                 Continuar comprando
               </button>
-              
+
               <p className="text-xs text-gray-500 mt-4">
                 También te hemos enviado el código por email. Válido por 30 días.
               </p>
