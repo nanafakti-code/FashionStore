@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 
 interface AddReviewButtonProps {
   productId: string;
+  orderId?: string;
   onReviewAdded?: () => void;
   existingReview?: {
     id: string;
@@ -14,7 +15,7 @@ interface AddReviewButtonProps {
   } | null;
 }
 
-export default function AddReviewButton({ productId, onReviewAdded, existingReview }: AddReviewButtonProps) {
+export default function AddReviewButton({ productId, orderId, onReviewAdded, existingReview }: AddReviewButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [rating, setRating] = useState(existingReview?.calificacion || 5);
   const [title, setTitle] = useState(existingReview?.titulo || '');
@@ -28,6 +29,17 @@ export default function AddReviewButton({ productId, onReviewAdded, existingRevi
     setNotification({ type, message });
     setTimeout(() => setNotification(null), 4000);
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
 
   if (isVerified) {
     return (
@@ -74,6 +86,7 @@ export default function AddReviewButton({ productId, onReviewAdded, existingRevi
         },
         body: JSON.stringify({
           productId,
+          orderId,
           calificacion: rating,
           titulo: titleValue,
           comentario: commentValue,
