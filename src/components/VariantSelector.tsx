@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Variant {
     variant_id: string;
@@ -28,6 +29,8 @@ export default function VariantSelector({ productSlug, onVariantChange, onImageC
     const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [showToast, setShowToast] = useState(false);
+    const [toastType, setToastType] = useState<'success' | 'error'>('success');
 
     useEffect(() => {
         fetchVariants();
@@ -288,30 +291,17 @@ export default function VariantSelector({ productSlug, onVariantChange, onImageC
             {selectedVariant && (
                 <button
                     onClick={async () => {
-                        if (selectedVariant.stock === 0) return;
+                        if (selectedVariant.stock === 0) {
+                            setToastType('error');
+                            setShowToast(true);
+                            setTimeout(() => setShowToast(false), 3000);
+                            return;
+                        }
 
                         try {
                             const { data: { session } } = await supabase.auth.getSession();
                             const token = session?.access_token;
 
-                            // Import dynamic import or moving import to top?
-                            // Better to have import at top, but for now using inline dynamic import or just modify top of file
-                            // But replace_file_content is block based.
-                            // I will assume I can't easily add import to top without replacing top.
-                            // So I will likely use `getOrCreateGuestSessionId` if I imported it.
-                            // Error: I haven't imported it yet.
-                            // I should do two changes: 1. Add import. 2. Update logic.
-
-                            // Hack: Copy helper function here or import at top in a separate step.
-                            // Better: modify top first. 
-
-                            // Let's modify logic to use header. 
-                            // I need the session ID. 
-                            // accessing localStorage directly is easier than importing if I don't want to touch top.
-                            // But cleaner is to import.
-
-                            // I will proceed with this block assumnig I added import in next step? No.
-                            // I'll use localStorage directly here to get the ID, as it is simple.
                             let guestSessionId = localStorage.getItem('fashionstore_guest_session_id');
                             if (!guestSessionId) {
                                 guestSessionId = crypto.randomUUID();
@@ -331,7 +321,7 @@ export default function VariantSelector({ productSlug, onVariantChange, onImageC
                                 headers,
                                 body: JSON.stringify({
                                     variantId: selectedVariant.variant_id,
-                                    variantName: selectedVariant.variant_name, // Optional backend?
+                                    variantName: selectedVariant.variant_name,
                                     price: selectedVariant.price,
                                     imageUrl: selectedVariant.image_url,
                                     quantity: 1
@@ -341,33 +331,89 @@ export default function VariantSelector({ productSlug, onVariantChange, onImageC
                             const result = await response.json();
 
                             if (response.ok) {
-                                // Despachar evento para actualizar el carrito (que ahora lee de BD)
                                 if (result.authenticated) {
-                                    window.dispatchEvent(new Event('authCartUpdated'));
+                                    const event = new CustomEvent('authCartUpdated');
+                                    window.dispatchEvent(event);
                                 } else {
-                                    window.dispatchEvent(new Event('guestCartUpdated'));
+                                    const event = new CustomEvent('guestCartUpdated');
+                                    window.dispatchEvent(event);
                                 }
                                 window.dispatchEvent(new Event('cartUpdated'));
+
+                                // Show Toast
+                                setToastType('success');
+                                setShowToast(true);
+                                setTimeout(() => setShowToast(false), 3000);
                             } else {
                                 console.error(result.error || 'Error al añadir al carrito');
-                                // alert(result.error || 'Error al añadir al carrito');
+                                if (response.status === 400 && (result.error?.toLowerCase().includes('stock') || result.error?.toLowerCase().includes('insufficient'))) {
+                                    setToastType('error');
+                                    setShowToast(true);
+                                    setTimeout(() => setShowToast(false), 3000);
+
+                                    // Actualizar stock local a 0 para reflejar la realidad
+                                    setSelectedVariant(prev => prev ? ({ ...prev, stock: 0 }) : null);
+                                    setVariants(prev => prev.map(v =>
+                                        v.variant_id === selectedVariant.variant_id
+                                            ? { ...v, stock: 0 }
+                                            : v
+                                    ));
+                                }
                             }
                         } catch (error) {
                             console.error('Error:', error);
                         }
                     }}
-                    disabled={selectedVariant.stock === 0}
                     className={`
             w-full py-3 px-6 rounded-lg font-semibold text-white transition-all
             ${selectedVariant.stock > 0
                             ? 'bg-blue-600 hover:bg-blue-700 active:scale-95'
-                            : 'bg-gray-400 cursor-not-allowed'
+                            : 'bg-gray-400 hover:bg-gray-500 active:scale-95'
                         }
           `}
                 >
                     {selectedVariant.stock > 0 ? 'Añadir al carrito' : 'Agotado'}
                 </button>
             )}
+
+            <AnimatePresence>
+                {showToast && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 50, x: 0 }}
+                        animate={{ opacity: 1, y: 0, x: 0 }}
+                        exit={{ opacity: 0, y: 50, x: 0 }}
+                        className={`fixed top-4 left-4 right-4 md:left-auto md:right-4 md:top-24 md:bottom-auto z-[9999] bg-white border ${toastType === 'success' ? 'border-[#00aa45]/20' : 'border-red-500/20'} text-gray-900 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 w-auto md:w-full max-w-sm`}
+                    >
+                        <div className={`${toastType === 'success' ? 'bg-[#00aa45]' : 'bg-red-500'} p-2 rounded-full shrink-0`}>
+                            {toastType === 'success' ? (
+                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            ) : (
+                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            )}
+                        </div>
+                        <div>
+                            <p className={`font-bold ${toastType === 'success' ? 'text-[#00aa45]' : 'text-red-500'}`}>
+                                {toastType === 'success' ? '¡Añadido al carrito!' : 'Stock agotado'}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                                {toastType === 'success' ? 'Producto agregado correctamente' : 'No hay stock disponible'}
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => setShowToast(false)}
+                            className="ml-auto text-gray-400 hover:text-gray-600"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

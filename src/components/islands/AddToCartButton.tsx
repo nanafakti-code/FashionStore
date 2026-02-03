@@ -24,6 +24,8 @@ export default function AddToCartButton({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [showToast, setShowToast] = useState(false);
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
 
   // Verificar autenticación
   useEffect(() => {
@@ -42,6 +44,14 @@ export default function AddToCartButton({
 
   const handleAddToCart = async (e: any) => {
     e.preventDefault();
+
+    if (stock <= 0) {
+      setToastType('error');
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -53,7 +63,9 @@ export default function AddToCartButton({
       const success = await addToCart(productId, productName, price, image, 1);
 
       if (!success) {
-        setError('Error al añadir producto');
+        setToastType('error');
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
         setLoading(false);
         return;
       }
@@ -73,6 +85,10 @@ export default function AddToCartButton({
       }
 
       setIsAdded(true);
+      setIsAdded(true);
+      setToastType('success');
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
 
       // Sincronizar carrito
       try {
@@ -105,7 +121,7 @@ export default function AddToCartButton({
     );
   }
 
-  const isDisabled = loading || stock <= 0;
+  const isDisabled = loading;
 
   return (
     <div className="mt-4 w-full">
@@ -120,7 +136,7 @@ export default function AddToCartButton({
         }}
         transition={{ duration: 0.3 }}
         className={`w-full py-3.5 px-6 rounded-xl font-bold text-base flex items-center justify-center gap-2 shadow-sm
-          ${stock <= 0 ? 'cursor-not-allowed' : 'hover:shadow-lg hover:-translate-y-0.5 transition-shadow'}
+          ${stock <= 0 ? 'hover:bg-gray-300 active:scale-95' : 'hover:shadow-lg hover:-translate-y-0.5 transition-shadow'}
         `}
         aria-label={`Añadir ${productName} al carrito`}
       >
@@ -208,6 +224,45 @@ export default function AddToCartButton({
           Solo queda 1 unidad
         </p>
       )}
+
+      <AnimatePresence>
+        {showToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, x: 0 }}
+            animate={{ opacity: 1, y: 0, x: 0 }}
+            exit={{ opacity: 0, y: 50, x: 0 }}
+            className={`fixed top-4 left-4 right-4 md:left-auto md:right-4 md:top-24 md:bottom-auto z-[9999] bg-white border ${toastType === 'success' ? 'border-[#00aa45]/20' : 'border-red-500/20'} text-gray-900 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 w-auto md:w-full max-w-sm`}
+          >
+            <div className={`${toastType === 'success' ? 'bg-[#00aa45]' : 'bg-red-500'} p-2 rounded-full shrink-0`}>
+              {toastType === 'success' ? (
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path>
+                </svg>
+              ) : (
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              )}
+            </div>
+            <div>
+              <p className={`font-bold ${toastType === 'success' ? 'text-[#00aa45]' : 'text-red-500'}`}>
+                {toastType === 'success' ? '¡Añadido al carrito!' : 'Stock agotado'}
+              </p>
+              <p className="text-sm text-gray-600">
+                {toastType === 'success' ? 'Producto agregado correctamente' : 'No hay stock disponible'}
+              </p>
+            </div>
+            <button
+              onClick={() => setShowToast(false)}
+              className="ml-auto text-gray-400 hover:text-gray-600"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

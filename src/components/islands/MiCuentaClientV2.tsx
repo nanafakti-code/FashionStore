@@ -117,6 +117,14 @@ export default function MiCuentaClientV2() {
     message: string;
   } | null>(null);
 
+  // Estado para notificaciones Toast
+  const [notification, setNotification] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+
+  const showNotification = (type: 'success' | 'error' | 'info', message: string) => {
+    setNotification({ type, message });
+    setTimeout(() => setNotification(null), 4000);
+  };
+
   // ============================================================
   // CARGAR DATOS
   // ============================================================
@@ -310,9 +318,7 @@ export default function MiCuentaClientV2() {
     );
 
     if (daysSinceOrder > 30) {
-      alert(
-        "El plazo de devolución de 30 días ha expirado para este pedido."
-      );
+      showNotification('error', "El plazo de devolución de 30 días ha expirado para este pedido.");
       return;
     }
 
@@ -343,11 +349,12 @@ export default function MiCuentaClientV2() {
         setShowReturnModal(false);
         setReturnReason("");
         setSelectedOrder(null);
-        alert(
+        showNotification(
+          "success",
           "Solicitud de devolución enviada. Recibirás un email con las instrucciones."
         );
       } else {
-        // alert(result.error || "Error al procesar la solicitud");
+        showNotification("error", result.error || "Error al procesar la solicitud");
         console.error(result.error || "Error al procesar la solicitud");
       }
     } catch (error) {
@@ -781,6 +788,32 @@ export default function MiCuentaClientV2() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      {/* Notificación Toast Global */}
+      {notification && (
+        <div className={`fixed top-4 right-4 px-6 py-4 rounded-lg shadow-lg text-white font-semibold max-w-sm animate-in fade-in z-50 ${notification.type === 'success' ? 'bg-[#00aa45]' :
+          notification.type === 'error' ? 'bg-red-600' :
+            'bg-blue-600'
+          }`}>
+          <div className="flex items-center gap-2">
+            {notification.type === 'success' && (
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+              </svg>
+            )}
+            {notification.type === 'error' && (
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
+              </svg>
+            )}
+            {notification.type === 'info' && (
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+              </svg>
+            )}
+            <span>{notification.message}</span>
+          </div>
+        </div>
+      )}
       {/* ============================================================ */}
       {/* SIDEBAR */}
       {/* ============================================================ */}
@@ -868,7 +901,7 @@ export default function MiCuentaClientV2() {
                   clipRule="evenodd"
                 ></path>
               </svg>
-              Cambiar Contrasena
+              Cambiar Contraseña
             </button>
 
             <button
@@ -1363,7 +1396,7 @@ export default function MiCuentaClientV2() {
                 type="submit"
                 className="w-full bg-gradient-to-r from-[#00aa45] to-[#009340] text-white py-3 rounded-xl font-bold hover:shadow-lg transition duration-200"
               >
-                Cambiar Contrasena
+                Cambiar Contraseña
               </button>
             </form>
           </div>
