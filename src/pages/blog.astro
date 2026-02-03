@@ -1,0 +1,92 @@
+---
+import Layout from "@/layouts/Layout.astro";
+
+const posts = [
+    {
+        title: "¿Por qué elegir reacondicionado en 2026?",
+        excerpt:
+            "Descubre las ventajas económicas y ambientales de dar una segunda vida a la tecnología.",
+        date: "3 Feb 2026",
+        category: "Sostenibilidad",
+        image: "https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&w=800&q=80",
+    },
+    {
+        title: "Guía de compra: iPhone 15 vs iPhone 16",
+        excerpt:
+            "Analizamos las diferencias clave para ayudarte a decidir cuál es la mejor opción para ti.",
+        date: "28 Ene 2026",
+        category: "Guías",
+        image: "https://images.unsplash.com/photo-1696446701796-da61225697cc?auto=format&fit=crop&w=800&q=80",
+    },
+    {
+        title: "Mantenimiento de batería: Mitos y verdades",
+        excerpt:
+            "Cómo cuidar la batería de tu portátil o móvil para extender su vida útil al máximo.",
+        date: "15 Ene 2026",
+        category: "Consejos",
+        image: "https://images.unsplash.com/photo-1592434134753-a70baf7979d5?auto=format&fit=crop&w=800&q=80",
+    },
+];
+---
+
+<Layout title="Blog | FashionStore">
+    <main class="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h1
+                class="text-4xl sm:text-5xl font-black italic text-gray-900 mb-4"
+            >
+                El Blog de FashionStore
+            </h1>
+            <p class="text-xl text-gray-600">
+                Noticias, guías y consejos sobre tecnología y sostenibilidad.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {
+                posts.map((post) => (
+                    <article class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-gray-100">
+                        <img
+                            src={post.image}
+                            alt={post.title}
+                            class="w-full h-48 object-cover"
+                        />
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-3 text-sm">
+                                <span class="text-[#00aa45] font-bold">
+                                    {post.category}
+                                </span>
+                                <span class="text-gray-500">{post.date}</span>
+                            </div>
+                            <h2 class="text-xl font-bold text-gray-900 mb-3 hover:text-[#00aa45] transition-colors cursor-pointer">
+                                {post.title}
+                            </h2>
+                            <p class="text-gray-600 mb-4 text-sm leading-relaxed">
+                                {post.excerpt}
+                            </p>
+                            <a
+                                href="#"
+                                class="inline-flex items-center text-sm font-semibold text-gray-900 hover:underline"
+                            >
+                                Leer más
+                                <svg
+                                    class="w-4 h-4 ml-1"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M17 8l4 4m0 0l-4 4m4-4H3"
+                                    />
+                                </svg>
+                            </a>
+                        </div>
+                    </article>
+                ))
+            }
+        </div>
+    </main>
+</Layout>
