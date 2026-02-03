@@ -60,7 +60,7 @@ const { title } = Astro.props;
         class="w-64 bg-gray-900 text-white shadow-lg fixed h-screen overflow-y-auto transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-50 md:z-auto md:relative flex flex-col"
       >
         <!-- Logo -->
-        <div class="sidebar-logo p-6 border-b border-gray-800">
+        <div class="sidebar-logo hidden md:flex p-6 border-b border-gray-800">
           <a
             href="/admin/dashboard"
             class="flex items-center gap-2 hover:opacity-80 transition"
@@ -359,7 +359,11 @@ const { title } = Astro.props;
                 <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"></path>
               </svg>
             </button>
-
+            <div class="flex-1 md:hidden flex justify-center">
+              <span class="text-white font-black italic text-lg sm:text-2xl"
+                >Fashion<span class="text-[#00aa45]">Store</span></span
+              >
+            </div>
             <button
               onclick="showLogoutModal()"
               class="md:hidden p-2 hover:bg-gray-800 rounded-lg transition flex-shrink-0"
