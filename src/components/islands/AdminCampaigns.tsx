@@ -381,7 +381,7 @@ export default function AdminCampaigns() {
       {/* ─── Notification Toast ─── */}
       {notification && (
         <div className={`fixed top-4 right-4 z-50 px-5 py-3 rounded-lg shadow-lg text-white font-medium transition-all ${notification.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
-          {notification.type === 'success' ? '✅' : '❌'} {notification.msg}
+          {notification.msg}
         </div>
       )}
 
@@ -399,15 +399,15 @@ export default function AdminCampaigns() {
       {/* ─── Header + Stats ─── */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">📧 Campañas de Newsletter</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Campañas de Newsletter</h1>
           <p className="text-gray-500 text-sm mt-1">Gestiona tus campañas de email marketing</p>
         </div>
         <div className="flex gap-2 flex-wrap">
           <button onClick={() => { setView('subscribers'); }} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === 'subscribers' ? 'text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`} style={view === 'subscribers' ? { background: BRAND } : {}}>
-            👥 Suscriptores ({stats.total_suscriptores})
+            Suscriptores ({stats.total_suscriptores})
           </button>
           <button onClick={() => { setView('list'); }} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === 'list' ? 'text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`} style={view === 'list' ? { background: BRAND } : {}}>
-            📋 Campañas ({stats.total_campanas})
+            Campañas ({stats.total_campanas})
           </button>
           <button onClick={() => { resetForm(); setView('create'); }} className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90" style={{ background: BRAND }}>
             + Nueva campaña
@@ -435,12 +435,12 @@ export default function AdminCampaigns() {
       {view === 'subscribers' && (
         <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
           <div className="p-5 border-b">
-            <h2 className="text-lg font-bold text-gray-900">👥 Suscriptores de Newsletter</h2>
+            <h2 className="text-lg font-bold text-gray-900">Suscriptores de Newsletter</h2>
             <p className="text-sm text-gray-500 mt-1">{subscribers.length} suscriptores activos</p>
           </div>
           {subscribers.length === 0 ? (
             <div className="p-10 text-center text-gray-400">
-              <p className="text-4xl mb-3">📭</p>
+              <p className="text-gray-300 text-5xl mb-3">--</p>
               <p>No hay suscriptores todavía</p>
             </div>
           ) : (
@@ -474,11 +474,11 @@ export default function AdminCampaigns() {
       {view === 'list' && (
         <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
           <div className="p-5 border-b">
-            <h2 className="text-lg font-bold text-gray-900">📋 Campañas creadas</h2>
+            <h2 className="text-lg font-bold text-gray-900">Campañas creadas</h2>
           </div>
           {campaigns.length === 0 ? (
             <div className="p-10 text-center text-gray-400">
-              <p className="text-4xl mb-3">📭</p>
+              <p className="text-gray-300 text-5xl mb-3">--</p>
               <p>No hay campañas todavía</p>
               <button onClick={() => { resetForm(); setView('create'); }} className="mt-4 px-5 py-2 rounded-lg text-white text-sm font-semibold hover:opacity-90" style={{ background: BRAND }}>
                 Crear primera campaña
@@ -517,19 +517,19 @@ export default function AdminCampaigns() {
                         <div className="flex gap-1 justify-end">
                           {c.estado === 'Borrador' && (
                             <>
-                              <button onClick={() => setConfirmSend(c.id)} title="Enviar" className="p-2 rounded-lg hover:bg-green-50 text-green-600 transition-colors">
-                                🚀
+                              <button onClick={() => setConfirmSend(c.id)} title="Enviar" className="p-2 rounded-lg hover:bg-green-50 text-green-600 transition-colors text-xs font-semibold">
+                                Enviar
                               </button>
-                              <button onClick={() => startEdit(c)} title="Editar" className="p-2 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors">
-                                ✏️
+                              <button onClick={() => startEdit(c)} title="Editar" className="p-2 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors text-xs font-semibold">
+                                Editar
                               </button>
                             </>
                           )}
-                          <button onClick={() => handleDuplicate(c.id)} title="Duplicar" className="p-2 rounded-lg hover:bg-purple-50 text-purple-600 transition-colors">
-                            📋
+                          <button onClick={() => handleDuplicate(c.id)} title="Duplicar" className="p-2 rounded-lg hover:bg-purple-50 text-purple-600 transition-colors text-xs font-semibold">
+                            Copiar
                           </button>
-                          <button onClick={() => setConfirmDelete(c.id)} title="Eliminar" className="p-2 rounded-lg hover:bg-red-50 text-red-600 transition-colors">
-                            🗑️
+                          <button onClick={() => setConfirmDelete(c.id)} title="Eliminar" className="p-2 rounded-lg hover:bg-red-50 text-red-600 transition-colors text-xs font-semibold">
+                            Eliminar
                           </button>
                         </div>
                       </td>
@@ -548,13 +548,13 @@ export default function AdminCampaigns() {
           <div className="p-5 border-b flex items-center justify-between">
             <div>
               <h2 className="text-lg font-bold text-gray-900">
-                {editingId ? '✏️ Editar campaña' : '📝 Nueva campaña'}
+                {editingId ? 'Editar campaña' : 'Nueva campaña'}
               </h2>
               <p className="text-sm text-gray-500 mt-1">
                 {editingId ? 'Modifica los datos de la campaña' : 'Crea una nueva campaña de email marketing'}
               </p>
             </div>
-            <button onClick={() => { resetForm(); setView('list'); }} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+            <button onClick={() => { resetForm(); setView('list'); }} className="text-gray-400 hover:text-gray-600 text-xl">X</button>
           </div>
 
           <form onSubmit={handleSave} className="p-5 space-y-5">
@@ -615,7 +615,7 @@ export default function AdminCampaigns() {
                 <label className="block text-sm font-medium text-gray-700">Contenido HTML *</label>
                 <button type="button" onClick={() => setShowPreview(!showPreview)}
                   className="text-xs font-medium px-3 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 transition-all">
-                  {showPreview ? '📝 Editor' : '👁️ Vista previa'}
+                  {showPreview ? 'Editor' : 'Vista previa'}
                 </button>
               </div>
 
@@ -630,7 +630,7 @@ export default function AdminCampaigns() {
                   placeholder="<h2>Título</h2>\n<p>Contenido de tu newsletter...</p>" required />
               )}
               <p className="text-xs text-gray-400 mt-1">
-                💡 Usa HTML para dar formato. El email se envuelve automáticamente con la plantilla de FashionStore (logo, footer, enlace de cancelar suscripción).
+                Usa HTML para dar formato. El email se envuelve automáticamente con la plantilla de FashionStore (logo, footer, enlace de cancelar suscripción).
               </p>
             </div>
 
@@ -665,7 +665,7 @@ export default function AdminCampaigns() {
                 {estadoBadge(selectedCampaign.estado)}
                 {selectedCampaign.estado === 'Borrador' && (
                   <button onClick={() => setConfirmSend(selectedCampaign.id)} className="px-4 py-2 rounded-lg text-white text-sm font-semibold hover:opacity-90" style={{ background: BRAND }}>
-                    🚀 Enviar ahora
+                    Enviar ahora
                   </button>
                 )}
               </div>
@@ -703,7 +703,7 @@ export default function AdminCampaigns() {
           {campaignLogs.length > 0 && (
             <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
               <div className="p-5 border-b">
-                <h3 className="text-sm font-bold text-gray-900">📊 Registro de envíos ({campaignLogs.length})</h3>
+                <h3 className="text-sm font-bold text-gray-900">Registro de envíos ({campaignLogs.length})</h3>
               </div>
               <div className="overflow-x-auto" style={{ maxHeight: 300, overflowY: 'auto' }}>
                 <table className="w-full text-sm">
@@ -740,12 +740,12 @@ export default function AdminCampaigns() {
       {confirmSend && (
         <div className="fixed inset-0 z-40 bg-black/40 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">🚀 Confirmar envío</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Confirmar envío</h3>
             <p className="text-gray-600 text-sm mb-1">
               ¿Estás seguro de enviar esta campaña a <strong>{stats.total_suscriptores} suscriptores</strong>?
             </p>
             <p className="text-xs text-amber-600 bg-amber-50 rounded-lg p-2 mb-4">
-              ⚠️ Esta acción no se puede deshacer. Los emails se enviarán inmediatamente.
+              Atención: Esta acción no se puede deshacer. Los emails se enviarán inmediatamente.
             </p>
             <div className="flex gap-3 justify-end">
               <button onClick={() => setConfirmSend(null)} className="px-4 py-2 rounded-lg border text-gray-700 hover:bg-gray-50 text-sm">
@@ -763,7 +763,7 @@ export default function AdminCampaigns() {
       {confirmDelete && (
         <div className="fixed inset-0 z-40 bg-black/40 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">🗑️ Eliminar campaña</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Eliminar campaña</h3>
             <p className="text-gray-600 text-sm mb-4">
               ¿Estás seguro de eliminar esta campaña? Se eliminarán también todos sus registros de envío.
             </p>

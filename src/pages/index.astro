@@ -2,6 +2,7 @@
 import Layout from "@/layouts/Layout.astro";
 import ProductCard from "@/components/ProductCard.astro";
 import HeroImage from "@/components/islands/HeroImage";
+import NewsletterSection from "@/components/islands/NewsletterSection";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 // ============================================
@@ -460,6 +461,9 @@ console.log("featuredProducts count:", featuredProducts.length);
         }
       </div>
     </section>
+
+    <!-- Newsletter Subscription Section -->
+    <NewsletterSection client:visible />
 
     <!-- Call to Action -->
     <section
