@@ -3,6 +3,11 @@
 -- El checkout usa la tabla "coupons" (inglés), NO "cupones" ni "cupones_descuento"
 -- ============================================================================
 
+-- Primero, limpiar suscripciones de prueba antiguas
+DELETE FROM newsletter_subscriptions WHERE codigo_descuento IS NULL OR codigo_descuento = '';
+
+-- Ahora la función RPC:
+
 CREATE OR REPLACE FUNCTION newsletter_signup(p_email TEXT)
 RETURNS TABLE(success BOOLEAN, message TEXT, codigo TEXT) AS $$
 DECLARE
