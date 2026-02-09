@@ -178,12 +178,12 @@ export default function AdminDashboard({ initialSection = 'dashboard' }: AdminDa
           .filter((p: any) => p.creado_en.startsWith(mesActual))
           .reduce((sum: number, p: any) => sum + (p.total_precio || 0), 0);
 
-        // Filtrar pedidos excluyendo "pendiente"
+        // Filtrar pedidos excluyendo estado "pendiente" (case-insensitive)
         const pedidosFiltrados = pedidosData.filter(
-          (p: any) => p.estado !== "pendiente"
+          (p: any) => p.estado && p.estado.toLowerCase() !== "pendiente"
         );
 
-        setPedidos(pedidosFiltrados.slice(0, 10));
+        setPedidos(pedidosFiltrados.length > 0 ? pedidosFiltrados.slice(0, 10) : pedidosData.slice(0, 10));
         setStats((prev) => ({
           ...prev,
           totalPedidos,
