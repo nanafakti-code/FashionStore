@@ -48,15 +48,59 @@ CREATE TABLE IF NOT EXISTS campanas_email (
   actualizada_en TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 3. Tabla campana_email_logs (ya debería existir)
+-- 3. Tabla campana_email_logs (puede existir con schema antiguo: usuario_id en vez de email)
 CREATE TABLE IF NOT EXISTS campana_email_logs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   campana_id UUID NOT NULL REFERENCES campanas_email(id) ON DELETE CASCADE,
-  email TEXT NOT NULL,
-  estado TEXT DEFAULT 'Enviado' CHECK (estado IN ('Enviado', 'Fallido', 'Abierto', 'Click', 'Rebote')),
+  email TEXT,
+  estado TEXT DEFAULT 'Enviado',
   error_mensaje TEXT,
   fecha_evento TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Añadir columna 'email' si no existe (tabla original usaba usuario_id)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'campana_email_logs' AND column_name = 'email'
+  ) THEN
+    ALTER TABLE campana_email_logs ADD COLUMN email TEXT;
+  END IF;
+END $$;
+
+-- Añadir columna 'error_mensaje' si no existe
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'campana_email_logs' AND column_name = 'error_mensaje'
+  ) THEN
+    ALTER TABLE campana_email_logs ADD COLUMN error_mensaje TEXT;
+  END IF;
+END $$;
+
+-- Eliminar constraint CHECK antiguo si existe y recrear con 'Fallido'
+DO $$
+DECLARE
+  constraint_name TEXT;
+BEGIN
+  SELECT con.conname INTO constraint_name
+  FROM pg_constraint con
+  JOIN pg_class rel ON rel.oid = con.conrelid
+  WHERE rel.relname = 'campana_email_logs'
+    AND con.contype = 'c'
+    AND pg_get_constraintdef(con.oid) LIKE '%estado%'
+  LIMIT 1;
+
+  IF constraint_name IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE campana_email_logs DROP CONSTRAINT ' || constraint_name;
+  END IF;
+END $$;
+
+ALTER TABLE campana_email_logs
+  ADD CONSTRAINT campana_email_logs_estado_check
+  CHECK (estado IN ('Enviado', 'Fallido', 'Abierto', 'Click', 'Rebote'));
 
 CREATE INDEX IF NOT EXISTS idx_campana_logs_campana_id ON campana_email_logs(campana_id);
 CREATE INDEX IF NOT EXISTS idx_campana_logs_email ON campana_email_logs(email);
