@@ -31,25 +31,35 @@ export const POST: APIRoute = async ({ request }) => {
     // La RPC devuelve un array con un objeto
     const result = Array.isArray(data) ? data[0] : (data as any);
 
-    // Si ya estaba suscrito (success=true pero mensaje diferente) o registro nuevo
-    if (result && result.success) {
+    if (!result || !result.success) {
       return new Response(
-        JSON.stringify({
-          success: true,
-          message: result.message,
-          codigo: result.codigo
-        }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
-      );
-    } else {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          message: result?.message || 'Error desconocido'
-        }),
+        JSON.stringify({ success: false, message: result?.message || 'Error desconocido' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
+
+    // Detectar si ya estaba suscrito (la RPC devuelve 'YA_SUSCRITO' o mensaje 'Ya estás suscrito')
+    const yaExiste = result.codigo === 'YA_SUSCRITO' || (result.message && result.message.includes('Ya estás'));
+
+    if (yaExiste) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: 'Este email ya está suscrito a nuestra newsletter.'
+        }),
+        { status: 409, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Nuevo suscriptor con cupón generado
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: result.message,
+        codigo: result.codigo
+      }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
 
   } catch (error) {
     console.error('Newsletter subscription error:', error);

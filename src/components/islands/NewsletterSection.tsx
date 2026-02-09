@@ -29,6 +29,8 @@ export default function NewsletterSection() {
       } else {
         setStatus('error');
         setMessage(data.message || 'Error al suscribirte');
+        // Limpiar tras 4 segundos para poder reintentar
+        setTimeout(() => { setStatus('idle'); setMessage(''); }, 4000);
       }
     } catch {
       setStatus('error');
