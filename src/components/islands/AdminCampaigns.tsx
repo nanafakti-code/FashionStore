@@ -426,62 +426,129 @@ export default function AdminCampaigns() {
               </button>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-gray-50 text-left text-xs text-gray-500 uppercase tracking-wider font-semibold">
-                    <th className="px-5 py-3">Nombre</th>
-                    <th className="px-5 py-3">Asunto</th>
-                    <th className="px-5 py-3">Estado</th>
-                    <th className="px-5 py-3">Enviados</th>
-                    <th className="px-5 py-3">Fecha</th>
-                    <th className="px-5 py-3 text-right">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {campaigns.map((c) => (
-                    <tr key={c.id} className="hover:bg-gray-50/50 transition-colors duration-200">
-                      <td className="px-5 py-4">
-                        <button onClick={() => loadCampaignDetail(c.id)} className="font-bold text-gray-900 hover:text-green-600 text-sm">
-                          {c.nombre}
-                        </button>
-                      </td>
-                      <td className="px-5 py-4 text-gray-600 text-sm max-w-[200px] truncate">{c.asunto}</td>
-                      <td className="px-5 py-4">
-                        <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${getEstadoColor(c.estado)}`}>
-                          {c.estado}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4 text-gray-600 text-sm">
-                        {c.estado === 'Enviada' ? `${c.total_enviados}/${c.total_destinatarios}` : '—'}
-                      </td>
-                      <td className="px-5 py-4 text-gray-500 text-xs">
-                        {c.fecha_envio ? formatDate(c.fecha_envio) : formatDate(c.creada_en)}
-                      </td>
-                      <td className="px-5 py-4 text-right">
-                        <div className="flex gap-2 justify-end">
-                          {c.estado === 'Borrador' && (
-                            <>
-                              <button onClick={() => setConfirmSend(c.id)} title="Enviar" className="p-2 rounded-lg hover:bg-green-50 text-green-600 transition-colors">
-                                <ChevronRightIcon size={18} />
-                              </button>
-                              <button onClick={() => startEdit(c)} title="Editar" className="p-2 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors">
-                                <EditIcon size={18} />
-                              </button>
-                            </>
-                          )}
-                          <button onClick={() => handleDuplicate(c.id)} title="Duplicar" className="p-2 rounded-lg hover:bg-purple-50 text-purple-600 transition-colors">
-                            <PlusIcon size={18} />
-                          </button>
-                          <button onClick={() => setConfirmDelete(c.id)} title="Eliminar" className="p-2 rounded-lg hover:bg-red-50 text-red-600 transition-colors">
-                            <TrashIcon size={18} />
-                          </button>
-                        </div>
-                      </td>
+            <div className="space-y-3 lg:space-y-0 px-2 sm:px-0 -mx-2 sm:mx-0">
+              {/* Desktop Table */}
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-50 text-left text-xs text-gray-500 uppercase tracking-wider font-semibold">
+                      <th className="px-5 py-3">Nombre</th>
+                      <th className="px-5 py-3">Asunto</th>
+                      <th className="px-5 py-3">Estado</th>
+                      <th className="px-5 py-3">Enviados</th>
+                      <th className="px-5 py-3">Fecha</th>
+                      <th className="px-5 py-3 text-right">Acciones</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {campaigns.map((c) => (
+                      <tr key={c.id} className="hover:bg-gray-50/50 transition-colors duration-200">
+                        <td className="px-5 py-4">
+                          <button onClick={() => loadCampaignDetail(c.id)} className="font-bold text-gray-900 hover:text-green-600 text-sm">
+                            {c.nombre}
+                          </button>
+                        </td>
+                        <td className="px-5 py-4 text-gray-600 text-sm max-w-[200px] truncate">{c.asunto}</td>
+                        <td className="px-5 py-4">
+                          <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${getEstadoColor(c.estado)}`}>
+                            {c.estado}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 text-gray-600 text-sm">
+                          {c.estado === 'Enviada' ? `${c.total_enviados}/${c.total_destinatarios}` : '—'}
+                        </td>
+                        <td className="px-5 py-4 text-gray-500 text-xs">
+                          {c.fecha_envio ? formatDate(c.fecha_envio) : formatDate(c.creada_en)}
+                        </td>
+                        <td className="px-5 py-4 text-right">
+                          <div className="flex gap-2 justify-end">
+                            {c.estado === 'Borrador' && (
+                              <>
+                                <button onClick={() => setConfirmSend(c.id)} title="Enviar" className="p-2 rounded-lg hover:bg-green-50 text-green-600 transition-colors">
+                                  <ChevronRightIcon size={18} />
+                                </button>
+                                <button onClick={() => startEdit(c)} title="Editar" className="p-2 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors">
+                                  <EditIcon size={18} />
+                                </button>
+                              </>
+                            )}
+                            <button onClick={() => handleDuplicate(c.id)} title="Duplicar" className="p-2 rounded-lg hover:bg-purple-50 text-purple-600 transition-colors">
+                              <PlusIcon size={18} />
+                            </button>
+                            <button onClick={() => setConfirmDelete(c.id)} title="Eliminar" className="p-2 rounded-lg hover:bg-red-50 text-red-600 transition-colors">
+                              <TrashIcon size={18} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Cards */}
+              <div className="lg:hidden space-y-3">
+                {campaigns.map((c) => (
+                  <div key={c.id} className="bg-white border rounded-xl p-4 sm:p-5 hover:bg-gray-50/50 transition-colors duration-200 shadow-sm">
+                    {/* Header: Nombre y Estado */}
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <button onClick={() => loadCampaignDetail(c.id)} className="flex-1 text-left">
+                        <p className="font-bold text-gray-900 hover:text-green-600 text-sm truncate">{c.nombre}</p>
+                        <p className="text-[10px] text-gray-400 uppercase tracking-widest font-medium mt-0.5">Campaña</p>
+                      </button>
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border whitespace-nowrap ${getEstadoColor(c.estado)}`}>
+                        {c.estado}
+                      </span>
+                    </div>
+
+                    {/* Asunto */}
+                    <div className="bg-gray-50 rounded-lg p-3 border border-gray-100 mb-3">
+                      <p className="text-[10px] uppercase tracking-widest text-gray-400 font-medium mb-1">Asunto</p>
+                      <p className="text-sm text-gray-800 font-medium line-clamp-2">{c.asunto}</p>
+                    </div>
+
+                    {/* Grid: Enviados | Fecha */}
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-widest text-gray-400 font-medium mb-1">Estado envío</p>
+                        <p className="font-bold text-lg text-gray-900">
+                          {c.estado === 'Enviada' ? `${c.total_enviados}/${c.total_destinatarios}` : '—'}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] uppercase tracking-widest text-gray-400 font-medium mb-1">Fecha</p>
+                        <p className="text-xs font-medium text-gray-500">
+                          {(c.fecha_envio ? formatDate(c.fecha_envio) : formatDate(c.creada_en)).split(',')[0]}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Acciones */}
+                    <div className="flex gap-2 pt-3 border-t border-gray-100">
+                      {c.estado === 'Borrador' && (
+                        <>
+                          <button onClick={() => setConfirmSend(c.id)} title="Enviar" className="flex-1 px-3 py-2 rounded-lg hover:bg-green-50 text-green-600 text-xs font-bold transition-colors flex items-center justify-center gap-1">
+                            <ChevronRightIcon size={14} />
+                            Enviar
+                          </button>
+                          <button onClick={() => startEdit(c)} title="Editar" className="flex-1 px-3 py-2 rounded-lg hover:bg-blue-50 text-blue-600 text-xs font-bold transition-colors flex items-center justify-center gap-1">
+                            <EditIcon size={14} />
+                            Editar
+                          </button>
+                        </>
+                      )}
+                      <button onClick={() => handleDuplicate(c.id)} title="Duplicar" className={`flex-1 px-3 py-2 rounded-lg hover:bg-purple-50 text-purple-600 text-xs font-bold transition-colors flex items-center justify-center gap-1`}>
+                        <PlusIcon size={14} />
+                        Copia
+                      </button>
+                      <button onClick={() => setConfirmDelete(c.id)} title="Eliminar" className="flex-1 px-3 py-2 rounded-lg hover:bg-red-50 text-red-600 text-xs font-bold transition-colors flex items-center justify-center gap-1">
+                        <TrashIcon size={14} />
+                        Borrar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -506,27 +573,62 @@ export default function AdminCampaigns() {
               <p className="text-gray-600 font-semibold">No hay suscriptores todavía</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-gray-50 text-left text-xs text-gray-500 uppercase tracking-wider font-semibold">
-                    <th className="px-5 py-3">#</th>
-                    <th className="px-5 py-3">Email</th>
-                    <th className="px-5 py-3">Nombre</th>
-                    <th className="px-5 py-3">Fecha suscripción</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {subscribers.map((sub, i) => (
-                    <tr key={sub.id} className="hover:bg-gray-50/50 transition-colors duration-200">
-                      <td className="px-5 py-4 text-gray-400 text-sm">{i + 1}</td>
-                      <td className="px-5 py-4 font-medium text-gray-900 text-sm">{sub.email}</td>
-                      <td className="px-5 py-4 text-gray-600 text-sm">{sub.nombre || '—'}</td>
-                      <td className="px-5 py-4 text-gray-500 text-xs">{formatDate(sub.created_at)}</td>
+            <div className="space-y-3 lg:space-y-0 px-2 sm:px-0 -mx-2 sm:mx-0">
+              {/* Desktop Table */}
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-50 text-left text-xs text-gray-500 uppercase tracking-wider font-semibold">
+                      <th className="px-5 py-3">#</th>
+                      <th className="px-5 py-3">Email</th>
+                      <th className="px-5 py-3">Nombre</th>
+                      <th className="px-5 py-3">Fecha suscripción</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {subscribers.map((sub, i) => (
+                      <tr key={sub.id} className="hover:bg-gray-50/50 transition-colors duration-200">
+                        <td className="px-5 py-4 text-gray-400 text-sm">{i + 1}</td>
+                        <td className="px-5 py-4 font-medium text-gray-900 text-sm">{sub.email}</td>
+                        <td className="px-5 py-4 text-gray-600 text-sm">{sub.nombre || '—'}</td>
+                        <td className="px-5 py-4 text-gray-500 text-xs">{formatDate(sub.created_at)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Cards */}
+              <div className="lg:hidden space-y-3">
+                {subscribers.map((sub, i) => (
+                  <div key={sub.id} className="bg-white border rounded-xl p-4 sm:p-5 shadow-sm">
+                    {/* Header: # y Email */}
+                    <div className="flex items-start gap-3 mb-3">
+                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                        <span className="font-bold text-green-700 text-xs">#{i + 1}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] uppercase tracking-widest text-gray-400 font-medium mb-0.5">Email</p>
+                        <p className="font-bold text-gray-900 text-sm truncate">{sub.email}</p>
+                      </div>
+                    </div>
+
+                    {/* Nombre */}
+                    {sub.nombre && (
+                      <div className="mb-3 bg-gray-50 rounded-lg p-3 border border-gray-100">
+                        <p className="text-[10px] uppercase tracking-widest text-gray-400 font-medium mb-1">Nombre</p>
+                        <p className="text-sm text-gray-800 font-medium">{sub.nombre}</p>
+                      </div>
+                    )}
+
+                    {/* Fecha */}
+                    <div className="flex items-center text-[10px] font-medium text-gray-400 uppercase tracking-widest border-t border-gray-100 pt-3">
+                      <svg className="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                      {formatDate(sub.created_at)}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -684,7 +786,9 @@ export default function AdminCampaigns() {
                 <PackageIcon size={20} color="#00aa45" />
                 <h3 className="text-sm font-bold text-gray-900">Registro de envíos ({campaignLogs.length})</h3>
               </div>
-              <div className="overflow-x-auto max-h-96 overflow-y-auto">
+
+              {/* Desktop Table */}
+              <div className="hidden lg:block overflow-x-auto max-h-96 overflow-y-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="bg-gray-50 text-left text-xs text-gray-500 uppercase tracking-wider font-semibold sticky top-0">
@@ -710,6 +814,35 @@ export default function AdminCampaigns() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Mobile Cards */}
+              <div className="lg:hidden p-4 sm:p-5 space-y-3 max-h-96 overflow-y-auto">
+                {campaignLogs.map((log) => (
+                  <div key={log.id} className="border rounded-lg p-3.5 bg-gray-50">
+                    {/* Email & Status */}
+                    <div className="flex items-center justify-between gap-2 mb-2.5">
+                      <p className="text-xs font-bold text-gray-900 truncate flex-1">{log.email}</p>
+                      <span className={`px-2 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 whitespace-nowrap ${log.estado === 'Enviado' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {log.estado === 'Enviado' ? <CheckIcon size={10} /> : <XIcon size={10} />}
+                        {log.estado}
+                      </span>
+                    </div>
+
+                    {/* Error Message */}
+                    {log.error_mensaje && (
+                      <div className="mb-2.5 text-xs text-red-600 bg-red-50 rounded p-2 border border-red-100">
+                        {log.error_mensaje}
+                      </div>
+                    )}
+
+                    {/* Date */}
+                    <div className="flex items-center text-[10px] font-medium text-gray-400 uppercase tracking-widest">
+                      <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                      {formatDate(log.fecha_evento)}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
