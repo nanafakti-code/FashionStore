@@ -178,7 +178,12 @@ export default function AdminDashboard({ initialSection = 'dashboard' }: AdminDa
           .filter((p: any) => p.creado_en.startsWith(mesActual))
           .reduce((sum: number, p: any) => sum + (p.total_precio || 0), 0);
 
-        setPedidos(pedidosData.slice(0, 10));
+        // Filtrar pedidos excluyendo "pendiente"
+        const pedidosFiltrados = pedidosData.filter(
+          (p: any) => p.estado !== "pendiente"
+        );
+
+        setPedidos(pedidosFiltrados.slice(0, 10));
         setStats((prev) => ({
           ...prev,
           totalPedidos,
@@ -296,55 +301,63 @@ export default function AdminDashboard({ initialSection = 'dashboard' }: AdminDa
           {/* Stats Cards - Primera Fila */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Total Productos */}
-            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500 hover:shadow-lg transition">
+            <div className="bg-white rounded-lg shadow-md p-6 border-t-4 border-blue-600 hover:shadow-lg transition-shadow">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-gray-600 text-sm font-semibold">Total Productos</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-2">{stats.totalProductos}</p>
+                  <p className="text-gray-500 text-xs font-bold uppercase tracking-wide">Total Productos</p>
+                  <p className="text-4xl font-bold text-gray-900 mt-3">{stats.totalProductos}</p>
                 </div>
-                <svg className="w-8 h-8 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-0.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l0.03-.12 0.9-1.63h7.45c0.75 0 1.41-.41 1.75-1.03l3.58-6.49c0.08-.14 0.12-.31 0.12-.48 0-.55-.45-1-1-1H5.21l-0.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s0.89 2 1.99 2 2-0.9 2-2-0.9-2-2-2z" />
-                </svg>
+                <div className="bg-blue-100 p-3 rounded-lg">
+                  <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-0.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l0.03-.12 0.9-1.63h7.45c0.75 0 1.41-.41 1.75-1.03l3.58-6.49c0.08-.14 0.12-.31 0.12-.48 0-.55-.45-1-1-1H5.21l-0.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s0.89 2 1.99 2 2-0.9 2-2-0.9-2-2-2z" />
+                  </svg>
+                </div>
               </div>
-              <p className="text-xs text-gray-500 mt-4">Stock: {stats.totalStock.toLocaleString()} unidades</p>
+              <p className="text-xs text-gray-500 mt-4 font-medium">Stock: {stats.totalStock.toLocaleString()} unidades</p>
             </div>
 
             {/* Valor Inventario */}
-            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-green-500 hover:shadow-lg transition">
+            <div className="bg-white rounded-lg shadow-md p-6 border-t-4 border-green-600 hover:shadow-lg transition-shadow">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-gray-600 text-sm font-semibold">Valor Inventario</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-2">{stats.valorInventario.toFixed(2)}€</p>
+                  <p className="text-gray-500 text-xs font-bold uppercase tracking-wide">Valor Inventario</p>
+                  <p className="text-4xl font-bold text-gray-900 mt-3">{stats.valorInventario.toFixed(2)}€</p>
                 </div>
-                <svg className="w-8 h-8 text-green-500" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                </svg>
+                <div className="bg-green-100 p-3 rounded-lg">
+                  <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                  </svg>
+                </div>
               </div>
             </div>
 
             {/* Ventas Hoy */}
-            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-purple-500 hover:shadow-lg transition">
+            <div className="bg-white rounded-lg shadow-md p-6 border-t-4 border-purple-600 hover:shadow-lg transition-shadow">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-gray-600 text-sm font-semibold">Ventas Hoy</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-2">{stats.ventasHoy.toFixed(2)}€</p>
+                  <p className="text-gray-500 text-xs font-bold uppercase tracking-wide">Ventas Hoy</p>
+                  <p className="text-4xl font-bold text-gray-900 mt-3">{stats.ventasHoy.toFixed(2)}€</p>
                 </div>
-                <svg className="w-8 h-8 text-purple-500" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M3 13h2v8H3zm4-8h2v16H7zm4-2h2v18h-2zm4 4h2v14h-2zm4-2h2v16h-2z" />
-                </svg>
+                <div className="bg-purple-100 p-3 rounded-lg">
+                  <svg className="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M3 13h2v8H3zm4-8h2v16H7zm4-2h2v18h-2zm4 4h2v14h-2zm4-2h2v16h-2z" />
+                  </svg>
+                </div>
               </div>
             </div>
 
             {/* Ventas Mes */}
-            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-orange-500 hover:shadow-lg transition">
+            <div className="bg-white rounded-lg shadow-md p-6 border-t-4 border-orange-600 hover:shadow-lg transition-shadow">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-gray-600 text-sm font-semibold">Ventas Este Mes</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-2">{stats.ventasMes.toFixed(2)}€</p>
+                  <p className="text-gray-500 text-xs font-bold uppercase tracking-wide">Ventas Este Mes</p>
+                  <p className="text-4xl font-bold text-gray-900 mt-3">{stats.ventasMes.toFixed(2)}€</p>
                 </div>
-                <svg className="w-8 h-8 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18 10 11.41l4 4 6.3-6.29L22 12v-6z" />
-                </svg>
+                <div className="bg-orange-100 p-3 rounded-lg">
+                  <svg className="w-6 h-6 text-orange-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18 10 11.41l4 4 6.3-6.29L22 12v-6z" />
+                  </svg>
+                </div>
               </div>
             </div>
           </div>
@@ -352,54 +365,62 @@ export default function AdminDashboard({ initialSection = 'dashboard' }: AdminDa
           {/* Stats Cards - Segunda Fila */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Pedidos Totales */}
-            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-red-500 hover:shadow-lg transition">
+            <div className="bg-white rounded-lg shadow-md p-6 border-t-4 border-red-600 hover:shadow-lg transition-shadow">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-gray-600 text-sm font-semibold">Total Pedidos</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-2">{stats.totalPedidos}</p>
+                  <p className="text-gray-500 text-xs font-bold uppercase tracking-wide">Total Pedidos</p>
+                  <p className="text-4xl font-bold text-gray-900 mt-3">{stats.totalPedidos}</p>
                 </div>
-                <svg className="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-0.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l0.03-.12 0.9-1.63h7.45c0.75 0 1.41-.41 1.75-1.03l3.58-6.49c0.08-.14 0.12-.31 0.12-.48 0-.55-.45-1-1-1H5.21l-0.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s0.89 2 1.99 2 2-0.9 2-2-0.9-2-2-2z" />
-                </svg>
+                <div className="bg-red-100 p-3 rounded-lg">
+                  <svg className="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-0.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l0.03-.12 0.9-1.63h7.45c0.75 0 1.41-.41 1.75-1.03l3.58-6.49c0.08-.14 0.12-.31 0.12-.48 0-.55-.45-1-1-1H5.21l-0.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s0.89 2 1.99 2 2-0.9 2-2-0.9-2-2-2z" />
+                  </svg>
+                </div>
               </div>
             </div>
 
             {/* Órdenes en Proceso */}
-            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-yellow-500 hover:shadow-lg transition">
+            <div className="bg-white rounded-lg shadow-md p-6 border-t-4 border-amber-600 hover:shadow-lg transition-shadow">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-gray-600 text-sm font-semibold">En Proceso</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-2">{stats.ordenesEnProceso}</p>
+                  <p className="text-gray-500 text-xs font-bold uppercase tracking-wide">En Proceso</p>
+                  <p className="text-4xl font-bold text-gray-900 mt-3">{stats.ordenesEnProceso}</p>
                 </div>
-                <svg className="w-8 h-8 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z" />
-                </svg>
+                <div className="bg-amber-100 p-3 rounded-lg">
+                  <svg className="w-6 h-6 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z" />
+                  </svg>
+                </div>
               </div>
             </div>
 
             {/* Clientes Activos */}
-            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-indigo-500 hover:shadow-lg transition">
+            <div className="bg-white rounded-lg shadow-md p-6 border-t-4 border-indigo-600 hover:shadow-lg transition-shadow">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-gray-600 text-sm font-semibold">Clientes Activos</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-2">{stats.clientesActivos}</p>
+                  <p className="text-gray-500 text-xs font-bold uppercase tracking-wide">Clientes Activos</p>
+                  <p className="text-4xl font-bold text-gray-900 mt-3">{stats.clientesActivos}</p>
                 </div>
-                <svg className="w-8 h-8 text-indigo-500" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
-                </svg>
+                <div className="bg-indigo-100 p-3 rounded-lg">
+                  <svg className="w-6 h-6 text-indigo-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
+                  </svg>
+                </div>
               </div>
             </div>
 
             {/* Devoluciones */}
-            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-pink-500 hover:shadow-lg transition">
+            <div className="bg-white rounded-lg shadow-md p-6 border-t-4 border-rose-600 hover:shadow-lg transition-shadow">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-gray-600 text-sm font-semibold">Devoluciones Activas</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-2">{stats.devolucionesActivas}</p>
+                  <p className="text-gray-500 text-xs font-bold uppercase tracking-wide">Devoluciones Activas</p>
+                  <p className="text-4xl font-bold text-gray-900 mt-3">{stats.devolucionesActivas}</p>
                 </div>
-                <svg className="w-8 h-8 text-pink-500" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M7 10l5 5 5-5z" />
-                </svg>
+                <div className="bg-rose-100 p-3 rounded-lg">
+                  <svg className="w-6 h-6 text-rose-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M7 10l5 5 5-5z" />
+                  </svg>
+                </div>
               </div>
             </div>
           </div>
@@ -407,16 +428,18 @@ export default function AdminDashboard({ initialSection = 'dashboard' }: AdminDa
           {/* Tablas de Datos Recientes */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Últimos Productos */}
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center gap-2">
-                <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-0.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l0.03-.12 0.9-1.63h7.45c0.75 0 1.41-.41 1.75-1.03l3.58-6.49c0.08-.14 0.12-.31 0.12-.48 0-.55-.45-1-1-1H5.21l-0.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s0.89 2 1.99 2 2-0.9 2-2-0.9-2-2-2z" />
-                </svg>
+            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 flex items-center gap-3">
+                <div className="bg-blue-100 p-2.5 rounded">
+                  <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-0.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l0.03-.12 0.9-1.63h7.45c0.75 0 1.41-.41 1.75-1.03l3.58-6.49c0.08-.14 0.12-.31 0.12-.48 0-.55-.45-1-1-1H5.21l-0.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s0.89 2 1.99 2 2-0.9 2-2-0.9-2-2-2z" />
+                  </svg>
+                </div>
                 <h3 className="text-lg font-bold text-gray-900">Últimos Productos</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-gray-100 border-b-2 border-gray-200">
                     <tr>
                       <th className="px-6 py-3 text-left font-semibold text-gray-700">Nombre</th>
                       <th className="px-6 py-3 text-left font-semibold text-gray-700">Stock</th>
@@ -428,9 +451,9 @@ export default function AdminDashboard({ initialSection = 'dashboard' }: AdminDa
                       <tr key={producto.id} className="hover:bg-gray-50 transition">
                         <td className="px-6 py-4 font-semibold text-gray-900">{producto.nombre}</td>
                         <td className="px-6 py-4">
-                          <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${producto.stock_total > 0 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                          <span className={`inline-block px-3 py-1.5 rounded-full text-xs font-bold ${producto.stock_total > 0 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
                             }`}>
-                            {producto.stock_total}
+                            {producto.stock_total} uds
                           </span>
                         </td>
                         <td className="px-6 py-4 font-semibold text-gray-900">{(producto.precio_venta / 100).toFixed(2)}€</td>
@@ -442,53 +465,74 @@ export default function AdminDashboard({ initialSection = 'dashboard' }: AdminDa
             </div>
 
             {/* Últimos Pedidos */}
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center gap-2">
-                <svg className="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-0.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l0.03-.12 0.9-1.63h7.45c0.75 0 1.41-.41 1.75-1.03l3.58-6.49c0.08-.14 0.12-.31 0.12-.48 0-.55-.45-1-1-1H5.21l-0.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s0.89 2 1.99 2 2-0.9 2-2-0.9-2-2-2z" />
-                </svg>
-                <h3 className="text-lg font-bold text-gray-900">Últimos Pedidos</h3>
+            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 flex items-center gap-3">
+                <div className="bg-red-100 p-2.5 rounded">
+                  <svg className="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-0.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l0.03-.12 0.9-1.63h7.45c0.75 0 1.41-.41 1.75-1.03l3.58-6.49c0.08-.14 0.12-.31 0.12-.48 0-.55-.45-1-1-1H5.21l-0.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s0.89 2 1.99 2 2-0.9 2-2-0.9-2-2-2z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">Últimos Pedidos (Activos)</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-gray-100 border-b-2 border-gray-200">
                     <tr>
-                      <th className="px-6 py-3 text-left font-semibold text-gray-700">ID</th>
+                      <th className="px-6 py-3 text-left font-semibold text-gray-700">ID Pedido</th>
                       <th className="px-6 py-3 text-left font-semibold text-gray-700">Total</th>
                       <th className="px-6 py-3 text-left font-semibold text-gray-700">Estado</th>
+                      <th className="px-6 py-3 text-left font-semibold text-gray-700">Fecha</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {pedidos.map((pedido: Order) => (
-                      <tr key={pedido.id} className="hover:bg-gray-50 transition">
-                        <td className="px-6 py-4 font-mono text-xs text-gray-600">{pedido.id.substring(0, 8)}...</td>
-                        <td className="px-6 py-4 font-semibold text-gray-900">{(pedido.total_precio / 100).toFixed(2)}€</td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${pedido.estado === "completado" ? "bg-green-100 text-green-800"
-                            : pedido.estado === "en_proceso" ? "bg-blue-100 text-blue-800"
+                    {pedidos.length > 0 ? (
+                      pedidos.map((pedido: Order) => (
+                        <tr key={pedido.id} className="hover:bg-gray-50 transition">
+                          <td className="px-6 py-4 font-mono text-xs text-gray-700 font-semibold">{pedido.id.substring(0, 8)}...</td>
+                          <td className="px-6 py-4 font-semibold text-gray-900">{(pedido.total_precio / 100).toFixed(2)}€</td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-block px-3 py-1.5 rounded-full text-xs font-bold ${
+                              pedido.estado === "completado" ? "bg-green-100 text-green-800"
+                              : pedido.estado === "en_proceso" ? "bg-blue-100 text-blue-800"
+                              : pedido.estado === "cancelado" ? "bg-red-100 text-red-800"
+                              : pedido.estado === "enviado" ? "bg-indigo-100 text-indigo-800"
                               : "bg-gray-100 text-gray-800"
                             }`}>
-                            {pedido.estado}
-                          </span>
+                              {pedido.estado === "en_proceso" ? "En Proceso" 
+                              : pedido.estado === "completado" ? "Completado"
+                              : pedido.estado === "cancelado" ? "Cancelado"
+                              : pedido.estado === "enviado" ? "Enviado"
+                              : pedido.estado?.charAt(0).toUpperCase() + pedido.estado?.slice(1)}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-gray-600 text-xs">{new Date(pedido.creado_en).toLocaleDateString('es-ES')}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                          No hay pedidos activos para mostrar
                         </td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </div>
             </div>
 
             {/* Últimos Usuarios */}
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center gap-2">
-                <svg className="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
-                </svg>
-                <h3 className="text-lg font-bold text-gray-900">Últimos Usuarios</h3>
+            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 flex items-center gap-3">
+                <div className="bg-indigo-100 p-2.5 rounded">
+                  <svg className="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">Últimos Usuarios Activos</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-gray-100 border-b-2 border-gray-200">
                     <tr>
                       <th className="px-6 py-3 text-left font-semibold text-gray-700">Nombre</th>
                       <th className="px-6 py-3 text-left font-semibold text-gray-700">Email</th>
@@ -498,7 +542,7 @@ export default function AdminDashboard({ initialSection = 'dashboard' }: AdminDa
                     {usuarios.map((usuario: User) => (
                       <tr key={usuario.id} className="hover:bg-gray-50 transition">
                         <td className="px-6 py-4 font-semibold text-gray-900">{usuario.nombre}</td>
-                        <td className="px-6 py-4 text-gray-600 text-xs">{usuario.email}</td>
+                        <td className="px-6 py-4 text-gray-600 text-xs font-medium">{usuario.email}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -507,18 +551,20 @@ export default function AdminDashboard({ initialSection = 'dashboard' }: AdminDa
             </div>
 
             {/* Categorías */}
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center gap-2">
-                <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27-7.38 5.74zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27L12 16z" />
-                </svg>
+            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 flex items-center gap-3">
+                <div className="bg-cyan-100 p-2.5 rounded">
+                  <svg className="w-5 h-5 text-cyan-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27-7.38 5.74zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27L12 16z" />
+                  </svg>
+                </div>
                 <h3 className="text-lg font-bold text-gray-900">Categorías</h3>
               </div>
-              <div className="divide-y divide-gray-200 max-h-80 overflow-y-auto">
+              <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
                 {categorias.map((cat: Category) => (
                   <div key={cat.id} className="px-6 py-3 hover:bg-gray-50 transition flex justify-between items-center">
                     <span className="font-semibold text-gray-900">{cat.nombre}</span>
-                    <span className="text-xs text-gray-500">{cat.slug}</span>
+                    <span className="text-xs text-gray-500 bg-gray-100 px-2.5 py-1 rounded font-medium">{cat.slug}</span>
                   </div>
                 ))}
               </div>
@@ -528,16 +574,18 @@ export default function AdminDashboard({ initialSection = 'dashboard' }: AdminDa
           {/* Sección de Marcas y Cupones */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Marcas */}
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center gap-2">
-                <svg className="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
-                </svg>
+            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 flex items-center gap-3">
+                <div className="bg-amber-100 p-2.5 rounded">
+                  <svg className="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
+                  </svg>
+                </div>
                 <h3 className="text-lg font-bold text-gray-900">Marcas</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-gray-100 border-b-2 border-gray-200">
                     <tr>
                       <th className="px-6 py-3 text-left font-semibold text-gray-700">Nombre</th>
                       <th className="px-6 py-3 text-left font-semibold text-gray-700">Productos</th>
@@ -547,7 +595,7 @@ export default function AdminDashboard({ initialSection = 'dashboard' }: AdminDa
                     {marcas.slice(0, 8).map((marca: any) => (
                       <tr key={marca.id} className="hover:bg-gray-50 transition">
                         <td className="px-6 py-4 font-semibold text-gray-900">{marca.nombre}</td>
-                        <td className="px-6 py-4 text-gray-600">-</td>
+                        <td className="px-6 py-4 text-gray-600 font-medium">-</td>
                       </tr>
                     ))}
                   </tbody>
@@ -556,16 +604,18 @@ export default function AdminDashboard({ initialSection = 'dashboard' }: AdminDa
             </div>
 
             {/* Cupones */}
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center gap-2">
-                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M21.5.5H2.5C1.12 1.62.5 2.5.5 4v16c0 1.5.62 2.38 2 3.5h19c1.38-1.12 2-2 2-3.5V4c0-1.5-.62-2.38-2-3.5zm-2 17h-15v-2h15v2zm0-4h-15v-2h15v2zm0-4h-15v-2h15v2z" />
-                </svg>
+            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 flex items-center gap-3">
+                <div className="bg-emerald-100 p-2.5 rounded">
+                  <svg className="w-5 h-5 text-emerald-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M21.5.5H2.5C1.12 1.62.5 2.5.5 4v16c0 1.5.62 2.38 2 3.5h19c1.38-1.12 2-2 2-3.5V4c0-1.5-.62-2.38-2-3.5zm-2 17h-15v-2h15v2zm0-4h-15v-2h15v2zm0-4h-15v-2h15v2z" />
+                  </svg>
+                </div>
                 <h3 className="text-lg font-bold text-gray-900">Cupones Activos</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-gray-100 border-b-2 border-gray-200">
                     <tr>
                       <th className="px-6 py-3 text-left font-semibold text-gray-700">Código</th>
                       <th className="px-6 py-3 text-left font-semibold text-gray-700">Descuento</th>
@@ -575,7 +625,7 @@ export default function AdminDashboard({ initialSection = 'dashboard' }: AdminDa
                     {cupones.slice(0, 8).map((cupon: any) => (
                       <tr key={cupon.id} className="hover:bg-gray-50 transition">
                         <td className="px-6 py-4 font-mono font-bold text-gray-900">{cupon.codigo}</td>
-                        <td className="px-6 py-4 font-semibold text-green-600">{cupon.descuento_porcentaje || cupon.monto_fijo}%</td>
+                        <td className="px-6 py-4 font-semibold text-emerald-600">{cupon.descuento_porcentaje || cupon.monto_fijo}%</td>
                       </tr>
                     ))}
                   </tbody>
