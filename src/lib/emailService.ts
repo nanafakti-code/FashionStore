@@ -183,6 +183,7 @@ function getTransporter() {
     connectionTimeout: 10_000,
     greetingTimeout: 10_000,
     socketTimeout: 30_000,
+  } as any);
   });
 
   console.log(`[EMAIL] Transporter created → ${SMTP_HOST}:${SMTP_PORT} (user: ${SMTP_USER})`);
