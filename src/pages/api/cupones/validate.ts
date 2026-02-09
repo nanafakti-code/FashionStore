@@ -7,7 +7,7 @@ const supabaseKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY || import.meta.env
 export const POST: APIRoute = async ({ request }) => {
   try {
     const supabase = createClient(supabaseUrl, supabaseKey);
-    const { codigo, subtotal } = await request.json();
+    const { codigo, subtotal, userId } = await request.json();
 
     if (!codigo) {
       return new Response(
@@ -16,73 +16,42 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    // Buscar el cupón
-    const { data: cupon, error: cuponError } = await supabase
-      .from('cupones_descuento')
-      .select('*')
-      .eq('codigo', codigo.toUpperCase())
-      .eq('activo', true)
-      .single();
+    console.log('[API] Validating coupon:', { codigo, userId, subtotal });
 
-    if (cuponError || !cupon) {
+    // Call the RPC that handles all validation logic (dates, limits, ownership, etc.)
+    const { data: result, error } = await supabase
+      .rpc('validate_coupon', {
+        p_codigo: codigo.toUpperCase(),
+        p_subtotal: subtotal, // Corrected parameter name from p_monto_total to p_subtotal
+        p_usuario_id: userId || null // We will update the RPC to accept this
+      });
+
+    if (error) {
+      console.error('[API] RPC Error:', error);
+      throw error;
+    }
+
+    console.log('[API] RPC Result:', result);
+
+    // RPC with RETURNS TABLE returns an array. Get the first item.
+    const validationResult = Array.isArray(result) ? result[0] : result;
+
+    if (!validationResult || !validationResult.valid) {
       return new Response(
-        JSON.stringify({ valid: false, message: 'Cupón no encontrado o inactivo' }),
+        JSON.stringify({ valid: false, message: validationResult?.message || 'Cupón inválido' }),
         { status: 200, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // Verificar fechas
-    const now = new Date();
-    if (cupon.fecha_inicio && new Date(cupon.fecha_inicio) > now) {
-      return new Response(
-        JSON.stringify({ valid: false, message: 'El cupón aún no está activo' }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (cupon.fecha_fin && new Date(cupon.fecha_fin) < now) {
-      return new Response(
-        JSON.stringify({ valid: false, message: 'El cupón ha expirado' }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Verificar límite de usos
-    if (cupon.maximo_uses && cupon.usos_actuales >= cupon.maximo_uses) {
-      return new Response(
-        JSON.stringify({ valid: false, message: 'El cupón ha alcanzado su límite de usos' }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Verificar mínimo de compra
-    if (cupon.minimo_compra && subtotal < cupon.minimo_compra) {
-      return new Response(
-        JSON.stringify({ 
-          valid: false, 
-          message: `Compra mínima requerida: ${(cupon.minimo_compra / 100).toFixed(2)}€` 
-        }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Calcular descuento
-    let descuento_calculado = 0;
-    if (cupon.tipo === 'Porcentaje') {
-      descuento_calculado = Math.round((subtotal * cupon.valor) / 100);
-    } else {
-      // Cantidad fija (valor está en euros, convertir a céntimos)
-      descuento_calculado = Math.min(cupon.valor * 100, subtotal);
-    }
-
+    // Success
     return new Response(
       JSON.stringify({
         valid: true,
-        message: '¡Cupón aplicado correctamente!',
-        tipo: cupon.tipo,
-        valor: cupon.valor,
-        descuento_calculado,
-        cupon_id: cupon.id
+        message: validationResult.message || '¡Cupón aplicado correctamente!',
+        tipo: validationResult.tipo,
+        valor: validationResult.valor,
+        descuento_calculado: validationResult.descuento_calculado, // The RPC returns the calculated discount amount as 'descuento_calculado'
+        cupon_id: validationResult.cupon_id
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
@@ -90,7 +59,7 @@ export const POST: APIRoute = async ({ request }) => {
   } catch (error) {
     console.error('Error validating coupon:', error);
     return new Response(
-      JSON.stringify({ valid: false, message: 'Error al validar el cupón' }),
+      JSON.stringify({ valid: false, message: 'Error interno al validar el cupón' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }

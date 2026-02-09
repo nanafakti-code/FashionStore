@@ -9,6 +9,7 @@ import AdminCoupons from './AdminCoupons';
 import AdminReturns from './AdminReturns';
 import AdminReviews from './AdminReviews';
 import AdminProductos from './AdminProductos';
+import AdminSettings from './AdminSettings';
 
 interface DashboardStats {
   totalProductos: number;
@@ -610,8 +611,11 @@ export default function AdminDashboard({ initialSection = 'dashboard' }: AdminDa
       {/* Sección de Reseñas */}
       {activeSection === "resenas" && <AdminReviews />}
 
+      {/* Sección de Configuración */}
+      {activeSection === "configuracion" && <AdminSettings />}
+
       {/* Otras Secciones - Placeholder */}
-      {!["dashboard", "productos", "categorias", "marcas", "pedidos", "usuarios", "cupones", "devoluciones", "resenas"].includes(activeSection) && (
+      {!["dashboard", "productos", "categorias", "marcas", "pedidos", "usuarios", "cupones", "devoluciones", "resenas", "configuracion"].includes(activeSection) && (
         <div className="bg-white rounded-lg shadow p-12 text-center">
           <svg className="w-20 h-20 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />

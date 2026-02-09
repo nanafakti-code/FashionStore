@@ -25,6 +25,7 @@ import {
   sendOrderConfirmationEmail,
   sendAdminNotificationEmail,
 } from '@/lib/emailService';
+import { notifyNewOrder } from '@/lib/notificationService';
 
 const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY || '');
 const webhookSecret = import.meta.env.STRIPE_WEBHOOK_SECRET || '';
@@ -269,6 +270,27 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       }
     }
 
+    // ========== CONSUMIR CUPÓN ==========
+    if (order.cupon_id) {
+      console.log(`\n[WEBHOOK] 🎫 Procesando cupón: ${order.cupon_id}`);
+
+      // Marcar cupón como usado
+      const { error: couponError } = await supabase
+        .from('cupones')
+        .update({
+          estado: 'Usado',
+          fecha_uso: new Date().toISOString(),
+          pedido_id: orderId
+        })
+        .eq('id', order.cupon_id);
+
+      if (couponError) {
+        console.error('[WEBHOOK] ❌ Error marcando cupón como usado:', couponError);
+      } else {
+        console.log(`[WEBHOOK] ✅ Cupón marcado como Usado`);
+      }
+    }
+
     // ========== ENVIAR EMAIL AL CLIENTE ==========
     console.log('\n[WEBHOOK] === ENVIANDO EMAILS ===');
     const clientEmail = order.email_cliente;
@@ -294,12 +316,13 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     }
 
     // ========== ENVIAR NOTIFICACIÓN AL ADMIN ==========
-    console.log(`[WEBHOOK] Email del admin: ${ADMIN_EMAIL}`);
+    console.log(`[WEBHOOK] Enviando notificación al administrador...`);
 
     // Admin notification uses same OrderData structure
+    // NOTE: We pass clientEmail here so the admin sees the customer's email in the message body
     const adminEmailSent = await sendAdminNotificationEmail({
       numero_orden: order.numero_orden,
-      email: ADMIN_EMAIL,
+      email: clientEmail, // Corrected: Pass customer email
       nombre: order.nombre_cliente,
       items: orderItems,
       subtotal: order.subtotal,
@@ -311,10 +334,24 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     });
 
     if (adminEmailSent) {
-      console.log(`[WEBHOOK] ✅ Email de admin enviado a: ${ADMIN_EMAIL}`);
+      console.log(`[WEBHOOK] ✅ Email de admin enviado correctamente`);
     } else {
-      console.error(`[WEBHOOK] ❌ Fallo al enviar email de admin a: ${ADMIN_EMAIL}`);
+      console.error(`[WEBHOOK] ❌ Fallo al enviar email de admin`);
     }
+
+    // ========== NOTIFICACIÓN CONDICIONAL (NotificationService) ==========
+    // Uses the central event handler which checks admin_preferences BEFORE sending
+    const notifResult = await notifyNewOrder({
+      numero_orden: order.numero_orden,
+      nombre_cliente: order.nombre_cliente,
+      email_cliente: order.email_cliente || clientEmail,
+      total: order.total,
+    });
+
+    console.log(
+      `[WEBHOOK] 📬 NotificationService → sent=${notifResult.sent}, ` +
+      `event=${notifResult.event}, reason=${notifResult.reason || 'ok'}`
+    );
 
     console.log(`[WEBHOOK] === ✅ COMPLETADO: ${order.numero_orden} ===\n`);
   } catch (error) {

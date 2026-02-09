@@ -3,6 +3,9 @@
 
 import nodemailer from 'nodemailer';
 import { generateInvoicePDF } from './invoiceService';
+import fs from 'node:fs';
+import pathMod from 'node:path';
+import { supabase } from './supabase';
 
 // =============================================================================
 // TYPES
@@ -64,8 +67,9 @@ interface EmailOptions {
   html: string;
   attachments?: Array<{
     filename: string;
-    content: Buffer;
-    contentType: string;
+    content?: Buffer;
+    path?: string;
+    contentType?: string;
   }>;
 }
 
@@ -146,23 +150,88 @@ const EMAIL_HEAD = `
 // SEND EMAIL (LOW LEVEL)
 // =============================================================================
 
-export async function sendEmail(options: EmailOptions): Promise<boolean> {
-  console.log('[EMAIL] Sending to:', options.to);
+// Singleton transporter — reuse TCP connections, avoid re-handshake per email
+let _transporter: ReturnType<typeof nodemailer.createTransport> | null = null;
+
+function getTransporter() {
+  if (_transporter) return _transporter;
 
   if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
-    console.error('[EMAIL] ❌ CRITICAL: SMTP credentials missing.');
+    console.error('[EMAIL] ❌ CRITICAL: SMTP credentials missing. Set SMTP_HOST, SMTP_USER, SMTP_PASS in .env');
+    // ─── WHERE TO PUT ENVIRONMENT VARIABLES ───
+    // .env file at project root:
+    //   SMTP_HOST=smtp.gmail.com
+    //   SMTP_PORT=587
+    //   SMTP_USER=fashionstorerbv@gmail.com
+    //   SMTP_PASS=xxxx xxxx xxxx xxxx   ← Gmail App Password (NOT your regular password)
+    //   SMTP_FROM=FashionStore <fashionstorerbv@gmail.com>
+    //
+    // For Gmail: Enable 2FA → Google Account → Security → App Passwords → generate one
+    return null;
+  }
+
+  _transporter = nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure: SMTP_PORT === 465,
+    auth: { user: SMTP_USER, pass: SMTP_PASS },
+    // Connection pool for reliability
+    pool: true,
+    maxConnections: 3,
+    maxMessages: 50,
+    // Timeouts to prevent hanging
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 30_000,
+  });
+
+  console.log(`[EMAIL] Transporter created → ${SMTP_HOST}:${SMTP_PORT} (user: ${SMTP_USER})`);
+  return _transporter;
+}
+
+/**
+ * Verify SMTP connection is alive.
+ * Call on server startup to fail fast if credentials are wrong.
+ * Returns true if connection is OK, false otherwise.
+ */
+export async function verifySmtpConnection(): Promise<boolean> {
+  const transporter = getTransporter();
+  if (!transporter) {
+    console.error('[EMAIL] ❌ Cannot verify — transporter not created (missing SMTP env vars).');
     return false;
   }
 
   try {
-    const transporter = nodemailer.createTransport({
-      host: SMTP_HOST,
-      port: SMTP_PORT,
-      secure: SMTP_PORT === 465,
-      auth: { user: SMTP_USER, pass: SMTP_PASS },
-    });
+    await transporter.verify();
+    console.log('[EMAIL] ✅ SMTP connection verified successfully.');
+    return true;
+  } catch (error: any) {
+    const code = error.code || error.responseCode || 'UNKNOWN';
+    console.error(`[EMAIL] ❌ SMTP verify FAILED — code: ${code}, message: ${error.message}`);
 
-    await transporter.sendMail({
+    if (code === 'EAUTH' || error.responseCode === 535) {
+      console.error('[EMAIL]    → Authentication failed. Check SMTP_USER and SMTP_PASS (use App Password for Gmail).');
+    } else if (code === 'ECONNREFUSED') {
+      console.error('[EMAIL]    → Connection refused. Check SMTP_HOST and SMTP_PORT.');
+    } else if (code === 'ESOCKET' || code === 'ETIMEDOUT') {
+      console.error('[EMAIL]    → Network timeout. Ensure SMTP server is reachable and port is correct.');
+    }
+
+    return false;
+  }
+}
+
+export async function sendEmail(options: EmailOptions): Promise<boolean> {
+  console.log('[EMAIL] Sending to:', options.to);
+
+  const transporter = getTransporter();
+  if (!transporter) {
+    console.error('[EMAIL] ❌ CRITICAL: SMTP credentials missing — cannot send.');
+    return false;
+  }
+
+  try {
+    const info = await transporter.sendMail({
       from: SMTP_FROM,
       to: options.to,
       subject: options.subject,
@@ -170,10 +239,21 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
       attachments: options.attachments,
     });
 
-    console.log('[EMAIL] ✅ Email sent successfully');
+    console.log(`[EMAIL] ✅ Email sent successfully — messageId: ${info.messageId}`);
     return true;
-  } catch (error) {
-    console.error('[EMAIL] ❌ Failed to send email:', error);
+  } catch (error: any) {
+    const code = error.code || error.responseCode || 'UNKNOWN';
+    console.error(`[EMAIL] ❌ Failed to send email — errorCode: ${code}`);
+    console.error(`[EMAIL]    to: ${options.to}`);
+    console.error(`[EMAIL]    subject: ${options.subject}`);
+    console.error(`[EMAIL]    message: ${error.message}`);
+
+    // Reset transporter on auth/connection errors so next attempt creates fresh one
+    if (['EAUTH', 'ECONNREFUSED', 'ESOCKET', 'ETIMEDOUT', 'ECONNRESET'].includes(code)) {
+      console.error('[EMAIL]    → Resetting transporter for next retry.');
+      _transporter = null;
+    }
+
     return false;
   }
 }
@@ -272,6 +352,39 @@ export async function sendOrderConfirmationEmail(order: OrderData): Promise<bool
     });
   } catch (e) {
     console.error('PDF Generation failed', e);
+  }
+
+  // ── Global PDF attachment from company_settings ──
+  try {
+    const { data: companyRow } = await supabase
+      .from('company_settings')
+      .select('invoice_attachment_path')
+      .limit(1)
+      .single();
+
+    if (companyRow?.invoice_attachment_path) {
+      // Resolve relative to project root (e.g. ./public/uploads/...)
+      const absPath = pathMod.resolve('public' + companyRow.invoice_attachment_path.replace(/^\/uploads/, '/uploads'));
+      // Fallback: try with the stored path directly under ./public
+      const tryPaths = [
+        pathMod.resolve('public', companyRow.invoice_attachment_path.replace(/^\//, '')),
+        pathMod.resolve(companyRow.invoice_attachment_path.replace(/^\//, '')),
+      ];
+
+      for (const p of tryPaths) {
+        if (fs.existsSync(p)) {
+          attachments.push({
+            filename: 'Condiciones_FashionStore.pdf',
+            path: p,
+            contentType: 'application/pdf',
+          });
+          console.log(`[EMAIL] ✅ Global PDF adjuntado: ${p}`);
+          break;
+        }
+      }
+    }
+  } catch (e) {
+    console.error('[EMAIL] Error al cargar adjunto global:', e);
   }
 
   const itemsHTML = buildItemsRows(order.items);

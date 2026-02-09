@@ -2,24 +2,26 @@
  * FASHIONSTORE - COUPON INPUT COMPONENT
  * =====================================
  * Componente para aplicar cupones de descuento
+ * Uses new 'coupons' table via /api/validate-coupon
  */
 
 import { useState, useEffect } from 'preact/hooks';
 
 interface AppliedCoupon {
-  codigo: string;
-  tipo: string;
-  valor: number;
-  descuento: number;
-  cupon_id: string;
+  code: string;
+  discount_type: string; // 'PERCENTAGE' | 'FIXED'
+  value: number;
+  discountAmount: number;
+  coupon_id: number;
 }
 
 interface CouponInputProps {
   subtotal: number; // En céntimos
   onCouponApplied: (coupon: AppliedCoupon | null) => void;
+  userId?: string | null;
 }
 
-export default function CouponInput({ subtotal, onCouponApplied }: CouponInputProps) {
+export default function CouponInput({ subtotal, onCouponApplied, userId }: CouponInputProps) {
   const [codigo, setCodigo] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -45,34 +47,43 @@ export default function CouponInput({ subtotal, onCouponApplied }: CouponInputPr
       return;
     }
 
+    if (!userId) {
+      setMessage({ type: 'error', text: 'Debes iniciar sesión para usar cupones' });
+      return;
+    }
+
     setIsLoading(true);
     setMessage(null);
 
     try {
-      const response = await fetch('/api/cupones/validate', {
+      const response = await fetch('/api/validate-coupon', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ codigo: codigo.trim(), subtotal })
+        body: JSON.stringify({
+          code: codigo.trim().toUpperCase(),
+          userId,
+          cartTotal: subtotal,
+        })
       });
 
       const result = await response.json();
 
-      if (result.valid) {
+      if (result.valid && result.coupon) {
         const coupon: AppliedCoupon = {
-          codigo: codigo.toUpperCase(),
-          tipo: result.tipo,
-          valor: result.valor,
-          descuento: result.descuento_calculado,
-          cupon_id: result.cupon_id
+          code: result.coupon.code,
+          discount_type: result.coupon.discount_type,
+          value: result.coupon.value,
+          discountAmount: result.discountAmount || 0,
+          coupon_id: result.coupon.id,
         };
 
         setAppliedCoupon(coupon);
         localStorage.setItem('fashionstore_applied_coupon', JSON.stringify(coupon));
         onCouponApplied(coupon);
-        setMessage({ type: 'success', text: result.message });
+        setMessage({ type: 'success', text: `¡Cupón ${coupon.code} aplicado correctamente!` });
         setCodigo('');
       } else {
-        setMessage({ type: 'error', text: result.message });
+        setMessage({ type: 'error', text: result.error || 'Cupón no válido' });
       }
     } catch (error) {
       console.error('Error applying coupon:', error);
@@ -99,13 +110,13 @@ export default function CouponInput({ subtotal, onCouponApplied }: CouponInputPr
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div>
-              <p className="font-bold text-green-800">Cupón aplicado: {appliedCoupon.codigo}</p>
+              <p className="font-bold text-green-800">Cupón aplicado: {appliedCoupon.code}</p>
               <p className="text-sm text-green-600">
-                {appliedCoupon.tipo === 'Porcentaje'
-                  ? `${appliedCoupon.valor}% de descuento`
-                  : `${appliedCoupon.valor}€ de descuento`
+                {appliedCoupon.discount_type === 'PERCENTAGE'
+                  ? `${appliedCoupon.value}% de descuento`
+                  : `${appliedCoupon.value}€ de descuento`
                 }
-                {' '}(-{(appliedCoupon.descuento / 100).toFixed(2)}€)
+                {' '}(-{(appliedCoupon.discountAmount / 100).toFixed(2)}€)
               </p>
             </div>
           </div>

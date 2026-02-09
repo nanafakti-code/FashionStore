@@ -8,11 +8,11 @@ import CouponInput from './CouponInput';
 import { AlertIcon } from '@/components/ui/Icons';
 
 interface AppliedCoupon {
-  codigo: string;
-  tipo: string;
-  valor: number;
-  descuento: number;
-  cupon_id: string;
+  code: string;
+  discount_type: string;  // 'PERCENTAGE' | 'FIXED'
+  value: number;
+  discountAmount: number;
+  coupon_id: number;
 }
 
 export default function Cart() {
@@ -27,6 +27,7 @@ export default function Cart() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
@@ -39,6 +40,7 @@ export default function Cart() {
     const checkAuth = async () => {
       const user = await getCurrentUser();
       setIsAuthenticated(!!user);
+      setUserId(user ? user.id : null);
       console.log('[Cart] Auth status:', !!user ? 'AUTHENTICATED' : 'GUEST');
     };
     checkAuth();
@@ -146,10 +148,10 @@ export default function Cart() {
     // Calcular descuento del cupón
     let discount = 0;
     if (coupon) {
-      if (coupon.tipo === 'Porcentaje') {
-        discount = Math.round((subtotalPrice * coupon.valor) / 100);
+      if (coupon.discount_type === 'PERCENTAGE') {
+        discount = Math.round((subtotalPrice * coupon.value) / 100);
       } else {
-        discount = Math.min(coupon.valor * 100, subtotalPrice);
+        discount = Math.min(coupon.value * 100, subtotalPrice);
       }
     }
 
@@ -445,7 +447,7 @@ export default function Cart() {
 
             {/* Cupón de descuento */}
             <div className="mb-6">
-              <CouponInput subtotal={subtotal} onCouponApplied={handleCouponApplied} />
+              <CouponInput subtotal={subtotal} onCouponApplied={handleCouponApplied} userId={userId} />
             </div>
 
             <div className="space-y-3 mb-6 pb-6 border-b border-gray-200">

@@ -261,6 +261,32 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
                 </div>
               </div>
 
+              <!-- Descuento row (hidden, se muestra dinámicamente) -->
+              <div id="discount-row" class="hidden flex justify-between text-green-600 text-sm mb-3">
+                <span id="discount-label">Descuento:</span>
+                <span id="discount-value">-0.00€</span>
+              </div>
+
+              <!-- Cupón -->
+              <div id="coupon-section" class="mb-4 border-t border-gray-200 pt-4">
+                <label class="text-sm font-semibold text-gray-700 mb-2 block">¿Tienes un cupón de descuento?</label>
+                <div id="coupon-input-area" class="flex gap-2">
+                  <input type="text" id="coupon-input" placeholder="Código de cupón"
+                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm uppercase focus:outline-none focus:border-[#00aa45] focus:ring-1 focus:ring-[#00aa45]" />
+                  <button type="button" id="apply-coupon-btn"
+                    class="bg-[#00aa45] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-700 transition whitespace-nowrap">
+                    Aplicar
+                  </button>
+                </div>
+                <div id="coupon-message" class="mt-2 text-sm hidden"></div>
+                <div id="coupon-applied" class="mt-2 hidden">
+                  <div class="flex justify-between items-center bg-green-50 p-2 rounded-lg border border-green-200">
+                    <span class="text-green-700 text-sm font-semibold" id="coupon-applied-text"></span>
+                    <button type="button" id="remove-coupon-btn" class="text-red-500 text-xs font-bold hover:text-red-700 transition">✕ Quitar</button>
+                  </div>
+                </div>
+              </div>
+
               <div class="mb-6 border-t border-gray-200 pt-4">
                 <div
                   class="flex justify-between text-2xl font-black text-gray-900"
@@ -291,17 +317,28 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
     </section>
   </main>
 
-  <script>
-    // @ts-nocheck
-    // CHECKOUT SCRIPT - Lee carrito desde localStorage y BD
+  <script
+    define:vars={{
+      SUPABASE_URL: import.meta.env.PUBLIC_SUPABASE_URL,
+      SUPABASE_ANON_KEY: import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
+    }}
+  >
+    // CHECKOUT SCRIPT
     console.log("=== CHECKOUT: Iniciando ===");
 
-    // Configuración
-    const SUPABASE_URL = "https://spzvtjybxpaxpnpfxbqv.supabase.co";
-    const SUPABASE_ANON_KEY =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwenZ0anlieHBheHBucGZ4YnF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjgyMzUsImV4cCI6MjA4MzQ0NDIzNX0.5gggyKxtxR7IdQejFS48eoF_xL-7CPuP2jOeuMLTS8M";
+    // Configuración desde variables de entorno
+    // Derivar Project Ref de la URL para la key de sesión local
+    // URL ejemplo: https://spzvtjybxpaxpnpfxbqv.supabase.co
+    const projectRef = SUPABASE_URL.split("//")[1].split(".")[0];
     const CART_KEY = "fashionstore_guest_cart";
-    const SESSION_KEY = "sb-spzvtjybxpaxpnpfxbqv-auth-token";
+    const SESSION_KEY = `sb-${projectRef}-auth-token`;
+    const COUPON_KEY = "fashionstore_applied_coupon";
+
+    console.log("Config:", {
+      projectRef,
+      hasUrl: !!SUPABASE_URL,
+      hasKey: !!SUPABASE_ANON_KEY,
+    });
 
     // Obtener sesión actual de Supabase
     function getSession() {
@@ -325,7 +362,6 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
       try {
         console.log("Obteniendo carrito de BD via RPC...");
 
-        // Usar RPC get_user_cart como hace el resto del sistema
         const response = await fetch(
           `${SUPABASE_URL}/rest/v1/rpc/get_user_cart`,
           {
@@ -356,7 +392,6 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
           return getGuestCart();
         }
 
-        // Mapear los datos al formato esperado
         return (data || []).map((item) => ({
           id: item.id,
           product_id: item.product_id,
@@ -378,7 +413,6 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
     function getGuestSessionId() {
       let sessionId = localStorage.getItem("fashionstore_guest_session_id");
       if (!sessionId) {
-        // Generar uno nuevo si no existe (aunque ya debería existir si tiene carrito)
         sessionId = crypto.randomUUID();
         localStorage.setItem("fashionstore_guest_session_id", sessionId);
       }
@@ -414,7 +448,6 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
             response.status,
             await response.text(),
           );
-          // Fallback a localStorage por si acaso
           return getGuestCartFromStorage();
         }
 
@@ -422,11 +455,9 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
         console.log("Datos RPC get_guest_cart:", data);
 
         if (!data || data.length === 0) {
-          // Fallback a localStorage por si acaso
           return getGuestCartFromStorage();
         }
 
-        // Mapear datos
         return data.map((item) => ({
           id: item.id,
           product_id: item.product_id,
@@ -448,14 +479,11 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
     function getGuestCartFromStorage() {
       try {
         console.log("Leyendo carrito de localStorage (fallback)...");
-
         let cartJSON = localStorage.getItem(CART_KEY);
         if (!cartJSON) {
           cartJSON = sessionStorage.getItem(CART_KEY);
         }
-
         const cart = cartJSON ? JSON.parse(cartJSON) : [];
-        console.log("Carrito localStorage/sessionStorage:", cart);
         return cart;
       } catch (error) {
         console.error("Error getting guest cart from storage:", error);
@@ -463,29 +491,27 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
       }
     }
 
-    // Obtener carrito (detecta si es usuario o invitado)
+    // Obtener carrito
     async function getCart() {
       const session = getSession();
-
       if (session?.access_token) {
         console.log("Usuario autenticado, obteniendo carrito de BD...");
         const authCart = await getAuthenticatedCart(session.access_token);
         if (authCart && authCart.length > 0) {
           return authCart;
         }
-        // Si el carrito autenticado está vacío, probar localStorage por si hay items
-        console.log("Carrito autenticado vacío, probando localStorage...");
       }
-
       console.log("Obteniendo carrito de invitado...");
       return await getGuestCart();
     }
 
-    // Variable global para el carrito
+    // Variable global para el carrito y cupón
     let cartData = [];
     let currentSession = null;
+    let appliedCoupon = null;
+    let currentDiscountCents = 0; // Track discount for payment
 
-    // Obtener datos del perfil del usuario autenticado
+    // Obtener datos del perfil
     async function getUserProfile(accessToken, userId) {
       try {
         console.log("Obteniendo perfil del usuario...");
@@ -501,13 +527,8 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
           },
         );
 
-        if (!response.ok) {
-          console.error("Error obteniendo perfil:", response.status);
-          return null;
-        }
-
+        if (!response.ok) return null;
         const data = await response.json();
-        console.log("Perfil del usuario:", data);
         return data && data.length > 0 ? data[0] : null;
       } catch (error) {
         console.error("Error obteniendo perfil:", error);
@@ -515,45 +536,205 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
       }
     }
 
-    // Auto-rellenar formulario con datos del usuario
     function fillFormWithUserData(profile, email) {
-      console.log("Rellenando formulario con datos del usuario...");
-
-      // Email del usuario autenticado
       const inputEmail = document.getElementById("input-email");
-      if (inputEmail && email) {
-        inputEmail.value = email;
-      }
+      if (inputEmail && email) inputEmail.value = email;
 
-      if (!profile) {
-        console.log("No hay perfil, solo se rellena el email");
-        return;
-      }
+      if (!profile) return;
 
-      // Datos personales
       const inputNombre = document.getElementById("input-nombre");
       const inputApellidos = document.getElementById("input-apellidos");
       const inputTelefono = document.getElementById("input-telefono");
+      const inputCalle = document.getElementById("input-calle");
+      const inputCiudad = document.getElementById("input-ciudad");
+      const inputCp = document.getElementById("input-cp");
+      const inputPais = document.getElementById("input-pais");
 
       if (inputNombre && profile.nombre) inputNombre.value = profile.nombre;
       if (inputApellidos && profile.apellidos)
         inputApellidos.value = profile.apellidos;
       if (inputTelefono && profile.telefono)
         inputTelefono.value = profile.telefono;
-
-      // Dirección de entrega
-      const inputCalle = document.getElementById("input-calle");
-      const inputCiudad = document.getElementById("input-ciudad");
-      const inputCp = document.getElementById("input-cp");
-      const inputPais = document.getElementById("input-pais");
-
       if (inputCalle && profile.direccion) inputCalle.value = profile.direccion;
       if (inputCiudad && profile.ciudad) inputCiudad.value = profile.ciudad;
       if (inputCp && profile.codigo_postal)
         inputCp.value = profile.codigo_postal;
       if (inputPais && profile.pais) inputPais.value = profile.pais;
+    }
 
-      console.log("✓ Formulario rellenado automáticamente");
+    // Cargar Cupón desde LocalStorage
+    function loadAppliedCoupon() {
+      try {
+        const savedCoupon = localStorage.getItem(COUPON_KEY);
+        if (savedCoupon) {
+          appliedCoupon = JSON.parse(savedCoupon);
+          console.log("Cupón aplicado encontrado:", appliedCoupon);
+          showAppliedCoupon();
+        }
+      } catch (e) {
+        console.error("Error loading coupon:", e);
+      }
+    }
+
+    function showAppliedCoupon() {
+      if (!appliedCoupon) return;
+      const inputArea = document.getElementById("coupon-input-area");
+      const appliedDiv = document.getElementById("coupon-applied");
+      const appliedText = document.getElementById("coupon-applied-text");
+      const msgDiv = document.getElementById("coupon-message");
+      if (inputArea) inputArea.classList.add("hidden");
+      if (appliedDiv) appliedDiv.classList.remove("hidden");
+      if (msgDiv) msgDiv.classList.add("hidden");
+      if (appliedText) {
+        const label = appliedCoupon.discount_type === "PERCENTAGE"
+          ? `${appliedCoupon.value}% OFF`
+          : `${appliedCoupon.value}€ OFF`;
+        appliedText.textContent = `✓ Cupón ${appliedCoupon.code} aplicado (${label})`;
+      }
+    }
+
+    function removeCoupon() {
+      appliedCoupon = null;
+      localStorage.removeItem(COUPON_KEY);
+      const inputArea = document.getElementById("coupon-input-area");
+      const appliedDiv = document.getElementById("coupon-applied");
+      const couponInput = document.getElementById("coupon-input");
+      const discountRow = document.getElementById("discount-row");
+      if (inputArea) inputArea.classList.remove("hidden");
+      if (appliedDiv) appliedDiv.classList.add("hidden");
+      if (couponInput) couponInput.value = "";
+      if (discountRow) discountRow.classList.add("hidden");
+      // Recalcular totales
+      recalculateTotals();
+    }
+
+    async function applyCoupon() {
+      const couponInput = document.getElementById("coupon-input");
+      const msgDiv = document.getElementById("coupon-message");
+      const applyBtn = document.getElementById("apply-coupon-btn");
+      const code = couponInput?.value?.trim();
+
+      if (!code) {
+        if (msgDiv) {
+          msgDiv.textContent = "Introduce un código de cupón";
+          msgDiv.className = "mt-2 text-sm text-red-600";
+          msgDiv.classList.remove("hidden");
+        }
+        return;
+      }
+
+      if (!currentSession) {
+        if (msgDiv) {
+          msgDiv.textContent = "Debes iniciar sesión para usar cupones";
+          msgDiv.className = "mt-2 text-sm text-red-600";
+          msgDiv.classList.remove("hidden");
+        }
+        return;
+      }
+
+      if (applyBtn) {
+        applyBtn.disabled = true;
+        applyBtn.textContent = "Validando...";
+      }
+
+      try {
+        // Calculate current cart total in cents
+        let cartTotalCents = 0;
+        for (const item of cartData) {
+          const price = item.precio_unitario || item.price || 0;
+          const qty = item.quantity || 1;
+          cartTotalCents += price * qty;
+        }
+
+        const res = await fetch("/api/validate-coupon", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            code: code.toUpperCase(),
+            userId: currentSession.user.id,
+            cartTotal: cartTotalCents,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (data.valid && data.coupon) {
+          appliedCoupon = {
+            coupon_id: data.coupon.id,
+            code: data.coupon.code,
+            discount_type: data.coupon.discount_type,
+            value: data.coupon.value,
+            discountAmount: data.discountAmount,
+          };
+          localStorage.setItem(COUPON_KEY, JSON.stringify(appliedCoupon));
+          showAppliedCoupon();
+          recalculateTotals();
+        } else {
+          if (msgDiv) {
+            msgDiv.textContent = data.error || "Cupón no válido";
+            msgDiv.className = "mt-2 text-sm text-red-600";
+            msgDiv.classList.remove("hidden");
+          }
+        }
+      } catch (err) {
+        console.error("Error validating coupon:", err);
+        if (msgDiv) {
+          msgDiv.textContent = "Error al validar el cupón";
+          msgDiv.className = "mt-2 text-sm text-red-600";
+          msgDiv.classList.remove("hidden");
+        }
+      } finally {
+        if (applyBtn) {
+          applyBtn.disabled = false;
+          applyBtn.textContent = "Aplicar";
+        }
+      }
+    }
+
+    function recalculateTotals() {
+      let subtotal = 0;
+      for (const item of cartData) {
+        const price = item.precio_unitario || item.price || 0;
+        const qty = item.quantity || 1;
+        subtotal += price * qty;
+      }
+
+      let discountAmount = 0;
+      if (appliedCoupon) {
+        if (appliedCoupon.discountAmount) {
+          discountAmount = appliedCoupon.discountAmount;
+        } else if (appliedCoupon.discount_type === "PERCENTAGE") {
+          discountAmount = Math.round((subtotal * appliedCoupon.value) / 100);
+        } else {
+          discountAmount = Math.min(Math.round(appliedCoupon.value * 100), subtotal);
+        }
+      }
+      currentDiscountCents = discountAmount;
+
+      const subtotalAfterDiscount = Math.max(0, subtotal - discountAmount);
+      const subtotalEuros = subtotal / 100;
+      const discountEuros = discountAmount / 100;
+      const taxAmount = Math.round(subtotalAfterDiscount * 0.21) / 100;
+      const totalAmount = subtotalAfterDiscount / 100 + taxAmount;
+
+      const subtotalEl = document.getElementById("subtotal");
+      const taxEl = document.getElementById("tax");
+      const totalEl = document.getElementById("total");
+      const discountRow = document.getElementById("discount-row");
+      const discountLabel = document.getElementById("discount-label");
+      const discountValue = document.getElementById("discount-value");
+
+      if (subtotalEl) subtotalEl.textContent = `${subtotalEuros.toFixed(2)}€`;
+      if (taxEl) taxEl.textContent = `${taxAmount.toFixed(2)}€`;
+      if (totalEl) totalEl.textContent = `${totalAmount.toFixed(2)}€`;
+
+      if (discountRow && discountAmount > 0) {
+        discountRow.classList.remove("hidden");
+        if (discountLabel) discountLabel.textContent = `Descuento (${appliedCoupon?.code || ''}):`; 
+        if (discountValue) discountValue.textContent = `-${discountEuros.toFixed(2)}€`;
+      } else if (discountRow) {
+        discountRow.classList.add("hidden");
+      }
     }
 
     // INICIALIZAR
@@ -563,7 +744,7 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
       currentSession = getSession();
       const isGuest = !currentSession;
 
-      // Mostrar estado de autenticación
+      // Mostrar estado auth
       const authStatus = document.getElementById("auth-status");
       if (authStatus) {
         if (isGuest) {
@@ -581,7 +762,6 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
             <span>Sesión iniciada como: <strong>${currentSession.user.email}</strong></span>
           `;
 
-          // Auto-rellenar formulario con datos del usuario
           try {
             const profile = await getUserProfile(
               currentSession.access_token,
@@ -589,12 +769,13 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
             );
             fillFormWithUserData(profile, currentSession.user.email);
           } catch (error) {
-            console.error("Error al cargar perfil para auto-rellenar:", error);
-            // Al menos rellenar el email
             fillFormWithUserData(null, currentSession.user.email);
           }
         }
       }
+
+      // Cargar cupón
+      loadAppliedCoupon();
 
       // Cargar carrito
       console.log("Obteniendo carrito...");
@@ -634,17 +815,26 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
         }
       }
 
-      const subtotalEuros = subtotal / 100;
-      const taxAmount = Math.round(subtotal * 0.21) / 100;
-      const totalAmount = subtotalEuros + taxAmount;
+      // Cálculos con Descuento — usa recalculateTotals()
+      recalculateTotals();
 
-      const subtotalEl = document.getElementById("subtotal");
-      const taxEl = document.getElementById("tax");
-      const totalEl = document.getElementById("total");
+      // Bind coupon buttons
+      const applyCouponBtn = document.getElementById("apply-coupon-btn");
+      const removeCouponBtn = document.getElementById("remove-coupon-btn");
+      const couponInput = document.getElementById("coupon-input");
+      if (applyCouponBtn) applyCouponBtn.addEventListener("click", applyCoupon);
+      if (removeCouponBtn) removeCouponBtn.addEventListener("click", removeCoupon);
+      if (couponInput) {
+        couponInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") { e.preventDefault(); applyCoupon(); }
+        });
+      }
 
-      if (subtotalEl) subtotalEl.textContent = `${subtotalEuros.toFixed(2)}€`;
-      if (taxEl) taxEl.textContent = `${taxAmount.toFixed(2)}€`;
-      if (totalEl) totalEl.textContent = `${totalAmount.toFixed(2)}€`;
+      // Ocultar sección cupón para invitados
+      if (!currentSession) {
+        const couponSection = document.getElementById("coupon-section");
+        if (couponSection) couponSection.style.display = "none";
+      }
 
       // Botón de pago
       const payButton = document.getElementById("pay-button");
@@ -697,7 +887,6 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
           payButton.textContent = "Procesando...";
 
           try {
-            // Leer valores del formulario usando los IDs
             const nombre = document
               .getElementById("input-nombre")
               ?.value.trim();
@@ -735,7 +924,16 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
               nombre_completo: `${nombre} ${apellidos}`,
             };
 
-            const totalCents = Math.round(totalAmount * 100);
+            // Recalculate total with discount for payment
+            let paySubtotal = 0;
+            for (const item of cartData) {
+              const price = item.precio_unitario || item.price || 0;
+              const qty = item.quantity || 1;
+              paySubtotal += price * qty;
+            }
+            const payAfterDiscount = Math.max(0, paySubtotal - currentDiscountCents);
+            const payTax = Math.round(payAfterDiscount * 0.21);
+            const totalCents = payAfterDiscount + payTax;
             const isGuest = !currentSession;
 
             const response = await fetch("/api/stripe/create-session", {
@@ -753,6 +951,9 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
                 guestSessionId: isGuest
                   ? localStorage.getItem("fashionstore_guest_session_id")
                   : null,
+                // Coupon data
+                descuento: currentDiscountCents,
+                cuponId: appliedCoupon ? appliedCoupon.coupon_id : null,
                 successUrl:
                   window.location.origin +
                   "/checkout/success?session_id={CHECKOUT_SESSION_ID}",

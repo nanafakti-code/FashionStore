@@ -516,6 +516,9 @@ import Layout from "@/layouts/Layout.astro";
             localStorage.removeItem("fashionstore_guest_session_id");
           }
 
+          // CLEAR APPLIED COUPON
+          localStorage.removeItem("fashionstore_applied_coupon");
+
           // 3. Limpiar sessionStorage
           if (typeof sessionStorage !== "undefined") {
             cartKeys.forEach((key) => {

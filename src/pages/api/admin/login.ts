@@ -96,7 +96,7 @@ async function handleLogin(context: any) {
 
     // Validar credenciales
     console.log('[ADMIN-LOGIN-API] Validando credenciales...');
-    if (validateAdminCredentials(username, password)) {
+    if (await validateAdminCredentials(username, password)) {
       console.log('[ADMIN-LOGIN-API] ✓ Credenciales válidas - Generando token');
       const token = createAdminSessionToken(username);
 

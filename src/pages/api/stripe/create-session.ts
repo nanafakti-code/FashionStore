@@ -129,7 +129,7 @@ export const POST: APIRoute = async (context) => {
       descuento,
       coste_envio: 0,
       total: totalAmount,
-      cupon_id: cuponId || null,
+      // cupon_id is tracked in coupon_usages table, not here (ordenes.cupon_id is UUID type, incompatible with coupons.id BIGINT)
       email_cliente: userEmail,
       nombre_cliente: nombre || userEmail.split('@')[0],
       telefono_cliente: telefono || null,
@@ -157,6 +157,80 @@ export const POST: APIRoute = async (context) => {
     }
 
     console.log(`[CREATE-SESSION] ✅ Pedido creado: ${numeroOrden} (ID: ${order.id})`);
+
+    // ============================================================
+    // 2.5 REGISTRAR USO DEL CUPÓN (si aplica)
+    // ============================================================
+    if (cuponId && userId && descuento > 0) {
+      try {
+        // Insert usage record (using service role client to bypass RLS)
+        // NOTE: order_id omitted because coupon_usages FK references pedidos, not ordenes
+        const { error: usageError } = await supabase
+          .from('coupon_usages')
+          .insert({
+            coupon_id: cuponId,
+            user_id: userId,
+            discount_amount: descuento,
+          });
+
+        if (usageError) {
+          console.warn(`[CREATE-SESSION] ⚠️ Error insertando uso cupón:`, usageError);
+        } else {
+          console.log(`[CREATE-SESSION] ✅ Uso de cupón ${cuponId} registrado`);
+
+          // Check if coupon should be deactivated
+          const { data: couponData } = await supabase
+            .from('coupons')
+            .select('assigned_user_id, max_uses_global, max_uses_per_user')
+            .eq('id', cuponId)
+            .single();
+
+          if (couponData) {
+            let shouldDeactivate = false;
+
+            // EXCLUSIVE coupon (assigned to specific user) → deactivate after use
+            if (couponData.assigned_user_id) {
+              shouldDeactivate = true;
+              console.log(`[CREATE-SESSION] Cupón exclusivo ${cuponId} → desactivando`);
+            }
+
+            // GLOBAL coupon with explicit total usage limit → deactivate ONLY when limit reached
+            // If max_uses_global is NULL → unlimited, NEVER deactivate
+            // Per-user limits are handled via coupon_usages checks, NOT by deactivating the coupon
+            if (!shouldDeactivate && couponData.max_uses_global !== null && couponData.max_uses_global > 0) {
+              const { count } = await supabase
+                .from('coupon_usages')
+                .select('id', { count: 'exact', head: true })
+                .eq('coupon_id', cuponId);
+
+              if ((count || 0) >= couponData.max_uses_global) {
+                shouldDeactivate = true;
+                console.log(`[CREATE-SESSION] Límite global alcanzado (${count}/${couponData.max_uses_global}) → desactivando`);
+              } else {
+                console.log(`[CREATE-SESSION] Cupón global ${cuponId}: ${count}/${couponData.max_uses_global} usos, sigue activo`);
+              }
+            }
+
+            if (shouldDeactivate) {
+              const { error: deactivateError } = await supabase
+                .from('coupons')
+                .update({ is_active: false })
+                .eq('id', cuponId);
+
+              if (deactivateError) {
+                console.warn(`[CREATE-SESSION] ⚠️ Error desactivando cupón:`, deactivateError);
+              } else {
+                console.log(`[CREATE-SESSION] ✅ Cupón ${cuponId} desactivado`);
+              }
+            } else if (!couponData.assigned_user_id) {
+              console.log(`[CREATE-SESSION] Cupón global ${cuponId} sigue activo para otros usuarios`);
+            }
+          }
+        }
+      } catch (couponError) {
+        console.warn('[CREATE-SESSION] ⚠️ Error al canjear cupón (no bloqueante):', couponError);
+      }
+    }
 
     // ============================================================
     // 3. CREAR ITEMS DEL PEDIDO EN BD

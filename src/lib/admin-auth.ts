@@ -1,11 +1,14 @@
 /**
  * ADMIN AUTHENTICATION UTILITIES
- * Sistema simple de autenticación para el panel de administración
+ * Sistema de autenticación con contraseña desde BD (admin_credentials)
+ * Fallback a hardcoded si la tabla no existe
  */
 
-// Credenciales de administrador - HARDCODED para máxima compatibilidad
+import { supabase } from './supabase';
+
+// Credenciales por defecto (fallback si no hay tabla)
 const ADMIN_EMAIL = 'admin@fashionstore.com';
-const ADMIN_PASSWORD = '1234';
+const FALLBACK_PASSWORD = '1234';
 
 console.log('[ADMIN-AUTH] Sistema inicializado');
 console.log('[ADMIN-AUTH] Email:', ADMIN_EMAIL);
@@ -17,9 +20,10 @@ export interface AdminSession {
 }
 
 /**
- * Validar credenciales de login
+ * Validar credenciales de login — lee contraseña de admin_credentials (Supabase)
+ * Fallback a FALLBACK_PASSWORD si la tabla no existe
  */
-export function validateAdminCredentials(username: string, password: string): boolean {
+export async function validateAdminCredentials(username: string, password: string): Promise<boolean> {
   // Normalizar email (lowercase y trim)
   const normalizedUsername = username.toLowerCase().trim();
   const normalizedAdminEmail = ADMIN_EMAIL.toLowerCase().trim();
@@ -30,16 +34,36 @@ export function validateAdminCredentials(username: string, password: string): bo
   console.log('[ADMIN-AUTH] Username recibido:', `"${username}"`);
   console.log('[ADMIN-AUTH] Username normalizado:', `"${normalizedUsername}"`);
   console.log('[ADMIN-AUTH] Email esperado:', `"${normalizedAdminEmail}"`);
-  console.log('[ADMIN-AUTH] Password recibido:', `"${password}"`);
-  console.log('[ADMIN-AUTH] Password esperado:', `"${ADMIN_PASSWORD}"`);
-  console.log('[ADMIN-AUTH] Email match:', normalizedUsername === normalizedAdminEmail);
-  console.log('[ADMIN-AUTH] Password match:', password === ADMIN_PASSWORD);
 
-  const isValid = (
-    normalizedUsername === normalizedAdminEmail &&
-    password === ADMIN_PASSWORD
-  );
+  // 1. Verificar email primero
+  if (normalizedUsername !== normalizedAdminEmail) {
+    console.log('[ADMIN-AUTH] ✗ Email no coincide');
+    return false;
+  }
 
+  // 2. Intentar obtener la contraseña de la BD
+  let storedPassword = FALLBACK_PASSWORD;
+  try {
+    const { data, error } = await supabase
+      .from('admin_credentials')
+      .select('password')
+      .eq('email', ADMIN_EMAIL)
+      .limit(1)
+      .single();
+
+    if (!error && data?.password) {
+      storedPassword = data.password;
+      console.log('[ADMIN-AUTH] Usando contraseña de BD');
+    } else {
+      console.log('[ADMIN-AUTH] Tabla admin_credentials no disponible, usando fallback');
+    }
+  } catch {
+    console.log('[ADMIN-AUTH] Error accediendo a BD, usando fallback');
+  }
+
+  const isValid = password === storedPassword;
+
+  console.log('[ADMIN-AUTH] Password match:', isValid);
   console.log('[ADMIN-AUTH] ==========================================');
   console.log('[ADMIN-AUTH] RESULTADO:', isValid ? '✓ VÁLIDO' : '✗ INVÁLIDO');
   console.log('[ADMIN-AUTH] ==========================================');
