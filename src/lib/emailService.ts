@@ -188,7 +188,6 @@ function getTransporter() {
   console.log(`[EMAIL] Transporter created → ${SMTP_HOST}:${SMTP_PORT} (user: ${SMTP_USER})`);
   return _transporter;
 }
-}
 
 /**
  * Verify SMTP connection is alive.
