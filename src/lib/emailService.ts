@@ -170,7 +170,7 @@ function getTransporter() {
     return null;
   }
 
-  _transporter = nodemailer.createTransport({
+  _transporter = (nodemailer.createTransport({
     host: SMTP_HOST,
     port: SMTP_PORT,
     secure: SMTP_PORT === 465,
@@ -183,7 +183,7 @@ function getTransporter() {
     connectionTimeout: 10_000,
     greetingTimeout: 10_000,
     socketTimeout: 30_000,
-  } as any);
+  }) as any);
 
   console.log(`[EMAIL] Transporter created → ${SMTP_HOST}:${SMTP_PORT} (user: ${SMTP_USER})`);
   return _transporter;
