@@ -13,34 +13,42 @@ DECLARE
 BEGIN
   -- 1. Verificar si ya está suscrito
   SELECT EXISTS(
-    SELECT 1 FROM newsletter_subscriptions WHERE email = p_email
+    SELECT 1 FROM newsletter_subscriptions WHERE email = LOWER(p_email)
   ) INTO v_exists;
 
   IF v_exists THEN
     SELECT codigo_descuento INTO v_existing_code
-    FROM newsletter_subscriptions WHERE email = p_email;
+    FROM newsletter_subscriptions WHERE email = LOWER(p_email);
 
     RETURN QUERY SELECT true, 'Ya estás suscrito.'::TEXT, COALESCE(v_existing_code, 'YA_SUSCRITO')::TEXT;
     RETURN;
   END IF;
 
-  -- 2. Buscar el usuario en auth.users por email
-  SELECT id INTO v_user_id FROM auth.users WHERE email = p_email;
+  -- 2. Buscar el usuario en auth.users por email (case-insensitive)
+  SELECT id INTO v_user_id FROM auth.users WHERE LOWER(email) = LOWER(p_email) LIMIT 1;
 
-  -- 3. Generar código único
+  -- 3. Si no tiene cuenta registrada, no crear cupón sin dueño
+  IF v_user_id IS NULL THEN
+    -- Registrar suscripción sin cupón
+    INSERT INTO newsletter_subscriptions (email)
+    VALUES (LOWER(p_email));
+
+    RETURN QUERY SELECT true, '¡Gracias por suscribirte! Regístrate con este email para recibir tu cupón de descuento.'::TEXT, ''::TEXT;
+    RETURN;
+  END IF;
+
+  -- 4. Generar código único
   v_codigo := 'WELCOME-' || UPPER(SUBSTRING(MD5(p_email || NOW()::TEXT) FROM 1 FOR 6));
 
-  -- 4. Registrar suscripción con código
+  -- 5. Registrar suscripción con código
   INSERT INTO newsletter_subscriptions (email, codigo_descuento)
-  VALUES (p_email, v_codigo);
+  VALUES (LOWER(p_email), v_codigo);
 
-  -- 5. Crear cupón en la tabla "coupons" asignado al usuario
-  --    - assigned_user_id = UUID del usuario (solo él puede usarlo)
-  --    - Si no tiene cuenta, queda NULL (público) pero max_uses_global=1
+  -- 6. Crear cupón asignado SOLO a este usuario
   INSERT INTO coupons (code, description, discount_type, value, min_order_value, max_uses_global, max_uses_per_user, expiration_date, is_active, assigned_user_id)
   VALUES (
     v_codigo,
-    'Cupón bienvenida newsletter - ' || p_email,
+    'Cupón bienvenida newsletter - ' || LOWER(p_email),
     'PERCENTAGE',
     10,
     0,
