@@ -1,14 +1,27 @@
 import type { APIRoute } from 'astro';
 import { createServerClient } from '@/lib/supabase';
 
+export const OPTIONS: APIRoute = () => {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-guest-session-id',
+      'Access-Control-Max-Age': '86400',
+    }
+  });
+};
+
+
 export const GET: APIRoute = async (context) => {
   try {
     // Obtener userId de los query parameters
     const userId = context.url.searchParams.get('userId');
-    
+
     if (!userId) {
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: 'userId requerido',
           items: []
         }),
@@ -22,7 +35,7 @@ export const GET: APIRoute = async (context) => {
 
     // Método 1: Intentar usar la RPC get_user_cart (la misma que usa Cart.tsx)
     // Pero necesitamos autenticarnos como el usuario, así que usamos consulta directa
-    
+
     // Consultar la tabla cart_items directamente con el userId
     const { data: cartItems, error: cartError } = await supabase
       .from('cart_items')
@@ -34,7 +47,7 @@ export const GET: APIRoute = async (context) => {
     if (cartError) {
       console.error('[API/cart/get] Error fetching cart:', cartError);
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: cartError.message,
           items: []
         }),
@@ -43,7 +56,7 @@ export const GET: APIRoute = async (context) => {
     }
 
     const productIds = (cartItems || []).map((item: any) => item.product_id);
-    
+
     if (productIds.length === 0) {
       console.log('[API/cart/get] Carrito vacío, no hay productos');
       return new Response(
@@ -64,7 +77,7 @@ export const GET: APIRoute = async (context) => {
       .from('productos')
       .select('id, nombre, precio_venta, imagenes')
       .in('id', productIds);
-    
+
     if (!productosErr && productosData && productosData.length > 0) {
       console.log('[API/cart/get] Productos encontrados en tabla "productos":', productosData.length);
       products = productosData.map((p: any) => ({
@@ -79,7 +92,7 @@ export const GET: APIRoute = async (context) => {
         .from('products')
         .select('id, name, price, image')
         .in('id', productIds);
-      
+
       if (!productsErr && productsData) {
         console.log('[API/cart/get] Productos encontrados en tabla "products":', productsData.length);
         products = productsData;
@@ -125,7 +138,7 @@ export const GET: APIRoute = async (context) => {
   } catch (error) {
     console.error('[API/cart/get] Error:', error);
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: 'Error interno del servidor',
         items: []
       }),

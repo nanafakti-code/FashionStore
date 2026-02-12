@@ -11,6 +11,19 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 
+export const OPTIONS: APIRoute = () => {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-guest-session-id',
+      'Access-Control-Max-Age': '86400',
+    }
+  });
+};
+
+
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
 const supabaseKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -42,7 +55,7 @@ export const POST: APIRoute = async (context) => {
     console.log(`[CART-CLEAR] Limpiando carrito para usuario: ${userId}`);
 
     const supabase = createClient(supabaseUrl, supabaseKey);
-    
+
     let itemsRemoved = 0;
     let method = 'none';
 
@@ -55,7 +68,7 @@ export const POST: APIRoute = async (context) => {
 
       if (!getError && cartItems && cartItems.length > 0) {
         console.log(`[CART-CLEAR] Encontrados ${cartItems.length} items en 'cart_items'`);
-        
+
         const { error: deleteError } = await supabase
           .from('cart_items')
           .delete()
@@ -85,7 +98,7 @@ export const POST: APIRoute = async (context) => {
 
         if (!getError && carritoItems && carritoItems.length > 0) {
           console.log(`[CART-CLEAR] Encontrados ${carritoItems.length} items en 'carrito'`);
-          
+
           const { error: deleteError } = await supabase
             .from('carrito')
             .delete()
@@ -134,7 +147,7 @@ export const POST: APIRoute = async (context) => {
   } catch (error) {
     console.error('[CART-CLEAR] Error:', error);
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: 'Error interno del servidor',
         message: error instanceof Error ? error.message : 'Unknown error'
       }),
