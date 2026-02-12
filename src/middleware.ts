@@ -13,7 +13,7 @@ try {
     console.warn('⚠️ Supabase no está disponible. Las rutas /admin no serán protegidas.');
 }
 
-export const onRequest = defineMiddleware(async ({ url }, next) => {
+export const onRequest = defineMiddleware(async ({ url, request }, next) => {
     // NOTA: Las rutas /admin/ usan autenticación client-side con localStorage
     // No necesitan protección de middleware basada en cookies de Supabase
 
@@ -62,6 +62,32 @@ export const onRequest = defineMiddleware(async ({ url }, next) => {
     }
     */
 
-    // Rutas públicas, continuar sin verificación
-    return next();
+    // HABILITAR CORS PARA TODAS LAS RUTAS (Necesario para Flutter Web/Mobile)
+    const url_obj = new URL(request.url);
+    if (url_obj.pathname.startsWith('/api/')) {
+        // Responder a peticiones OPTIONS (Preflight) de forma inmediata
+        if (request.method === 'OPTIONS') {
+            return new Response(null, {
+                status: 204,
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+                    'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-guest-session-id',
+                    'Access-Control-Max-Age': '86400',
+                }
+            });
+        }
+    }
+
+    const response = await next();
+
+    // Inyectar headers en la respuesta normal de la API
+    if (url_obj.pathname.startsWith('/api/')) {
+        response.headers.set('Access-Control-Allow-Origin', '*');
+        response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+        response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-guest-session-id');
+        response.headers.set('Access-Control-Max-Age', '86400');
+    }
+
+    return response;
 });
