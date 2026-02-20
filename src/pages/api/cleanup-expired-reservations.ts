@@ -40,7 +40,7 @@ export const POST: APIRoute = async (context) => {
       return new Response(
         JSON.stringify({ 
           success: false,
-          error: error.message 
+          error: 'Error interno del servidor' 
         }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );

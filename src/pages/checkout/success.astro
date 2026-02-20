@@ -223,6 +223,7 @@ import Layout from "@/layouts/Layout.astro";
           <!-- Botones -->
           <div class="p-4 sm:p-6 bg-gray-50 flex flex-col sm:flex-row gap-4">
             <a
+              id="view-orders-btn"
               href="/mi-cuenta#pedidos"
               class="flex-1 bg-[#00aa45] text-white py-3 px-6 rounded-xl font-bold hover:bg-[#009340] transition-colors text-center flex items-center justify-center gap-2"
             >
@@ -338,10 +339,6 @@ import Layout from "@/layouts/Layout.astro";
   </main>
 
   <script>
-    import AddReviewButton from "@/components/islands/AddReviewButton";
-    import { createRoot } from "react-dom/client";
-    import { createElement } from "react";
-
     document.addEventListener("DOMContentLoaded", async () => {
       const loadingState = document.getElementById("loading-state");
       const successState = document.getElementById("success-state");
@@ -457,6 +454,11 @@ import Layout from "@/layouts/Layout.astro";
         // Mostrar info de invitado si aplica
         if (!order.usuario_id && guestInfo) {
           guestInfo.classList.remove("hidden");
+          // Ocultar botón "Ver mis pedidos" para invitados
+          const viewOrdersBtn = document.getElementById("view-orders-btn");
+          if (viewOrdersBtn) {
+            viewOrdersBtn.classList.add("hidden");
+          }
         }
 
         // ============================================================

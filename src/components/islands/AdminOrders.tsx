@@ -32,10 +32,10 @@ interface OrderItem {
   subtotal: number;
 }
 
-const AdminOrders = () => {
+const AdminOrders = ({ initialFilter = 'todos' }: { initialFilter?: string }) => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('todos');
+  const [filter, setFilter] = useState(initialFilter);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [showModal, setShowModal] = useState(false);
@@ -101,23 +101,27 @@ const AdminOrders = () => {
 
   const updateStatus = async (id: string, newStatus: string) => {
     try {
-      const updateData: any = {
-        estado: newStatus,
-        actualizado_en: new Date().toISOString()
-      };
+      setLoading(true);
+      const response = await fetch('/api/admin/pedidos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'update-estado',
+          id,
+          estado: newStatus,
+        }),
+      });
 
-      // Si se marca como pagado, agregar fecha de pago
-      if (newStatus === 'Pagado') {
-        updateData.fecha_pago = new Date().toISOString();
-      }
+      if (!response.ok) throw new Error('Error updating status');
 
-      await supabase
-        .from('ordenes')
-        .update(updateData)
-        .eq('id', id);
-      loadOrders();
+      await loadOrders();
     } catch (error) {
       console.error('Error updating order:', error);
+      alert('Error updating order status');
+    } finally {
+      setLoading(false);
     }
   };
 

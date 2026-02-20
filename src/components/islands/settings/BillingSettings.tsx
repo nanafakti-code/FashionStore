@@ -50,7 +50,7 @@ const COMPANY = {
 };
 
 const EXCLUDED_STATES = ['Cancelado', 'Devolucion_Solicitada'];
-const BRAND = '#00aa45';
+
 
 // ── Helpers ──
 const fmt = (cents: number) =>

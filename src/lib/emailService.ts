@@ -363,9 +363,7 @@ export async function sendOrderConfirmationEmail(order: OrderData): Promise<bool
       .single();
 
     if (companyRow?.invoice_attachment_path) {
-      // Resolve relative to project root (e.g. ./public/uploads/...)
-      const absPath = pathMod.resolve('public' + companyRow.invoice_attachment_path.replace(/^\/uploads/, '/uploads'));
-      // Fallback: try with the stored path directly under ./public
+      // Try multiple paths to find the attachment
       const tryPaths = [
         pathMod.resolve('public', companyRow.invoice_attachment_path.replace(/^\//, '')),
         pathMod.resolve(companyRow.invoice_attachment_path.replace(/^\//, '')),
@@ -548,7 +546,11 @@ export async function sendOrderConfirmationEmail(order: OrderData): Promise<bool
 // =============================================================================
 
 export async function sendAdminNotificationEmail(data: OrderData | DisputeData | ReturnData): Promise<boolean> {
-  if (!ADMIN_EMAIL) return true;
+  console.log('[EMAIL] sendAdminNotificationEmail called');
+  if (!ADMIN_EMAIL) {
+    console.log('[EMAIL] No ADMIN_EMAIL defined, skipping info to admin');
+    return true;
+  }
 
   if (isDisputeData(data)) {
     // Keep existing dispute template
@@ -718,17 +720,25 @@ export async function sendOrderStatusUpdateEmail(
   email: string,
   nombre: string,
   numero_orden: string,
-  nuevo_estado: 'Enviado' | 'Entregado' | 'Cancelado',
+  nuevo_estado: string,
   tracking?: string
 ): Promise<boolean> {
-  const statusMessages = {
+  const statusMessages: Record<string, { title: string; message: string; color: string }> = {
+    Pendiente: { title: 'Pedido Pendiente 🕒', message: 'Tu pedido está pendiente de procesamiento.', color: '#f59e0b' },
+    Pagado: { title: 'Pago Recibido ✅', message: 'Hemos recibido tu pago correctamente.', color: '#059669' },
+    'En Proceso': { title: 'Pedido en Proceso ⚙️', message: 'Estamos preparando tu pedido.', color: '#3b82f6' },
     Enviado: { title: 'Tu pedido está en camino 🚚', message: '¡Buenas noticias! Hemos enviado tu pedido.', color: '#2563eb' },
-    Entregado: { title: 'Pedido entregado 📦', message: 'Tu pedido ha sido entregado correctamente.', color: '#16a34a' },
-    Cancelado: { title: 'Pedido cancelado ❌', message: 'Tu pedido ha sido cancelado.', color: '#dc2626' },
+    Entregado: { title: 'Pedido Entregado 📦', message: 'Tu pedido ha sido entregado correctamente.', color: '#16a34a' },
+    Completado: { title: 'Pedido Completado 🌟', message: 'Tu pedido ha sido marcado como completado.', color: '#059669' },
+    Cancelado: { title: 'Pedido Cancelado ❌', message: 'Tu pedido ha sido cancelado.', color: '#dc2626' },
   };
 
-  const status = statusMessages[nuevo_estado] || statusMessages['Enviado'];
-  const trackingHTML = (tracking && nuevo_estado === 'Enviado') ?
+  const status = statusMessages[nuevo_estado] || {
+    title: `Actualización: ${nuevo_estado}`,
+    message: `El estado de tu pedido ha cambiado a: ${nuevo_estado}.`,
+    color: '#6b7280'
+  };
+  const trackingHTML = (tracking && (nuevo_estado === 'Enviado' || nuevo_estado === 'Completado')) ?
     `<div style="background-color: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 15px; border-radius: 8px; margin: 20px 0;">
        <strong>Tracking:</strong> ${tracking}
      </div>` : '';
@@ -745,6 +755,7 @@ export async function sendOrderStatusUpdateEmail(
                 <td style="padding: 40px 30px; text-align: center;">
                   <img src="${LOGO_URL}" alt="FashionStore" width="120" height="auto" style="width: 120px; height: auto; display: block; margin: 0 auto 20px auto; border: 0;">
                   <h1 style="color: ${status.color}; font-family: sans-serif; margin-bottom: 10px;">${status.title}</h1>
+                  <p style="color: #4b5563; font-family: sans-serif; font-size: 16px; margin-bottom: 5px;">Hola ${nombre},</p>
                   <p style="color: #4b5563; font-family: sans-serif; font-size: 16px; margin-bottom: 20px;">${status.message}</p>
                   
                   <div style="background-color: #f9fafb; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-family: sans-serif; color: #374151;">
@@ -864,6 +875,47 @@ export async function sendWelcomeEmail(email: string, nombre: string): Promise<b
 // =============================================================================
 // CONTACT FORM EMAIL
 // =============================================================================
+
+export async function sendNewsletterWelcomeEmail(email: string, codigo: string): Promise<boolean> {
+  const html = `<!DOCTYPE html>
+  <html>
+    ${EMAIL_HEAD}
+    <body style="background-color: ${BG_COLOR}; margin: 0; padding: 0;">
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="${BG_COLOR}">
+        <tr>
+          <td align="center" style="padding: 20px 10px;">
+            <table class="container" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 12px; overflow: hidden;">
+              <tr>
+                <td style="padding: 40px 30px; text-align: center;">
+                  <img src="${LOGO_URL}" alt="FashionStore" width="120" height="auto" style="width: 120px; height: auto; display: block; margin: 0 auto 20px auto; border: 0;">
+                  <h1 style="color: ${BRAND_COLOR}; font-family: sans-serif; font-size: 28px; margin-bottom: 10px; font-weight: 800;">¡Gracias por suscribirte!</h1>
+                  <p style="color: #4b5563; font-family: sans-serif; font-size: 16px; line-height: 1.6; margin-bottom: 25px;">
+                    Te damos la bienvenida a nuestra newsletter. Aquí tienes tu código de descuento exclusivo para tu primera compra:
+                  </p>
+                  
+                  <div style="background-color: #f0fdf4; border: 2px dashed ${BRAND_COLOR}; padding: 20px; border-radius: 12px; margin-bottom: 25px; display: inline-block;">
+                    <span style="display: block; font-family: sans-serif; font-size: 12px; color: #166534; text-transform: uppercase; margin-bottom: 5px; font-weight: bold;">Tu Código de Descuento</span>
+                    <span style="display: block; font-family: monospace; font-size: 32px; font-weight: 800; color: ${BRAND_COLOR}; letter-spacing: 2px;">${codigo}</span>
+                  </div>
+
+                  <p style="color: #6b7280; font-family: sans-serif; font-size: 14px; margin-bottom: 30px;">
+                    Este código es válido por 30 días. ¡Disfrútalo!
+                  </p>
+
+                  <a href="${SITE_URL}" style="display: inline-block; padding: 16px 32px; background-color: #111827; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-family: sans-serif; font-size: 16px;">
+                    Ir a la tienda
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+  </html>`;
+
+  return await sendEmail({ to: email, subject: '¡Tu código de 10% de descuento! 🎁', html });
+}
 
 export async function sendContactFormEmail(
   nombre: string,

@@ -255,7 +255,6 @@ const AdminReviews = () => {
             // Obtener propiedades con fallback a diferentes nombres
             const rating = review.calificacion || 0;
             const isVerified = review.verificada_compra === true;
-            const helpful = review.util || review.utiles || 0;
             const date = review.fecha_creacion || review.created_at || review.creada_en || new Date().toISOString();
             const title = review.titulo || review.title || '';
             const text = review.comentario || review.comment || review.texto || '';

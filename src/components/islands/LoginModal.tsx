@@ -13,8 +13,6 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [nombre, setNombre] = useState("");
   const [apellidos, setApellidos] = useState("");
   const [telefono, setTelefono] = useState("");
-  const [genero, setGenero] = useState("");
-  const [fechaNacimiento, setFechaNacimiento] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -35,16 +33,54 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     };
   }, [isOpen]);
 
+  // Validación de email robusta
+  const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    return emailRegex.test(email.trim());
+  };
+
+  // Validación de contraseña
+  const isValidPassword = (pwd: string): boolean => {
+    return pwd.length >= 6;
+  };
+
+  // Sanitizar entradas de texto para prevenir XSS
+  const sanitizeInput = (input: string): string => {
+    return input.replace(/[<>"'&]/g, '').trim();
+  };
+
   const handleEmailAuth = async (e: any) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
+    // Validaciones client-side antes de enviar
+    if (!isValidEmail(email)) {
+      setError('Por favor, introduce un email válido (ej: usuario@dominio.com)');
+      setLoading(false);
+      return;
+    }
+    if (!isValidPassword(password)) {
+      setError('La contraseña debe tener al menos 6 caracteres');
+      setLoading(false);
+      return;
+    }
+    if (isSignUp && !sanitizeInput(nombre).trim()) {
+      setError('El nombre es obligatorio');
+      setLoading(false);
+      return;
+    }
+    if (isSignUp && !sanitizeInput(apellidos).trim()) {
+      setError('Los apellidos son obligatorios');
+      setLoading(false);
+      return;
+    }
+
     try {
       if (isSignUp) {
         // Crear cuenta en Auth
         const { data: authData, error: signUpError } = await supabase.auth.signUp({
-          email,
+          email: email.trim().toLowerCase(),
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/auth/callback`,
@@ -54,17 +90,20 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
         // Guardar datos en tabla usuarios
         if (authData.user) {
+          const safeNombre = sanitizeInput(nombre);
+          const safeApellidos = sanitizeInput(apellidos);
+          const safeTelefono = sanitizeInput(telefono);
           const { error: insertError } = await supabase
             .from("usuarios")
             .insert([
               {
                 id: authData.user.id,
-                email,
-                nombre,
-                apellidos,
-                telefono,
-                genero: genero || null,
-                fecha_nacimiento: fechaNacimiento || null,
+                email: email.trim().toLowerCase(),
+                nombre: safeNombre,
+                apellidos: safeApellidos,
+                telefono: safeTelefono,
+                genero: null,
+                fecha_nacimiento: null,
                 foto_perfil: null,
                 activo: true,
                 verificado: false,
@@ -74,25 +113,23 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
           // Enviar email de bienvenida (no bloquear registro si falla)
           try {
-            console.log('[REGISTRO] Enviando email de bienvenida...');
             const response = await fetch('/api/welcome-email', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                email,
-                nombre,
+                email: email.trim().toLowerCase(),
+                nombre: safeNombre,
               }),
             });
 
             if (response.ok) {
-              console.log('[REGISTRO] ✅ Email de bienvenida enviado');
+              // Email de bienvenida enviado
             } else {
-              console.warn('[REGISTRO] ⚠️ No se pudo enviar el email de bienvenida');
+              // No bloquear - el registro fue exitoso
             }
           } catch (emailError) {
-            console.error('[REGISTRO] Error al enviar email de bienvenida:', emailError);
             // No lanzar error, el registro ya fue exitoso
           }
         }
@@ -103,8 +140,6 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         setNombre("");
         setApellidos("");
         setTelefono("");
-        setGenero("");
-        setFechaNacimiento("");
         setIsSignUp(false);
 
         // Limpiar el mensaje de éxito después de 2 segundos y redirigir
@@ -282,32 +317,6 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
                     />
                   </div>
-
-                  {/* Género */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Género</label>
-                    <select
-                      value={genero}
-                      onChange={(e: any) => setGenero(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm"
-                    >
-                      <option value="">Selecciona tu género</option>
-                      <option value="Masculino">Masculino</option>
-                      <option value="Femenino">Femenino</option>
-                      <option value="Otro">Otro</option>
-                    </select>
-                  </div>
-
-                  {/* Fecha de nacimiento */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Fecha de Nacimiento</label>
-                    <input
-                      type="date"
-                      value={fechaNacimiento}
-                      onChange={(e: any) => setFechaNacimiento(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aa45] focus:border-transparent text-sm appearance-none bg-white font-sans"
-                    />
-                  </div>
                 </>
               )}
 
@@ -365,8 +374,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   setNombre("");
                   setApellidos("");
                   setTelefono("");
-                  setGenero("");
-                  setFechaNacimiento("");
+                  setTelefono("");
                   setShowPassword(false);
                 }}
                 className="w-full mt-3 px-4 py-2 bg-white border-2 border-[#00aa45] text-[#00aa45] font-semibold rounded-lg hover:bg-[#00aa45] hover:text-white transition duration-200"

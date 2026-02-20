@@ -11,6 +11,10 @@ import type { APIRoute } from 'astro';
 import { sendEmail } from '@/lib/emailService';
 
 export const GET: APIRoute = async (context) => {
+  if (import.meta.env.PROD) {
+    return new Response('Not Found', { status: 404 });
+  }
+
   try {
     const to = context.url.searchParams.get('to') || 'test@example.com';
     

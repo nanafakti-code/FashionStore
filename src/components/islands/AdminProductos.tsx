@@ -103,7 +103,7 @@ const AdminProductos = () => {
       setLoading(true);
 
       const [productsRes, categoriesRes, brandsRes, imagesRes, variantsRes] = await Promise.all([
-        fetch('/api/admin/productos').then(r => r.json()),
+        fetch('/api/admin/productos', { credentials: 'include' }).then(r => r.json()),
         supabase.from('categorias').select('id, nombre').order('nombre'),
         supabase.from('marcas').select('id, nombre').order('nombre'),
         supabase.from('imagenes_producto').select('*'),
@@ -215,6 +215,7 @@ const AdminProductos = () => {
       const response = await fetch('/api/admin/productos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ action, data: dataToSave, id: editingId })
       });
 
@@ -235,6 +236,7 @@ const AdminProductos = () => {
         const imageResponse = await fetch('/api/admin/productos', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({
             action: 'save-image',
             data: { productId, url: formData.imagen_url }
@@ -275,6 +277,7 @@ const AdminProductos = () => {
       const response = await fetch('/api/admin/productos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ action: 'delete', id })
       });
 

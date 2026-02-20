@@ -19,7 +19,7 @@ import {
 const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY || '');
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
-const ADMIN_EMAIL = import.meta.env.ADMIN_EMAIL || 'fashionstorerbv@gmail.com';
+const ADMIN_EMAIL = 'fashionstorerbv@gmail.com';
 
 export const GET: APIRoute = async (context) => {
   try {
@@ -149,20 +149,28 @@ export const GET: APIRoute = async (context) => {
         }
 
         // 3. Enviar email al admin
+        console.log(`[ORDER-BY-SESSION] Checking admin email. Customer: ${order.email_cliente}, Admin: ${ADMIN_EMAIL}`);
         if (order.email_cliente !== ADMIN_EMAIL) {
-          await sendAdminNotificationEmail({
-            numero_orden: order.numero_orden,
-            email: order.email_cliente,
-            nombre: order.nombre_cliente,
-            items: emailItems,
-            subtotal: order.subtotal,
-            impuestos: order.impuestos,
-            descuento: order.descuento,
-            envio: order.coste_envio,
-            total: order.total,
-            direccion: order.direccion_envio || {},
-          });
-          console.log('[ORDER-BY-SESSION] Notificación enviada al admin');
+          console.log('[ORDER-BY-SESSION] Sending admin notification...');
+          try {
+            await sendAdminNotificationEmail({
+              numero_orden: order.numero_orden,
+              email: order.email_cliente,
+              nombre: order.nombre_cliente,
+              items: emailItems,
+              subtotal: order.subtotal,
+              impuestos: order.impuestos,
+              descuento: order.descuento,
+              envio: order.coste_envio,
+              total: order.total,
+              direccion: order.direccion_envio || {},
+            });
+            console.log('[ORDER-BY-SESSION] Notificación enviada al admin');
+          } catch (adminEmailError) {
+            console.error('[ORDER-BY-SESSION] Error sending admin email:', adminEmailError);
+          }
+        } else {
+          console.log('[ORDER-BY-SESSION] Skipping admin email (Customer is Admin)');
         }
 
         // 4. Limpiar carrito (Fallback)

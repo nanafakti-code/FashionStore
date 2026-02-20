@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'preact/hooks';
-import type { JSX } from 'preact';
 
 interface Product {
     id: string;
@@ -43,7 +42,7 @@ export default function Chatbot() {
         scrollToBottom();
     }, [messages, isOpen]);
 
-    const handleSubmit = async (e: JSX.TargetedEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: Event) => {
         e.preventDefault();
         if (!input.trim() || isLoading) return;
 

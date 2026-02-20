@@ -97,7 +97,9 @@ export default function AddToCartButton({
         if (localCart && typeof sessionStorage !== 'undefined') {
           sessionStorage.setItem(cartKey, localCart);
         }
-      } catch (error) { }
+      } catch (_) {
+        // sessionStorage sync no crítico, ignorar
+      }
 
       // Disparar eventos
       window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { productId } }));

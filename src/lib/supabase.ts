@@ -14,13 +14,7 @@ import type { Database } from './database.types';
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
-// Log detallado para debugging en producción
 const isProduction = import.meta.env.PROD;
-
-console.log('=== SUPABASE CONFIG DEBUG ===');
-console.log('Environment:', isProduction ? 'PRODUCTION' : 'DEVELOPMENT');
-console.log('PUBLIC_SUPABASE_URL:', supabaseUrl ? `${supabaseUrl.substring(0, 30)}...` : 'NOT SET');
-console.log('PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? `${supabaseAnonKey.substring(0, 20)}...` : 'NOT SET');
 
 // Validar configuración
 const isConfigured = Boolean(
@@ -30,16 +24,18 @@ const isConfigured = Boolean(
     supabaseAnonKey.length > 50
 );
 
-console.log('Supabase configured:', isConfigured);
-console.log('=============================');
-
-if (!isConfigured) {
-    console.error(
-        '❌ SUPABASE NOT CONFIGURED - Variables de entorno faltantes o inválidas.\n' +
-        'Asegúrate de configurar en Coolify:\n' +
+// En producción, Supabase DEBE estar configurado
+if (isProduction && !isConfigured) {
+    throw new Error(
+        '❌ SUPABASE NOT CONFIGURED IN PRODUCTION - Variables de entorno faltantes o inválidas.\n' +
+        'Asegúrate de configurar:\n' +
         '  - PUBLIC_SUPABASE_URL\n' +
         '  - PUBLIC_SUPABASE_ANON_KEY'
     );
+}
+
+if (!isProduction && !isConfigured) {
+    console.warn('[Supabase] No configurado - usando mock client para desarrollo');
 }
 
 // =====================================================

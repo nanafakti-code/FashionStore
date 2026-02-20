@@ -3,60 +3,138 @@ import Layout from "@/layouts/Layout.astro";
 ---
 
 <Layout title="Política de Privacidad | FashionStore">
-    <main
-        class="max-w-3xl mx-auto px-4 py-16 sm:px-6 lg:px-8 prose prose-sm prose-gray bg-white rounded-xl shadow-sm my-8 p-8"
-    >
-        <h1 class="not-prose text-3xl font-black mb-8">
-            Política de Privacidad
-        </h1>
+    <div class="bg-gray-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+        <main
+            class="max-w-7xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden"
+        >
+            <div
+                class="bg-gradient-to-r from-[#00aa45] to-green-600 px-8 py-12 text-center text-white"
+            >
+                <h1 class="text-4xl font-black mb-4">Política de Privacidad</h1>
+                <p class="text-lg opacity-90 max-w-2xl mx-auto">
+                    En FashionStore, tu privacidad es nuestra prioridad.
+                    Descubre cómo protegemos y gestionamos tus datos.
+                </p>
+            </div>
 
-        <p>
-            En FashionStore, nos tomamos muy en serio tu privacidad. Esta
-            política describe cómo recopilamos, usamos y protegemos tu
-            información personal.
-        </p>
+            <div
+                class="p-8 sm:p-12 prose prose-lg prose-green max-w-none text-gray-600"
+            >
+                <p class="lead">
+                    Esta política describe cómo recopilamos, usamos y protegemos
+                    tu información personal cuando interactúas con nosotros.
+                </p>
 
-        <h2>1. Información que recopilamos</h2>
-        <p>
-            Podemos recopilar información personal como tu nombre, dirección de
-            correo electrónico, dirección postal, número de teléfono y datos de
-            pago cuando realizas una compra o te registras en nuestra web.
-        </p>
+                <div class="grid md:grid-cols-2 gap-12 mt-12">
+                    <div>
+                        <h3
+                            class="flex items-center gap-3 text-2xl font-bold text-gray-900 mb-4"
+                        >
+                            <span
+                                class="bg-green-100 text-green-700 w-10 h-10 rounded-full flex items-center justify-center text-lg"
+                                >1</span
+                            >
+                            Información que recopilamos
+                        </h3>
+                        <p>
+                            Recopilamos información personal esencial para
+                            procesar tus pedidos y mejorar tu experiencia:
+                        </p>
+                        <ul class="list-disc pl-5 space-y-2">
+                            <li>
+                                Datos de identificación (nombre, apellidos).
+                            </li>
+                            <li>
+                                Información de contacto (email, teléfono,
+                                dirección).
+                            </li>
+                            <li>Datos transaccionales y de pago.</li>
+                        </ul>
+                    </div>
 
-        <h2>2. Uso de la información</h2>
-        <p>Utilizamos tu información para:</p>
-        <ul>
-            <li>Procesar y entregar tus pedidos.</li>
-            <li>Gestionar cambios y devoluciones.</li>
-            <li>Enviarte actualizaciones sobre el estado de tu pedido.</li>
-            <li>Mejorar nuestros servicios y sitio web.</li>
-            <li>
-                Enviarte comunicaciones de marketing (solo si has dado tu
-                consentimiento).
-            </li>
-        </ul>
+                    <div>
+                        <h3
+                            class="flex items-center gap-3 text-2xl font-bold text-gray-900 mb-4"
+                        >
+                            <span
+                                class="bg-green-100 text-green-700 w-10 h-10 rounded-full flex items-center justify-center text-lg"
+                                >2</span
+                            >
+                            Uso de la información
+                        </h3>
+                        <p>
+                            Utilizamos tus datos para fines legítimos de
+                            negocio:
+                        </p>
+                        <ul class="list-disc pl-5 space-y-2">
+                            <li>Procesar, enviar y entregar tus pedidos.</li>
+                            <li>Gestionar devoluciones y garantías.</li>
+                            <li>Enviarte notificaciones sobre tu pedido.</li>
+                            <li>Mejorar nuestros productos y sitio web.</li>
+                        </ul>
+                    </div>
 
-        <h2>3. Compartir información</h2>
-        <p>
-            No vendemos ni alquilamos tus datos personales a terceros. Solo
-            compartimos información con proveedores de servicios esenciales
-            (como empresas de mensajería o pasarelas de pago) necesarios para
-            operar nuestro negocio.
-        </p>
+                    <div>
+                        <h3
+                            class="flex items-center gap-3 text-2xl font-bold text-gray-900 mb-4"
+                        >
+                            <span
+                                class="bg-green-100 text-green-700 w-10 h-10 rounded-full flex items-center justify-center text-lg"
+                                >3</span
+                            >
+                            Compartir información
+                        </h3>
+                        <p>
+                            <strong>No vendemos tus datos.</strong> Solo compartimos
+                            información con socios necesarios para operar:
+                        </p>
+                        <ul class="list-disc pl-5 space-y-2">
+                            <li>
+                                Empresas de mensajería para entregar tu paquete.
+                            </li>
+                            <li>Pasarelas de pago seguras (Stripe).</li>
+                        </ul>
+                    </div>
 
-        <h2>4. Seguridad de los datos</h2>
-        <p>
-            Implementamos medidas de seguridad técnicas y organizativas para
-            proteger tus datos contra el acceso no autorizado, la pérdida o la
-            alteración.
-        </p>
+                    <div>
+                        <h3
+                            class="flex items-center gap-3 text-2xl font-bold text-gray-900 mb-4"
+                        >
+                            <span
+                                class="bg-green-100 text-green-700 w-10 h-10 rounded-full flex items-center justify-center text-lg"
+                                >4</span
+                            >
+                            Tus derechos
+                        </h3>
+                        <p>
+                            Tienes control total sobre tus datos. Tienes derecho
+                            a acceder, rectificar o eliminar tu información
+                            personal en cualquier momento.
+                        </p>
+                        <p class="mt-4">
+                            Contáctanos en <a
+                                href="mailto:privacidad@fashionstore.com"
+                                class="text-green-600 font-bold hover:underline"
+                                >privacidad@fashionstore.com</a
+                            > para ejercer tus derechos.
+                        </p>
+                    </div>
+                </div>
 
-        <h2>5. Tus derechos</h2>
-        <p>
-            Tienes derecho acceder, rectificar o eliminar tus datos personales
-            en cualquier momento. Puedes ejercer estos derechos contactándonos a
-            través de nuestro formulario de contacto o enviando un email a
-            privacidad@fashionstore.com.
-        </p>
-    </main>
+                <div
+                    class="mt-12 bg-gray-50 rounded-xl p-8 border border-gray-100"
+                >
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">
+                        Seguridad de los datos
+                    </h3>
+                    <p class="mb-0">
+                        Implementamos medidas de seguridad técnicas y
+                        organizativas de última generación para proteger tus
+                        datos contra el acceso no autorizado, la pérdida o la
+                        alteración.
+                    </p>
+                </div>
+            </div>
+        </main>
+    </div>
 </Layout>

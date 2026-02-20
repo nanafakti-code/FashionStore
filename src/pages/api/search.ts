@@ -16,8 +16,18 @@ export const GET: APIRoute = async ({ url }) => {
         // 1. Empieza por el término (ej: "Far" -> "Faro")
         // 2. Contiene una palabra que empieza por el término (ej: "Fa" -> "Panel de Faro")
 
-        // Sanitize logic: remove special chars to avoid breaking the query
-        const safeQuery = query.replace(/[^\w\s]/gi, '');
+        // Sanitize: eliminar caracteres especiales de PostgreSQL/PostgREST y limitar longitud
+        const safeQuery = query
+            .replace(/[^\w\sà-ÿÀ-ÜñÑ]/gi, '')  // Solo letras, números, espacios y acentos
+            .trim()
+            .substring(0, 100);  // Limitar longitud máxima
+
+        if (!safeQuery) {
+            return new Response(JSON.stringify([]), {
+                status: 200,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
 
         const { data, error } = await supabase
             .from('productos')
@@ -28,7 +38,7 @@ export const GET: APIRoute = async ({ url }) => {
 
         if (error) {
             console.error('Error en búsqueda:', error);
-            return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+            return new Response(JSON.stringify({ error: 'Error interno del servidor' }), { status: 500 });
         }
 
         // Procesar imágenes para devolver solo la principal o la primera

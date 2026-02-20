@@ -1,18 +1,6 @@
 import type { APIRoute } from 'astro';
 import { supabase } from '@/lib/supabase';
 
-export const OPTIONS: APIRoute = () => {
-    return new Response(null, {
-        status: 204,
-        headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-guest-session-id',
-            'Access-Control-Max-Age': '86400',
-        }
-    });
-};
-
 
 export const POST: APIRoute = async ({ request, cookies }) => {
     try {
@@ -20,6 +8,13 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
         if (!cartItemId || quantity === undefined) {
             return new Response(JSON.stringify({ error: 'Datos incompletos' }), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+
+        if (!Number.isInteger(quantity) || quantity < 0 || quantity > 100) {
+            return new Response(JSON.stringify({ error: 'Cantidad no válida' }), {
                 status: 400,
                 headers: { 'Content-Type': 'application/json' }
             });
@@ -35,27 +30,31 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
         // 1. AUTHENTICATED USER
         if (token) {
-            const { data: { user } } = await supabase.auth.getUser(token);
-            if (user) {
-                const { createClient } = await import('@supabase/supabase-js');
-                const userSupabase = createClient(
-                    import.meta.env.PUBLIC_SUPABASE_URL,
-                    import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
-                    { global: { headers: { Authorization: `Bearer ${token}` } } }
-                );
-
-                const { data, error } = await userSupabase.rpc('update_cart_item_quantity_with_stock_check', {
-                    p_cart_item_id: cartItemId,
-                    p_new_quantity: quantity
-                });
-
-                if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 });
-                if (data && !data.success) return new Response(JSON.stringify({ error: data.message }), { status: 400 });
-
-                return new Response(JSON.stringify({ success: true, authenticated: true }), {
-                    status: 200, headers: { 'Content-Type': 'application/json' }
+            const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+            if (authError || !user) {
+                return new Response(JSON.stringify({ error: 'Token de autenticación inválido o expirado' }), {
+                    status: 401, headers: { 'Content-Type': 'application/json' }
                 });
             }
+
+            const { createClient } = await import('@supabase/supabase-js');
+            const userSupabase = createClient(
+                import.meta.env.PUBLIC_SUPABASE_URL,
+                import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
+                { global: { headers: { Authorization: `Bearer ${token}` } } }
+            );
+
+            const { data, error } = await userSupabase.rpc('update_cart_item_quantity_with_stock_check', {
+                p_cart_item_id: cartItemId,
+                p_new_quantity: quantity
+            });
+
+            if (error) return new Response(JSON.stringify({ error: 'Error al actualizar el carrito' }), { status: 500 });
+            if (data && !data.success) return new Response(JSON.stringify({ error: data.message }), { status: 400 });
+
+            return new Response(JSON.stringify({ success: true, authenticated: true }), {
+                status: 200, headers: { 'Content-Type': 'application/json' }
+            });
         }
 
         // 2. GUEST USER
@@ -67,7 +66,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                 p_quantity: quantity
             });
 
-            if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+            if (error) return new Response(JSON.stringify({ error: 'Error interno del servidor' }), { status: 500 });
             if (data && !data.success) return new Response(JSON.stringify({ error: data.message }), { status: 400 });
 
             return new Response(JSON.stringify({ success: true, authenticated: false }), {

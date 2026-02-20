@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
+import { requireAdmin } from '@/lib/admin-guard';
 
 const supabase = createClient(
   import.meta.env.PUBLIC_SUPABASE_URL,
@@ -7,6 +8,9 @@ const supabase = createClient(
 );
 
 export const POST: APIRoute = async (context) => {
+  const denied = requireAdmin(context.request);
+  if (denied) return denied;
+
   try {
     const body = await context.request.json();
     const { action, id, data } = body;
@@ -22,9 +26,6 @@ export const POST: APIRoute = async (context) => {
       } else if (action === 'reject') {
         updateData.estado = 'Rechazada';
       }
-
-      console.log('Actualizando reseña:', id, updateData);
-
       const { error } = await supabase
         .from('resenas')
         .update(updateData)
@@ -43,8 +44,6 @@ export const POST: APIRoute = async (context) => {
 
     // Eliminar reseña
     if (action === 'delete') {
-      console.log('Eliminando reseña:', id);
-
       const { error } = await supabase
         .from('resenas')
         .delete()
@@ -66,9 +65,9 @@ export const POST: APIRoute = async (context) => {
       { status: 400, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error in admin reviews endpoint:', error);
+    console.error('Error in admin reviews endpoint');
     return new Response(
-      JSON.stringify({ error: (error as any).message || 'Error interno' }),
+      JSON.stringify({ error: 'Error interno del servidor' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }

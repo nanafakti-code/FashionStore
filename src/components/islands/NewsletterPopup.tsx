@@ -7,7 +7,6 @@
  */
 
 import { useState, useEffect } from 'preact/hooks';
-import type { JSX } from 'preact';
 
 interface NewsletterPopupProps {
   delay?: number; // Delay en ms antes de mostrar el popup
@@ -56,7 +55,7 @@ export default function NewsletterPopup({ delay = 5000 }: NewsletterPopupProps) 
     localStorage.setItem('fashionstore_newsletter_dismissed', Date.now().toString());
   };
 
-  const handleSubmit = async (e: JSX.TargetedEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: Event) => {
     e.preventDefault();
 
     if (!email || !email.includes('@')) {

@@ -24,9 +24,9 @@ interface Props {
 
 export default function ProductsList({
   products,
-  categories,
-  searchQuery: initialSearchQuery,
-  selectedCategory: initialSelectedCategory,
+  categories: _categories,
+  searchQuery: _initialSearchQuery,
+  selectedCategory: _initialSelectedCategory,
 }: Props) {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(products);
 

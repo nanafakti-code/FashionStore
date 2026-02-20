@@ -42,22 +42,6 @@ const { data: resenas } = await supabase
   .eq("estado", "Aprobada")
   .order("creada_en", { ascending: false });
 
-// Calcular descuento
-const descuento =
-  producto.precio_original && producto.precio_venta
-    ? Math.round(
-        ((producto.precio_original - producto.precio_venta) /
-          producto.precio_original) *
-          100,
-      )
-    : 0;
-
-// Formatear precios
-const precioEuros = (producto.precio_venta / 100).toFixed(2);
-const precioOriginalEuros = producto.precio_original
-  ? (producto.precio_original / 100).toFixed(2)
-  : null;
-
 // Obtener imágenes
 const imagenes = producto.imagenes_producto || [];
 const imagenPrincipal =

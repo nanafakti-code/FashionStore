@@ -119,7 +119,7 @@ export const POST: APIRoute = async (context) => {
       return new Response(
         JSON.stringify({ 
           success: false,
-          error: error.message || 'Error al crear la reserva' 
+          error: 'Error interno del servidor' 
         }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
@@ -199,7 +199,7 @@ export const PUT: APIRoute = async (context) => {
       return new Response(
         JSON.stringify({ 
           success: false,
-          error: error.message 
+          error: 'Error interno del servidor' 
         }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
@@ -277,7 +277,7 @@ export const DELETE: APIRoute = async (context) => {
       return new Response(
         JSON.stringify({ 
           success: false,
-          error: error.message 
+          error: 'Error interno del servidor' 
         }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );

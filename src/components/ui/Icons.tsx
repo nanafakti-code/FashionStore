@@ -5,7 +5,7 @@
  * Reemplaza todos los emojis de la tienda
  */
 
-import { h } from 'preact';
+// preact JSX is auto-injected by the compiler
 
 interface IconProps {
   className?: string;

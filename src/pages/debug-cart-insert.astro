@@ -52,7 +52,7 @@ if (user) {
             color: "Debug",
         };
 
-        const { data, error } = await supabase
+        const { error } = await supabase
             .from("cart_items")
             .insert(payload)
             .select();

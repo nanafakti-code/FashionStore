@@ -321,25 +321,8 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
     document
       .getElementById("clear-fav")
       ?.addEventListener("click", async () => {
-        // if (!confirm("¿Estás seguro de que deseas eliminar todos los favoritos?")) return;
+        // Funcionalidad desactivada temporalmente
         return;
-
-        try {
-          const user = await getCurrentUser();
-          const { error } = await supabase
-            .from("favoritos")
-            .delete()
-            .eq("usuario_id", user?.id);
-
-          if (error) throw error;
-
-          allFavorites = [];
-          displayFavorites([]);
-        } catch (error: any) {
-          if (error) throw new Error(error.message || String(error)); // Assuming error might be an object with a message property or a string
-          // alert("Error al limpiar favoritos");
-          console.error("Error al limpiar favoritos:", error);
-        }
       });
 
     loadFavorites();

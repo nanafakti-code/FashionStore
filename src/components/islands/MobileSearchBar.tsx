@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "preact/hooks";
-import type { JSX } from "preact";
 
 interface ProductResult {
   id: string;
@@ -65,7 +64,7 @@ export default function MobileSearchBar() {
     }, 300);
   };
 
-  const handleSearchSubmit = (e: JSX.TargetedEvent<HTMLFormElement>) => {
+  const handleSearchSubmit = (e: Event) => {
     e.preventDefault();
     if (searchTerm.trim()) {
       window.location.href = `/productos?q=${encodeURIComponent(searchTerm)}`;

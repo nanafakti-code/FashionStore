@@ -32,7 +32,6 @@ const webhookSecret = import.meta.env.STRIPE_WEBHOOK_SECRET || '';
 
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
-const ADMIN_EMAIL = import.meta.env.ADMIN_EMAIL || 'admin@fashionstore.com';
 
 // ============================================================
 // TIPOS
@@ -42,6 +41,7 @@ interface SessionMetadata {
   order_id?: string;
   user_id?: string;
   is_guest?: string;
+  guest_session_id?: string;
   email?: string;
   nombre?: string;
   telefono?: string;
@@ -68,20 +68,11 @@ interface OrderItem {
 
 export const POST: APIRoute = async (context) => {
   try {
-    console.log('\n[WEBHOOK] ================================================');
-    console.log('[WEBHOOK] 🔔 WEBHOOK RECIBIDO');
-    console.log('[WEBHOOK] ================================================\n');
-
     // ============================================================
     // 1. VALIDAR FIRMA DEL WEBHOOK
     // ============================================================
     const body = await context.request.text();
     const signature = context.request.headers.get('stripe-signature');
-
-    console.log(`[WEBHOOK] Body length: ${body.length} bytes`);
-    console.log(`[WEBHOOK] Signature presente: ${signature ? '✓' : '✗'}`);
-    console.log(`[WEBHOOK] STRIPE_WEBHOOK_SECRET configurado: ${webhookSecret ? '✓' : '✗'}`);
-
     if (!signature) {
       console.error('[WEBHOOK] ❌ No signature provided');
       return new Response(JSON.stringify({ error: 'No signature' }), { status: 400 });
@@ -90,13 +81,10 @@ export const POST: APIRoute = async (context) => {
     let event: Stripe.Event;
     try {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret) as Stripe.Event;
-      console.log(`[WEBHOOK] ✅ Firma validada`);
-      console.log(`[WEBHOOK] Tipo de evento: ${event.type}`);
-      console.log(`[WEBHOOK] ID evento: ${event.id}`);
     } catch (err: any) {
-      console.error('[WEBHOOK] ❌ Error validando firma:', err.message);
+      console.error('[WEBHOOK] ❌ Error validando firma');
       return new Response(
-        JSON.stringify({ error: `Webhook signature verification failed: ${err.message}` }),
+        JSON.stringify({ error: 'Webhook signature verification failed' }),
         { status: 401 }
       );
     }
@@ -104,32 +92,25 @@ export const POST: APIRoute = async (context) => {
     // ============================================================
     // 2. PROCESAR EVENTOS
     // ============================================================
-    console.log('[WEBHOOK] Procesando evento...\n');
-
     switch (event.type) {
       case 'checkout.session.completed':
-        console.log('[WEBHOOK] 📦 EVENTO: Checkout completado');
         await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
         break;
 
       case 'charge.dispute.created':
-        console.log('[WEBHOOK] ⚠️ EVENTO: Disputa creada');
         await handleChargeDispute(event.data.object as Stripe.Dispute);
         break;
 
       case 'charge.failed':
-        console.log('[WEBHOOK] ❌ EVENTO: Pago fallido');
         await handleChargeFailed(event.data.object as Stripe.Charge);
         break;
 
       default:
-        console.log(`[WEBHOOK] ⏭️ EVENTO NO PROCESADO: ${event.type}`);
     }
 
     // ============================================================
     // 3. RESPONDER A STRIPE
     // ============================================================
-    console.log('[WEBHOOK] ✅ Respondiendo a Stripe con 200 OK\n');
     return new Response(
       JSON.stringify({
         received: true,
@@ -153,9 +134,6 @@ export const POST: APIRoute = async (context) => {
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   try {
-    console.log(`\n[WEBHOOK] === Procesando Checkout Completado ===`);
-    console.log(`Session ID: ${session.id}`);
-
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const metadata = (session.metadata || {}) as SessionMetadata;
 
@@ -165,9 +143,14 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       return;
     }
 
-    const orderId = metadata.order_id;
-    console.log(`Order ID: ${orderId}`);
+    // Validar formato UUID del order_id
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(metadata.order_id)) {
+      console.error('[WEBHOOK] ❌ order_id con formato inválido');
+      return;
+    }
 
+    const orderId = metadata.order_id;
     // ========== OBTENER DATOS DEL PEDIDO ==========
     const { data: order, error: orderError } = await supabase
       .from('ordenes')
@@ -179,9 +162,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       console.error('[WEBHOOK] ❌ Pedido no encontrado:', orderId);
       return;
     }
-
-    console.log(`Pedido encontrado: ${order.numero_orden}`);
-
     // ========== VALIDACIÓN DE MONTO (ANTI-FRAUDE) ==========
     const sessionTotalCents = session.amount_total || 0; // STRICT: CENTS (INTEGER)
     const dbTotalCents = order.total; // STRICT: DB IS CENTS (INTEGER)
@@ -211,9 +191,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       console.error('[WEBHOOK] ❌ Error actualizando pedido:', updateError);
       return;
     }
-
-    console.log(`✅ Pedido actualizado: ${order.numero_orden} -> Estado: PAGADO`);
-
     // ========== OBTENER ITEMS DEL PEDIDO ==========
     const { data: items, error: itemsError } = await supabase
       .from('items_orden')
@@ -233,13 +210,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       talla: item.talla,
       color: item.color,
     }));
-
-    console.log(`Items en pedido: ${orderItems.length}`);
-
     // ========== LIMPIAR CARRITO ==========
     if (order.usuario_id) {
-      console.log(`\n[WEBHOOK] 🛒 Limpiando carrito para usuario: ${order.usuario_id}`);
-
       // Intentar primero con cart_items (estructura actual)
       let cartCleared = false;
 
@@ -249,10 +221,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         .eq('user_id', order.usuario_id);
 
       if (!cartItemsError) {
-        console.log(`[WEBHOOK] ✅ cart_items limpiado correctamente`);
         cartCleared = true;
-      } else {
-        console.log('[WEBHOOK] cart_items no disponible, intentando carrito...');
       }
 
       // Fallback a tabla 'carrito' si existe
@@ -262,18 +231,36 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
           .delete()
           .eq('usuario_id', order.usuario_id);
 
-        if (!cartError) {
-          console.log(`[WEBHOOK] ✅ Carrito limpiado correctamente`);
-        } else {
+        if (cartError) {
           console.error('[WEBHOOK] ⚠️ Error limpiando carrito:', cartError);
         }
+      }
+
+      // Limpiar reservas del carrito
+      const { error: resError } = await supabase
+        .from('cart_reservations')
+        .delete()
+        .eq('user_id', order.usuario_id);
+
+      if (resError) {
+        console.error('[WEBHOOK] ⚠️ Error limpiando cart_reservations:', resError);
+      }
+    }
+
+    // Limpiar carrito de invitado si existe session_id
+    if (metadata.guest_session_id) {
+      const { error: guestDeleteError } = await supabase
+        .from('cart_items')
+        .delete()
+        .eq('session_id', metadata.guest_session_id);
+
+      if (guestDeleteError) {
+        console.error('[WEBHOOK] ⚠️ Error limpiando carrito de invitado:', guestDeleteError);
       }
     }
 
     // ========== CONSUMIR CUPÓN ==========
     if (order.cupon_id) {
-      console.log(`\n[WEBHOOK] 🎫 Procesando cupón: ${order.cupon_id}`);
-
       // Marcar cupón como usado
       const { error: couponError } = await supabase
         .from('cupones')
@@ -286,16 +273,11 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
       if (couponError) {
         console.error('[WEBHOOK] ❌ Error marcando cupón como usado:', couponError);
-      } else {
-        console.log(`[WEBHOOK] ✅ Cupón marcado como Usado`);
       }
     }
 
     // ========== ENVIAR EMAIL AL CLIENTE ==========
-    console.log('\n[WEBHOOK] === ENVIANDO EMAILS ===');
     const clientEmail = order.email_cliente;
-    console.log(`[WEBHOOK] Email del cliente: ${clientEmail}`);
-
     const emailSent = await sendOrderConfirmationEmail({
       numero_orden: order.numero_orden,
       email: clientEmail,
@@ -309,15 +291,11 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       direccion: order.direccion_envio || {},
     });
 
-    if (emailSent) {
-      console.log(`[WEBHOOK] ✅ Email de confirmación enviado a: ${clientEmail}`);
-    } else {
-      console.error(`[WEBHOOK] ❌ Fallo al enviar email a: ${clientEmail}`);
+    if (!emailSent) {
+      console.error('[WEBHOOK] ❌ Fallo al enviar email de confirmación');
     }
 
     // ========== ENVIAR NOTIFICACIÓN AL ADMIN ==========
-    console.log(`[WEBHOOK] Enviando notificación al administrador...`);
-
     // Admin notification uses same OrderData structure
     // NOTE: We pass clientEmail here so the admin sees the customer's email in the message body
     const adminEmailSent = await sendAdminNotificationEmail({
@@ -333,10 +311,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       direccion: order.direccion_envio || {},
     });
 
-    if (adminEmailSent) {
-      console.log(`[WEBHOOK] ✅ Email de admin enviado correctamente`);
-    } else {
-      console.error(`[WEBHOOK] ❌ Fallo al enviar email de admin`);
+    if (!adminEmailSent) {
+      console.error('[WEBHOOK] ❌ Fallo al enviar email de admin');
     }
 
     // ========== NOTIFICACIÓN CONDICIONAL (NotificationService) ==========
@@ -352,8 +328,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       `[WEBHOOK] 📬 NotificationService → sent=${notifResult.sent}, ` +
       `event=${notifResult.event}, reason=${notifResult.reason || 'ok'}`
     );
-
-    console.log(`[WEBHOOK] === ✅ COMPLETADO: ${order.numero_orden} ===\n`);
   } catch (error) {
     console.error('[WEBHOOK] ❌ Error en handleCheckoutCompleted:', error);
   }
@@ -365,9 +339,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
 async function handleChargeDispute(dispute: Stripe.Dispute) {
   try {
-    console.log(`\n[WEBHOOK] === Disputa Abierta ===`);
-    console.log(`Dispute ID: ${dispute.id}`);
-
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Buscar la orden asociada
@@ -386,20 +357,9 @@ async function handleChargeDispute(dispute: Stripe.Dispute) {
           actualizado_en: new Date().toISOString(),
         })
         .eq('id', order.id);
-
-      console.log(`⚠️ Disputa asociada al pedido: ${order.numero_orden}`);
-
       // Log dispute details for admin to handle manually
-      console.log(`[WEBHOOK] DISPUTA DETECTADA:`);
-      console.log(`[WEBHOOK]   - Pedido: ${order.numero_orden}`);
-      console.log(`[WEBHOOK]   - Cliente: ${order.nombre_cliente} (${order.email_cliente})`);
-      console.log(`[WEBHOOK]   - Dispute ID: ${dispute.id}`);
       // TODO: Implement a separate dispute notification email if needed
-
-      console.log(`✅ Disputa registrada en logs`);
     }
-
-    console.log(`[WEBHOOK] === Disputa Procesada ===\n`);
   } catch (error) {
     console.error('[WEBHOOK] ❌ Error en handleChargeDispute:', error);
   }
@@ -411,10 +371,6 @@ async function handleChargeDispute(dispute: Stripe.Dispute) {
 
 async function handleChargeFailed(charge: Stripe.Charge) {
   try {
-    console.log(`\n[WEBHOOK] === Pago Fallido ===`);
-    console.log(`Charge ID: ${charge.id}`);
-    console.log(`Motivo: ${charge.failure_message}`);
-
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Buscar la orden asociada
@@ -433,14 +389,8 @@ async function handleChargeFailed(charge: Stripe.Charge) {
           actualizado_en: new Date().toISOString(),
         })
         .eq('id', order.id);
-
-      console.log(`⚠️ Pedido revertido a Pendiente: ${order.numero_orden}`);
-
       // Notificar al cliente (opcional)
-      console.log(`📧 Cliente será notificado del fallo de pago`);
     }
-
-    console.log(`[WEBHOOK] === Pago Fallido Procesado ===\n`);
   } catch (error) {
     console.error('[WEBHOOK] ❌ Error en handleChargeFailed:', error);
   }

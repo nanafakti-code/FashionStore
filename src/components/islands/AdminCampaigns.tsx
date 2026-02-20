@@ -307,12 +307,7 @@ export default function AdminCampaigns() {
 
   const updatePreview = () => {
     if (previewRef.current) {
-      const doc = previewRef.current.contentDocument;
-      if (doc) {
-        doc.open();
-        doc.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{margin:0;padding:20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}</style></head><body>${formData.contenido_html}</body></html>`);
-        doc.close();
-      }
+      previewRef.current.srcdoc = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{margin:0;padding:20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}</style></head><body>${formData.contenido_html}</body></html>`;
     }
   };
 

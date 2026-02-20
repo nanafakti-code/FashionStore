@@ -6,6 +6,7 @@
 import type { APIRoute } from 'astro';
 import { getAdminPreferences, updatePreference } from '@/lib/notificationService';
 import type { NotificationEvent } from '@/lib/notificationService';
+import { requireAdmin } from '@/lib/admin-guard';
 
 const VALID_KEYS: NotificationEvent[] = [
   'new_order', 'low_stock', 'new_user',
@@ -14,7 +15,10 @@ const VALID_KEYS: NotificationEvent[] = [
 ];
 
 // ---- GET: cargar todas las preferencias ----
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ request }) => {
+  const denied = requireAdmin(request);
+  if (denied) return denied;
+
   try {
     const prefs = await getAdminPreferences();
 
@@ -40,6 +44,9 @@ export const GET: APIRoute = async () => {
 
 // ---- PATCH: toggle individual { key, value } ----
 export const PATCH: APIRoute = async ({ request }) => {
+  const denied = requireAdmin(request);
+  if (denied) return denied;
+
   try {
     const body = await request.json();
     const { key, value } = body as { key: string; value: boolean };

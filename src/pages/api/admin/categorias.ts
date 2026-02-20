@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
+import { requireAdmin } from '@/lib/admin-guard';
 
 // Use Service Role for admin operations (bypasses RLS)
 const supabaseAdmin = createClient(
@@ -8,12 +9,12 @@ const supabaseAdmin = createClient(
 );
 
 export const POST: APIRoute = async ({ request }) => {
+    const denied = requireAdmin(request);
+    if (denied) return denied;
+
     try {
         const data = await request.json();
         const { action, id, ...categoryData } = data;
-
-        console.log(`[API Categories] Acción: ${action}, ID: ${id || 'N/A'}`);
-
         // CREATE
         if (action === 'create') {
             const { data: result, error } = await supabaseAdmin

@@ -3,67 +3,114 @@ import Layout from "@/layouts/Layout.astro";
 ---
 
 <Layout title="Términos de Servicio | FashionStore">
-    <main
-        class="max-w-3xl mx-auto px-4 py-16 sm:px-6 lg:px-8 prose prose-sm prose-gray bg-white rounded-xl shadow-sm my-8 p-8"
-    >
-        <h1 class="not-prose text-3xl font-black mb-8">
-            Términos y Condiciones de Uso
-        </h1>
+    <div class="bg-gray-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+        <main
+            class="max-w-7xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden"
+        >
+            <div class="bg-gray-900 px-8 py-12 text-center text-white">
+                <h1 class="text-4xl font-black mb-4">Términos y Condiciones</h1>
+                <p class="text-lg opacity-80 max-w-2xl mx-auto">
+                    Transparencia y claridad en nuestros servicios. Última
+                    actualización: 03 de Febrero de 2026.
+                </p>
+            </div>
 
-        <p>Última actualización: 03 de Febrero de 2026</p>
+            <div
+                class="p-8 sm:p-12 prose prose-lg prose-slate max-w-none text-gray-600"
+            >
+                <div class="grid md:grid-cols-2 gap-x-16 gap-y-12">
+                    <section>
+                        <h2
+                            class="text-2xl font-bold text-gray-900 border-b pb-2 mb-4"
+                        >
+                            1. Introducción
+                        </h2>
+                        <p>
+                            Bienvenido a FashionStore. Estos términos rigen el
+                            uso de nuestro sitio y la compra de productos. Al
+                            acceder a nuestra web, aceptas estos términos en su
+                            totalidad.
+                        </p>
+                    </section>
 
-        <h2>1. Introducción</h2>
-        <p>
-            Bienvenido a FashionStore. Estos términos y condiciones rigen el uso
-            de nuestro sitio web y la compra de productos a través del mismo. Al
-            acceder y utilizar este sitio, aceptas cumplir con estos términos.
-        </p>
+                    <section>
+                        <h2
+                            class="text-2xl font-bold text-gray-900 border-b pb-2 mb-4"
+                        >
+                            2. Productos
+                        </h2>
+                        <p>
+                            Nos especializamos en electrónica reacondicionada de
+                            alta calidad. Aunque nos esforzamos por la
+                            precisión, las imágenes pueden variar ligeramente
+                            del producto real.
+                        </p>
+                    </section>
 
-        <h2>2. Productos y Servicios</h2>
-        <p>
-            FashionStore se especializa en la venta de productos electrónicos
-            reacondicionados. Hacemos todo lo posible para describir con
-            precisión el estado y las características de cada producto. Sin
-            embargo, ten en cuenta que las imágenes pueden variar ligeramente
-            del producto real debido a su naturaleza reacondicionada.
-        </p>
+                    <section>
+                        <h2
+                            class="text-2xl font-bold text-gray-900 border-b pb-2 mb-4"
+                        >
+                            3. Precios y Pagos
+                        </h2>
+                        <p>
+                            Todos los precios incluyen IVA. El pago se realiza
+                            de forma segura en el momento de la compra. Nos
+                            reservamos el derecho de modificar precios sin
+                            previo aviso.
+                        </p>
+                    </section>
 
-        <h2>3. Precios y Pagos</h2>
-        <p>
-            Todos los precios incluyen el IVA aplicable. Nos reservamos el
-            derecho de cambiar los precios en cualquier momento sin previo
-            aviso. El pago debe realizarse en su totalidad en el momento de la
-            compra a través de nuestros métodos de pago seguros.
-        </p>
+                    <section>
+                        <h2
+                            class="text-2xl font-bold text-gray-900 border-b pb-2 mb-4"
+                        >
+                            4. Envíos
+                        </h2>
+                        <p>
+                            Realizamos envíos a toda la península. Los tiempos
+                            son estimados. El riesgo se transfiere al cliente en
+                            la entrega.
+                        </p>
+                    </section>
 
-        <h2>4. Envíos y Entregas</h2>
-        <p>
-            Realizamos envíos a toda la península. Los tiempos de entrega son
-            estimados y pueden sufrir retrasos por causas ajenas a nuestra
-            voluntad. El riesgo de pérdida o daño del producto se transfiere al
-            cliente en el momento de la entrega.
-        </p>
+                    <section>
+                        <h2
+                            class="text-2xl font-bold text-gray-900 border-b pb-2 mb-4"
+                        >
+                            5. Garantía
+                        </h2>
+                        <p>
+                            Disfruta de <strong>24 meses de garantía</strong> en defectos
+                            de hardware. Quedan excluidos daños accidentales, por
+                            agua o manipulaciones no autorizadas.
+                        </p>
+                    </section>
+                    <section>
+                        <h2
+                            class="text-2xl font-bold text-gray-900 border-b pb-2 mb-4"
+                        >
+                            6. Propiedad Intelectual
+                        </h2>
+                        <p>
+                            Todo el contenido (imágenes, textos, logos) es
+                            propiedad exclusiva de FashionStore y está protegido
+                            por derechos de autor.
+                        </p>
+                    </section>
+                </div>
 
-        <h2>5. Garantía Limitada</h2>
-        <p>
-            Ofrecemos una garantía de 24 meses que cubre defectos de hardware.
-            Esta garantía no cubre daños accidentales, daños por agua, o
-            modificaciones no autorizadas del software o hardware.
-        </p>
-
-        <h2>6. Propiedad Intelectual</h2>
-        <p>
-            Todo el contenido de este sitio web (textos, gráficos, logotipos,
-            imágenes) es propiedad exclusiva de FashionStore o de sus
-            licenciantes y está protegido por las leyes de propiedad
-            intelectual.
-        </p>
-
-        <h2>7. Ley Aplicable</h2>
-        <p>
-            Estos términos se rigen por las leyes de España. Cualquier disputa
-            relacionada con estos términos estará sujeta a la jurisdicción
-            exclusiva de los tribunales de Madrid.
-        </p>
-    </main>
+                <div class="mt-12 pt-8 border-t border-gray-100 text-center">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4">
+                        Legislación Aplicable
+                    </h2>
+                    <p class="max-w-2xl mx-auto">
+                        Estos términos se rigen por las leyes de España.
+                        Cualquier disputa se someterá a la jurisdicción
+                        exclusiva de los tribunales de Madrid.
+                    </p>
+                </div>
+            </div>
+        </main>
+    </div>
 </Layout>

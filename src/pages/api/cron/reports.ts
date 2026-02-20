@@ -19,7 +19,6 @@ import {
   notifyDailySummary,
   notifyWeeklyReport,
   notifyMonthlyReport,
-  verifyNotificationSystem,
 } from '@/lib/notificationService';
 import type { DispatchResult } from '@/lib/notificationService';
 

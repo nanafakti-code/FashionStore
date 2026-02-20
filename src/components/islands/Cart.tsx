@@ -19,14 +19,13 @@ export default function Cart() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [total, setTotal] = useState(0);
   const [subtotal, setSubtotal] = useState(0);
-  const [tax, setTax] = useState(0);
   const [descuento, setDescuento] = useState(0);
   const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [, setIsAuthenticated] = useState<boolean | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
   const formatTime = (seconds: number): string => {
@@ -41,7 +40,6 @@ export default function Cart() {
       const user = await getCurrentUser();
       setIsAuthenticated(!!user);
       setUserId(user ? user.id : null);
-      console.log('[Cart] Auth status:', !!user ? 'AUTHENTICATED' : 'GUEST');
     };
     checkAuth();
 
@@ -156,12 +154,10 @@ export default function Cart() {
     }
 
     const subtotalConDescuento = subtotalPrice - discount;
-    const taxPrice = Math.round(subtotalConDescuento * 0.21); // 21% IVA
-    const totalPrice = subtotalConDescuento + taxPrice;
+    const totalPrice = subtotalConDescuento;
 
     setSubtotal(subtotalPrice);
     setDescuento(discount);
-    setTax(taxPrice);
     setTotal(totalPrice);
   };
 
@@ -461,10 +457,6 @@ export default function Cart() {
                   <span className="font-semibold">-{(descuento / 100).toFixed(2)}€</span>
                 </div>
               )}
-              <div className="flex justify-between text-gray-700">
-                <span>Impuesto (IVA 21%)</span>
-                <span className="font-semibold">{(tax / 100).toFixed(2)}€</span>
-              </div>
               <div className="flex justify-between text-gray-700">
                 <span>Envío</span>
                 <span className="font-semibold text-green-600">Gratis</span>

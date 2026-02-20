@@ -22,6 +22,14 @@ const webhookSecret = import.meta.env.STRIPE_WEBHOOK_SECRET || '';
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
 const supabaseKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
 
+// Validar configuración crítica al inicio
+if (!supabaseUrl || !supabaseKey) {
+  console.error('[WEBHOOK] ❌ Configuración de Supabase incompleta para webhook');
+}
+if (!webhookSecret) {
+  console.error('[WEBHOOK] ❌ STRIPE_WEBHOOK_SECRET no configurado');
+}
+
 // ============================================================
 // TIPOS
 // ============================================================
@@ -52,12 +60,15 @@ function verifyWebhookSignature(
   body: string,
   signature: string
 ): Stripe.Event | null {
+  if (!webhookSecret) {
+    console.error('[WEBHOOK] No se puede verificar firma: STRIPE_WEBHOOK_SECRET no configurado');
+    return null;
+  }
   try {
     const event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-    console.log(`[WEBHOOK] Evento validado: ${event.type}`);
     return event;
   } catch (error: any) {
-    console.error('[WEBHOOK] Error validando firma:', error);
+    console.error('[WEBHOOK] Firma inválida:', error.message);
     return null;
   }
 }
@@ -68,13 +79,23 @@ function verifyWebhookSignature(
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   try {
-    console.log(`[WEBHOOK] Procesando checkout completado: ${session.id}`);
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('[WEBHOOK] Supabase no configurado, no se puede procesar checkout');
+      return;
+    }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
     const metadata = session.metadata as CheckoutSessionMetadata;
 
     if (!metadata?.order_id) {
       console.error('[WEBHOOK] No hay order_id en metadata');
+      return;
+    }
+
+    // Validar formato de order_id (UUID)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(metadata.order_id)) {
+      console.error('[WEBHOOK] order_id con formato inválido');
       return;
     }
 
@@ -121,9 +142,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       console.error('[WEBHOOK] Error actualizando pedido:', updateError);
       return;
     }
-
-    console.log(`[WEBHOOK] Pedido actualizado: ${order.numero_orden} -> Estado: Pagado`);
-
     // ============================================================
     // 3. OBTENER ITEMS DEL PEDIDO PARA EMAIL
     // ============================================================
@@ -167,7 +185,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     });
 
     if (emailSent) {
-      console.log(`[WEBHOOK] Email de confirmación enviado a ${order.email_cliente}`);
     } else {
       console.error(`[WEBHOOK] Fallo al enviar email a ${order.email_cliente}`);
     }
@@ -190,7 +207,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     });
 
     if (adminEmailSent) {
-      console.log(`[WEBHOOK] Notificación enviada al admin`);
     }
 
     // ============================================================
@@ -201,8 +217,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     const userId = order.usuario_id || metadata.user_id;
 
     if (userId) {
-      console.log(`[WEBHOOK] Intentando limpiar carrito para usuario: ${userId}`);
-
       const { error: cartError } = await supabase
         .from('cart_items')
         .delete()
@@ -211,7 +225,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       if (cartError) {
         console.error('[WEBHOOK] Error limpiando cart_items:', cartError);
       } else {
-        console.log('[WEBHOOK] cart_items limpiado correctamente');
       }
 
       const { error: resError } = await supabase
@@ -227,8 +240,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     // SIEMPRE intentar limpiar carrito de invitado si existe session_id
     // (Un usuario logueado podría tener una sesión de invitado remanente)
     if (metadata.guest_session_id) {
-      console.log(`[WEBHOOK] Intentando limpiar carrito invitado: ${metadata.guest_session_id}`);
-
       const { error: deleteError } = await supabase
         .from('cart_items')
         .delete()
@@ -237,11 +248,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       if (deleteError) {
         console.error('[WEBHOOK] Error limpiando carrito de invitado:', deleteError);
       } else {
-        console.log(`[WEBHOOK] Carrito de invitado limpiado: ${metadata.guest_session_id}`);
       }
     }
-
-    console.log(`[WEBHOOK] ✅ Pedido ${order.numero_orden} procesado exitosamente`);
   } catch (error: any) {
     console.error('[WEBHOOK] Error en handleCheckoutCompleted:', error);
   }
@@ -253,8 +261,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
 async function handleChargeDispute(dispute: Stripe.Dispute) {
   try {
-    console.log(`[WEBHOOK] Disputa abierta: ${dispute.id}`);
-
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Buscar la orden asociada a este charge
@@ -273,9 +279,6 @@ async function handleChargeDispute(dispute: Stripe.Dispute) {
           actualizado_en: new Date().toISOString(),
         })
         .eq('id', order.id);
-
-      console.log(`[WEBHOOK] Disputa asociada al pedido: ${order.numero_orden}`);
-
       // Enviar email al admin
       await sendAdminNotificationEmail({
         type: 'payment_dispute',
@@ -335,7 +338,6 @@ export const POST: APIRoute = async ({ request }) => {
       }
 
       default:
-        console.log(`[WEBHOOK] Evento no procesado: ${event.type}`);
     }
 
     // Responder siempre 200 OK a Stripe

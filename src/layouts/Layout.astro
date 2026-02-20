@@ -155,7 +155,6 @@ const { title } = Astro.props;
     // Sincronizar carrito entre localStorage y sessionStorage
     (function syncCart() {
       try {
-        // Sincronizar fashionstore_guest_cart
         const cartKey = "fashionstore_guest_cart";
         const localCart = localStorage.getItem(cartKey);
         const sessionCart = sessionStorage.getItem(cartKey);
@@ -163,17 +162,11 @@ const { title } = Astro.props;
         // Si está en localStorage pero no en sessionStorage, copiar
         if (localCart && !sessionCart) {
           sessionStorage.setItem(cartKey, localCart);
-          console.log(
-            "[Sync] Carrito sincronizado de localStorage a sessionStorage",
-          );
         }
 
         // Si está en sessionStorage pero no en localStorage, copiar
         if (sessionCart && !localCart) {
           localStorage.setItem(cartKey, sessionCart);
-          console.log(
-            "[Sync] Carrito sincronizado de sessionStorage a localStorage",
-          );
         }
 
         // Si están en ambos, usar el más reciente
@@ -184,28 +177,14 @@ const { title } = Astro.props;
             if (Array.isArray(local) && Array.isArray(session)) {
               if (local.length === 0 && session.length > 0) {
                 localStorage.setItem(cartKey, sessionCart);
-                console.log(
-                  "[Sync] Usando carrito de sessionStorage (localStorage estaba vacío)",
-                );
               }
             }
           } catch (e) {
-            console.warn("[Sync] Error comparando carritos:", e);
+            // Silenciar errores de parsing
           }
         }
-
-        // Logear estado actual
-        console.log("[Sync] Estado del carrito:");
-        console.log(
-          "- localStorage:",
-          localCart ? `${JSON.parse(localCart).length} items` : "vacío",
-        );
-        console.log(
-          "- sessionStorage:",
-          sessionCart ? `${JSON.parse(sessionCart).length} items` : "vacío",
-        );
       } catch (error) {
-        console.error("[Sync] Error sincronizando carrito:", error);
+        // Silenciar errores de storage en navegadores restrictivos
       }
     })();
   </script>

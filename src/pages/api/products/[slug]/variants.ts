@@ -23,7 +23,7 @@ export const GET: APIRoute = async ({ params }) => {
 
         if (error) {
             console.error('Error fetching variants:', error);
-            return new Response(JSON.stringify({ error: error.message }), {
+            return new Response(JSON.stringify({ error: 'Error interno del servidor' }), {
                 status: 500,
                 headers: { 'Content-Type': 'application/json' }
             });

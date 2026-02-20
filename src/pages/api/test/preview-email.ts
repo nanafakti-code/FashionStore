@@ -2,6 +2,10 @@
 import type { APIRoute } from 'astro';
 
 export const GET: APIRoute = async ({ request }) => {
+  if (import.meta.env.PROD) {
+    return new Response('Not Found', { status: 404 });
+  }
+
   const url = new URL(request.url);
   const type = url.searchParams.get('type') || 'customer'; // 'customer' or 'admin'
 

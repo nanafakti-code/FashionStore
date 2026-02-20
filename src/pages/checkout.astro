@@ -250,10 +250,6 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
                   <span id="subtotal" class="text-gray-900">0.00€</span>
                 </div>
                 <div class="flex justify-between text-gray-700">
-                  <span>Impuesto (IVA 21%):</span>
-                  <span id="tax" class="text-gray-900">0.00€</span>
-                </div>
-                <div class="flex justify-between text-gray-700">
                   <span>Envío:</span>
                   <span id="shipping" class="text-gray-900 font-bold"
                     >Gratis</span
@@ -318,6 +314,7 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
   </main>
 
   <script
+    is:inline
     define:vars={{
       SUPABASE_URL: import.meta.env.PUBLIC_SUPABASE_URL,
       SUPABASE_ANON_KEY: import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
@@ -714,18 +711,16 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
       const subtotalAfterDiscount = Math.max(0, subtotal - discountAmount);
       const subtotalEuros = subtotal / 100;
       const discountEuros = discountAmount / 100;
-      const taxAmount = Math.round(subtotalAfterDiscount * 0.21) / 100;
-      const totalAmount = subtotalAfterDiscount / 100 + taxAmount;
+      const taxAmount = 0;
+      const totalAmount = subtotalAfterDiscount / 100;
 
       const subtotalEl = document.getElementById("subtotal");
-      const taxEl = document.getElementById("tax");
       const totalEl = document.getElementById("total");
       const discountRow = document.getElementById("discount-row");
       const discountLabel = document.getElementById("discount-label");
       const discountValue = document.getElementById("discount-value");
 
       if (subtotalEl) subtotalEl.textContent = `${subtotalEuros.toFixed(2)}€`;
-      if (taxEl) taxEl.textContent = `${taxAmount.toFixed(2)}€`;
       if (totalEl) totalEl.textContent = `${totalAmount.toFixed(2)}€`;
 
       if (discountRow && discountAmount > 0) {
@@ -932,13 +927,18 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
               paySubtotal += price * qty;
             }
             const payAfterDiscount = Math.max(0, paySubtotal - currentDiscountCents);
-            const payTax = Math.round(payAfterDiscount * 0.21);
-            const totalCents = payAfterDiscount + payTax;
+            const payTax = 0;
+            const totalCents = payAfterDiscount;
             const isGuest = !currentSession;
+
+            const headers = { "Content-Type": "application/json" };
+            if (currentSession?.access_token) {
+              headers["Authorization"] = `Bearer ${currentSession.access_token}`;
+            }
 
             const response = await fetch("/api/stripe/create-session", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers,
               body: JSON.stringify({
                 totalAmount: totalCents,
                 userEmail: email,

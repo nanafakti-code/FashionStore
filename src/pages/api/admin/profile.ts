@@ -72,7 +72,6 @@ export const GET: APIRoute = async ({ request }) => {
 
     if (error && error.code === 'PGRST116') {
       // No existe → crear usuario admin automáticamente
-      console.log('[PROFILE] Admin user not found, creating...');
       const { data: newUser, error: insertError } = await supabase
         .from('usuarios')
         .insert({
@@ -103,8 +102,8 @@ export const GET: APIRoute = async ({ request }) => {
 
     return ok(data);
   } catch (err: any) {
-    console.error('[PROFILE] Unexpected error (GET):', err);
-    return serverError(err.message || 'Error interno');
+    console.error('[PROFILE] Unexpected error (GET)');
+    return serverError('Error interno');
   }
 };
 
@@ -159,11 +158,9 @@ export const PUT: APIRoute = async ({ request }) => {
       console.error('[PROFILE] Error updating profile:', updateError);
       return serverError('Error al guardar los cambios.');
     }
-
-    console.log(`[PROFILE] ✅ Admin profile updated: ${updated.nombre}`);
     return ok(updated);
   } catch (err: any) {
-    console.error('[PROFILE] Unexpected error (PUT):', err);
-    return serverError(err.message || 'Error interno');
+    console.error('[PROFILE] Unexpected error (PUT)');
+    return serverError('Error interno');
   }
 };

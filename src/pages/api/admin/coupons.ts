@@ -10,8 +10,12 @@
 
 import type { APIRoute } from 'astro';
 import { supabase } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/admin-guard';
 
 export const POST: APIRoute = async ({ request }) => {
+  const denied = requireAdmin(request);
+  if (denied) return denied;
+
   try {
     const { action, ...data } = await request.json();
 
@@ -129,7 +133,10 @@ export const POST: APIRoute = async ({ request }) => {
   }
 };
 
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ request }) => {
+  const denied = requireAdmin(request);
+  if (denied) return denied;
+
   try {
     // Get all coupons directly from coupons table (views can have RLS issues)
     const { data: coupons, error } = await supabase
@@ -141,7 +148,7 @@ export const GET: APIRoute = async () => {
       console.error('[COUPONS GET] query error:', error);
       // Table may not exist yet – return empty list instead of 500
       return new Response(
-        JSON.stringify({ success: true, coupons: [], warning: error.message }),
+        JSON.stringify({ success: true, coupons: [], warning: 'Error parcial en la operaci�n' }),
         { status: 200, headers: { 'Content-Type': 'application/json' } }
       );
     }

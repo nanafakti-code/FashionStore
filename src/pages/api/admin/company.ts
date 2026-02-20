@@ -5,6 +5,7 @@
 
 import type { APIRoute } from 'astro';
 import { supabase } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/admin-guard';
 
 // ---- GET: cargar datos de la empresa ----
 export const GET: APIRoute = async () => {
@@ -49,6 +50,9 @@ export const GET: APIRoute = async () => {
 
 // ---- PUT: actualizar datos de la empresa ----
 export const PUT: APIRoute = async ({ request }) => {
+  const denied = requireAdmin(request);
+  if (denied) return denied;
+
   try {
     const body = await request.json();
     const { nombre, nif, email, telefono, direccion, ciudad, codigo_postal, pais } = body;
@@ -115,9 +119,6 @@ export const PUT: APIRoute = async ({ request }) => {
         );
       }
     }
-
-    console.log('[API company] ✅ Datos de empresa actualizados');
-
     return new Response(
       JSON.stringify({ success: true, message: 'Datos de empresa guardados correctamente.' }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }

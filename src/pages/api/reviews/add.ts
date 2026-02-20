@@ -9,7 +9,7 @@ const supabase = createClient(
 export const POST: APIRoute = async (context) => {
   try {
     const body = await context.request.json();
-    const { productId, count, orderId, calificacion, titulo, comentario, id } = body;
+    const { productId, count: _count, orderId, calificacion, titulo, comentario, id } = body;
 
     // Validar datos
     if (!productId || !calificacion || !titulo || !comentario) {
@@ -79,9 +79,9 @@ export const POST: APIRoute = async (context) => {
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error in add review endpoint:', error);
+    console.error('Error in add review endpoint');
     return new Response(
-      JSON.stringify({ error: (error as any).message || 'Error interno' }),
+      JSON.stringify({ error: 'Error interno del servidor' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }

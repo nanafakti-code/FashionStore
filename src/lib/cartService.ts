@@ -89,7 +89,9 @@ function getGuestCart(): GuestCartItem[] {
               if (Array.isArray(parsed)) {
                 return parsed;
               }
-            } catch (e) { }
+            } catch (e) {
+              // JSON parse fallido en cart alternativo, continuar buscando
+            }
           }
         }
       }
@@ -380,7 +382,7 @@ export async function clearAuthenticatedCart(): Promise<boolean> {
     const user = await getCurrentUser();
     if (!user) throw new Error('Usuario no autenticado');
 
-    const { data, error } = await supabase.rpc('clear_user_cart_restore_stock');
+    const { error } = await supabase.rpc('clear_user_cart_restore_stock');
 
     if (error) throw error;
 

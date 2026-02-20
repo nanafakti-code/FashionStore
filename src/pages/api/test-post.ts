@@ -5,9 +5,10 @@
 
 import type { APIRoute } from 'astro';
 
+const notFound = () => new Response('Not Found', { status: 404 });
+
 export const POST: APIRoute = async (context) => {
-  console.log('[TEST-POST] Request received');
-  console.log('[TEST-POST] Method:', context.request.method);
+  if (import.meta.env.PROD) return notFound();
   console.log('[TEST-POST] Content-Type:', context.request.headers.get('content-type'));
   console.log('[TEST-POST] Origin:', context.request.headers.get('origin'));
   

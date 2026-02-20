@@ -9,6 +9,7 @@
 
 import type { APIRoute } from 'astro';
 import { supabase } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/admin-guard';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -24,6 +25,9 @@ function ensureDir() {
 
 // ---- POST: subir PDF ----
 export const POST: APIRoute = async ({ request }) => {
+  const denied = requireAdmin(request);
+  if (denied) return denied;
+
   try {
     const contentType = request.headers.get('content-type') || '';
     if (!contentType.includes('multipart/form-data')) {
@@ -65,9 +69,6 @@ export const POST: APIRoute = async ({ request }) => {
     const buffer = Buffer.from(await file.arrayBuffer());
     const dest = path.join(UPLOAD_DIR, FILENAME);
     fs.writeFileSync(dest, buffer);
-
-    console.log(`[UPLOAD] PDF guardado: ${dest} (${(file.size / 1024).toFixed(1)} KB)`);
-
     // Guardar ruta en company_settings
     const { data: existing } = await supabase
       .from('company_settings')
@@ -105,13 +106,15 @@ export const POST: APIRoute = async ({ request }) => {
 };
 
 // ---- DELETE: eliminar PDF adjunto ----
-export const DELETE: APIRoute = async () => {
+export const DELETE: APIRoute = async ({ request }) => {
+  const denied = requireAdmin(request);
+  if (denied) return denied;
+
   try {
     // Eliminar archivo del disco
     const dest = path.join(UPLOAD_DIR, FILENAME);
     if (fs.existsSync(dest)) {
       fs.unlinkSync(dest);
-      console.log(`[UPLOAD] PDF eliminado: ${dest}`);
     }
 
     // Limpiar ruta en BD

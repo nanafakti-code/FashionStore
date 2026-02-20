@@ -1,17 +1,5 @@
 import type { APIRoute } from 'astro';
-import { createServerClient } from '@/lib/supabase';
-
-export const OPTIONS: APIRoute = () => {
-  return new Response(null, {
-    status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-guest-session-id',
-      'Access-Control-Max-Age': '86400',
-    }
-  });
-};
+import { createServerClient, supabase } from '@/lib/supabase';
 
 
 export const GET: APIRoute = async (context) => {
@@ -29,26 +17,46 @@ export const GET: APIRoute = async (context) => {
       );
     }
 
-    console.log('[API/cart/get] Obteniendo carrito para userId:', userId);
+    // Verificar identidad del usuario autenticado
+    let token = context.cookies.get('sb-access-token')?.value;
+    if (!token) {
+      const authHeader = context.request.headers.get('Authorization');
+      if (authHeader?.startsWith('Bearer ')) {
+        token = authHeader.slice(7);
+      }
+    }
 
-    const supabase = createServerClient();
+    if (token) {
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+      if (authError || !user || user.id !== userId) {
+        return new Response(
+          JSON.stringify({ error: 'No autorizado', items: [] }),
+          { status: 403, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+    } else {
+      // Sin token, no se puede verificar la identidad — denegar acceso
+      return new Response(
+        JSON.stringify({ error: 'Autenticación requerida', items: [] }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const serverSupabase = createServerClient();
 
     // Método 1: Intentar usar la RPC get_user_cart (la misma que usa Cart.tsx)
     // Pero necesitamos autenticarnos como el usuario, así que usamos consulta directa
 
     // Consultar la tabla cart_items directamente con el userId
-    const { data: cartItems, error: cartError } = await supabase
+    const { data: cartItems, error: cartError } = await serverSupabase
       .from('cart_items')
       .select('*')
       .eq('user_id', userId);
-
-    console.log('[API/cart/get] Cart items encontrados:', cartItems?.length || 0);
-
     if (cartError) {
       console.error('[API/cart/get] Error fetching cart:', cartError);
       return new Response(
         JSON.stringify({
-          error: cartError.message,
+          error: 'Error al obtener datos',
           items: []
         }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
@@ -58,7 +66,6 @@ export const GET: APIRoute = async (context) => {
     const productIds = (cartItems || []).map((item: any) => item.product_id);
 
     if (productIds.length === 0) {
-      console.log('[API/cart/get] Carrito vacío, no hay productos');
       return new Response(
         JSON.stringify({
           items: [],
@@ -73,13 +80,12 @@ export const GET: APIRoute = async (context) => {
     let productsError: any = null;
 
     // Intentar tabla 'productos' (español)
-    const { data: productosData, error: productosErr } = await supabase
+    const { data: productosData, error: productosErr } = await serverSupabase
       .from('productos')
       .select('id, nombre, precio_venta, imagenes')
       .in('id', productIds);
 
     if (!productosErr && productosData && productosData.length > 0) {
-      console.log('[API/cart/get] Productos encontrados en tabla "productos":', productosData.length);
       products = productosData.map((p: any) => ({
         id: p.id,
         name: p.nombre,
@@ -88,13 +94,12 @@ export const GET: APIRoute = async (context) => {
       }));
     } else {
       // Intentar tabla 'products' (inglés)
-      const { data: productsData, error: productsErr } = await supabase
+      const { data: productsData, error: productsErr } = await serverSupabase
         .from('products')
         .select('id, name, price, image')
         .in('id', productIds);
 
       if (!productsErr && productsData) {
-        console.log('[API/cart/get] Productos encontrados en tabla "products":', productsData.length);
         products = productsData;
       } else {
         productsError = productsErr || productosErr;
@@ -125,9 +130,6 @@ export const GET: APIRoute = async (context) => {
         color: item.color
       };
     });
-
-    console.log('[API/cart/get] Items del carrito formateados:', items);
-
     return new Response(
       JSON.stringify({
         items: items,

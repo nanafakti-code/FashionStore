@@ -9,6 +9,24 @@ import type { APIRoute } from 'astro';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 
 export const GET: APIRoute = async () => {
+  // En producción, solo devolver estado básico sin detalles internos
+  if (import.meta.env.PROD) {
+    try {
+      const { error } = await supabase.from('productos').select('id').limit(1);
+      const ok = !error;
+      return new Response(
+        JSON.stringify({ status: ok ? 'ok' : 'degraded', timestamp: new Date().toISOString() }),
+        { status: ok ? 200 : 503, headers: { 'Content-Type': 'application/json' } }
+      );
+    } catch {
+      return new Response(
+        JSON.stringify({ status: 'down', timestamp: new Date().toISOString() }),
+        { status: 503, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+  }
+
+  // Diagnóstico completo solo en desarrollo
   const diagnostics: Record<string, any> = {
     timestamp: new Date().toISOString(),
     environment: import.meta.env.PROD ? 'production' : 'development',

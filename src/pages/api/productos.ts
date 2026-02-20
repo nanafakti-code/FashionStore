@@ -1,18 +1,6 @@
 import type { APIRoute } from 'astro';
 import { supabase } from '@/lib/supabase';
 
-export const OPTIONS: APIRoute = () => {
-  return new Response(null, {
-    status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-guest-session-id',
-      'Access-Control-Max-Age': '86400',
-    }
-  });
-};
-
 
 export const GET: APIRoute = async () => {
   try {

@@ -1,17 +1,30 @@
 /**
  * ADMIN AUTHENTICATION UTILITIES
+ * ===============================
  * Sistema de autenticación con contraseña desde BD (admin_credentials)
- * Fallback a hardcoded si la tabla no existe
+ * Tokens firmados con HMAC-SHA256 para evitar manipulación
  */
 
 import { supabase } from './supabase';
+import { createHmac, randomBytes, timingSafeEqual } from 'crypto';
+import bcrypt from 'bcrypt';
 
-// Credenciales por defecto (fallback si no hay tabla)
+// Rondas de bcrypt para hashing
+const BCRYPT_ROUNDS = 12;
+
+// Email de administrador
 const ADMIN_EMAIL = 'admin@fashionstore.com';
-const FALLBACK_PASSWORD = '1234';
 
-console.log('[ADMIN-AUTH] Sistema inicializado');
-console.log('[ADMIN-AUTH] Email:', ADMIN_EMAIL);
+// Clave secreta para firmar tokens — OBLIGATORIA en producción
+const TOKEN_SECRET: string = (() => {
+  const secret = import.meta.env.ADMIN_TOKEN_SECRET;
+  if (secret) return secret as string;
+  if (import.meta.env.PROD) {
+    throw new Error('ADMIN_TOKEN_SECRET es obligatorio en producción');
+  }
+  // Solo en desarrollo: generar secreto efímero (sessions se pierden al reiniciar)
+  return randomBytes(32).toString('hex');
+})();
 
 export interface AdminSession {
   username: string;
@@ -21,28 +34,24 @@ export interface AdminSession {
 
 /**
  * Validar credenciales de login — lee contraseña de admin_credentials (Supabase)
- * Fallback a FALLBACK_PASSWORD si la tabla no existe
+ * Si la tabla no existe o BD falla, rechaza el login (fail-secure)
  */
 export async function validateAdminCredentials(username: string, password: string): Promise<boolean> {
+  // Validar inputs
+  if (!username || !password || typeof username !== 'string' || typeof password !== 'string') {
+    return false;
+  }
+
   // Normalizar email (lowercase y trim)
   const normalizedUsername = username.toLowerCase().trim();
   const normalizedAdminEmail = ADMIN_EMAIL.toLowerCase().trim();
 
-  console.log('[ADMIN-AUTH] ==========================================');
-  console.log('[ADMIN-AUTH] VALIDACIÓN DE CREDENCIALES');
-  console.log('[ADMIN-AUTH] ==========================================');
-  console.log('[ADMIN-AUTH] Username recibido:', `"${username}"`);
-  console.log('[ADMIN-AUTH] Username normalizado:', `"${normalizedUsername}"`);
-  console.log('[ADMIN-AUTH] Email esperado:', `"${normalizedAdminEmail}"`);
-
   // 1. Verificar email primero
   if (normalizedUsername !== normalizedAdminEmail) {
-    console.log('[ADMIN-AUTH] ✗ Email no coincide');
     return false;
   }
 
-  // 2. Intentar obtener la contraseña de la BD
-  let storedPassword = FALLBACK_PASSWORD;
+  // 2. Obtener la contraseña de la BD (sin fallback inseguro)
   try {
     const { data, error } = await supabase
       .from('admin_credentials')
@@ -51,28 +60,53 @@ export async function validateAdminCredentials(username: string, password: strin
       .limit(1)
       .single();
 
-    if (!error && data?.password) {
-      storedPassword = data.password;
-      console.log('[ADMIN-AUTH] Usando contraseña de BD');
-    } else {
-      console.log('[ADMIN-AUTH] Tabla admin_credentials no disponible, usando fallback');
+    if (error || !data?.password) {
+      console.error('[ADMIN-AUTH] No se pudo obtener credenciales de BD. Login rechazado.');
+      return false; // Fail-secure: si no hay BD, no hay acceso
     }
+
+    const storedPassword = data.password;
+
+    // Detectar si la contraseña está hasheada con bcrypt (empieza con $2b$ o $2a$)
+    if (storedPassword.startsWith('$2b$') || storedPassword.startsWith('$2a$')) {
+      // Contraseña hasheada → comparar con bcrypt
+      return await bcrypt.compare(password, storedPassword);
+    }
+
+    // Contraseña en texto plano (legacy) → comparar y migrar automáticamente a bcrypt
+    const storedPasswordBuf = Buffer.from(storedPassword, 'utf-8');
+    const inputPasswordBuf = Buffer.from(password, 'utf-8');
+
+    if (storedPasswordBuf.length !== inputPasswordBuf.length) {
+      return false;
+    }
+
+    const isValid = timingSafeEqual(storedPasswordBuf, inputPasswordBuf);
+
+    // Si la contraseña es correcta, migrar a bcrypt automáticamente
+    if (isValid) {
+      try {
+        const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
+        await supabase
+          .from('admin_credentials')
+          .update({ password: hashedPassword })
+          .eq('email', ADMIN_EMAIL);
+        console.log('[ADMIN-AUTH] Contraseña migrada a bcrypt automáticamente.');
+      } catch {
+        // No bloquear login si falla la migración
+      }
+    }
+
+    return isValid;
   } catch {
-    console.log('[ADMIN-AUTH] Error accediendo a BD, usando fallback');
+    console.error('[ADMIN-AUTH] Error accediendo a BD. Login rechazado.');
+    return false; // Fail-secure
   }
-
-  const isValid = password === storedPassword;
-
-  console.log('[ADMIN-AUTH] Password match:', isValid);
-  console.log('[ADMIN-AUTH] ==========================================');
-  console.log('[ADMIN-AUTH] RESULTADO:', isValid ? '✓ VÁLIDO' : '✗ INVÁLIDO');
-  console.log('[ADMIN-AUTH] ==========================================');
-
-  return isValid;
 }
 
 /**
- * Crear token de sesión (simple base64)
+ * Crear token de sesión firmado con HMAC-SHA256
+ * Formato: base64(payload).signature
  */
 export function createAdminSessionToken(username: string): string {
   const session: AdminSession = {
@@ -80,20 +114,48 @@ export function createAdminSessionToken(username: string): string {
     isAdmin: true,
     createdAt: Date.now()
   };
-  return Buffer.from(JSON.stringify(session)).toString('base64');
+
+  const payload = Buffer.from(JSON.stringify(session)).toString('base64url');
+  const signature = createHmac('sha256', TOKEN_SECRET).update(payload).digest('base64url');
+
+  return `${payload}.${signature}`;
 }
 
 /**
- * Verificar token de sesión
+ * Verificar token de sesión firmado
+ * Valida firma HMAC y expiración (24 horas)
  */
 export function verifyAdminSessionToken(token: string): AdminSession | null {
   try {
-    const decoded = Buffer.from(token, 'base64').toString('utf-8');
+    if (!token || typeof token !== 'string') return null;
+
+    const parts = token.split('.');
+    if (parts.length !== 2) return null;
+
+    const payload = parts[0]!;
+    const signature = parts[1]!;
+
+    // Verificar firma HMAC
+    const expectedSignature = createHmac('sha256', TOKEN_SECRET).update(payload).digest('base64url');
+    const sigBuffer = Buffer.from(signature, 'utf-8');
+    const expectedBuffer = Buffer.from(expectedSignature, 'utf-8');
+
+    if (sigBuffer.length !== expectedBuffer.length || !timingSafeEqual(sigBuffer, expectedBuffer)) {
+      return null; // Firma inválida
+    }
+
+    // Decodificar payload (se codifica con base64url en createAdminSessionToken)
+    const decoded = Buffer.from(payload, 'base64url').toString('utf-8');
     const session = JSON.parse(decoded) as AdminSession;
 
-    // Verificar que la sesión no expire (24 horas)
+    // Verificar que la sesión no haya expirado (24 horas)
     const expiryTime = 24 * 60 * 60 * 1000;
     if (Date.now() - session.createdAt > expiryTime) {
+      return null;
+    }
+
+    // Validar estructura del payload
+    if (!session.username || typeof session.isAdmin !== 'boolean') {
       return null;
     }
 
@@ -101,6 +163,27 @@ export function verifyAdminSessionToken(token: string): AdminSession | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * Hashear una contraseña con bcrypt
+ */
+export async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, BCRYPT_ROUNDS);
+}
+
+/**
+ * Verificar una contraseña contra un hash (soporta bcrypt y plaintext legacy)
+ */
+export async function verifyPassword(password: string, storedPassword: string): Promise<boolean> {
+  if (storedPassword.startsWith('$2b$') || storedPassword.startsWith('$2a$')) {
+    return bcrypt.compare(password, storedPassword);
+  }
+  // Plaintext legacy comparison
+  const storedBuf = Buffer.from(storedPassword, 'utf-8');
+  const inputBuf = Buffer.from(password, 'utf-8');
+  if (storedBuf.length !== inputBuf.length) return false;
+  return timingSafeEqual(storedBuf, inputBuf);
 }
 
 /**

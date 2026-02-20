@@ -87,6 +87,8 @@ export default function MiCuentaClientV2() {
   const [returnSubmitting, setReturnSubmitting] = useState(false);
   const [reviewableItems, setReviewableItems] = useState<any[]>([]);
   const [userCoupons, setUserCoupons] = useState<any[]>([]);
+  // Mapa orden_id -> estado real de la devolución (actualizado por el admin)
+  const [devolucionesMap, setDevolucionesMap] = useState<Record<string, string>>({});
 
   // Estado para formulario de direcciones
   const [showAddressForm, setShowAddressForm] = useState(false);
@@ -135,7 +137,7 @@ export default function MiCuentaClientV2() {
 
     // Check for hash in URL to set active section
     const hash = window.location.hash.slice(1);
-    if (hash === "pedidos" || hash === "seguridad" || hash === "resenas") {
+    if (["pedidos", "seguridad", "resenas", "cupones", "devoluciones"].includes(hash)) {
       setActiveSection(hash);
     }
   }, []);
@@ -145,7 +147,7 @@ export default function MiCuentaClientV2() {
     if (!userData?.id) return;
 
     console.log("Setting up realtime subscription for orders...");
-    const channel = supabase
+    const ordersChannel = supabase
       .channel('ordenes-realtime')
       .on(
         'postgres_changes',
@@ -162,8 +164,25 @@ export default function MiCuentaClientV2() {
       )
       .subscribe();
 
+    // Realtime subscription for devoluciones (admin updates status)
+    const devolucionesChannel = supabase
+      .channel('devoluciones-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'devoluciones',
+        },
+        () => {
+          fetchDevoluciones(userData.id);
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(ordersChannel);
+      supabase.removeChannel(devolucionesChannel);
     };
   }, [userData?.id]);
 
@@ -272,6 +291,25 @@ export default function MiCuentaClientV2() {
     } else {
       setOrders((ordersData as Order[]) || []);
     }
+
+    // Cargar también el estado real de las devoluciones
+    await fetchDevoluciones(userId);
+  };
+
+  const fetchDevoluciones = async (userId: string) => {
+    // Obtener los IDs de las órdenes del usuario que tienen devolución solicitada
+    const { data: devData } = await supabase
+      .from('devoluciones')
+      .select('orden_id, estado')
+      .eq('usuario_id', userId);
+
+    if (devData) {
+      const map: Record<string, string> = {};
+      devData.forEach((d: any) => {
+        if (d.orden_id) map[d.orden_id] = d.estado;
+      });
+      setDevolucionesMap(map);
+    }
   };
 
   // ============================================================
@@ -347,12 +385,40 @@ export default function MiCuentaClientV2() {
   const handleReturnRequest = async () => {
     if (!selectedOrder) return;
     setReturnSubmitting(true);
-    // Simulate API call or Real call
-    setTimeout(() => {
+
+    try {
+      const response = await fetch('/api/returns/request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          orderId: selectedOrder.id,
+          reason: returnReason || 'No especificado',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al procesar la solicitud');
+      }
+
+      // Update local state to reflect the change immediately
+      const updatedOrder = { ...selectedOrder, estado: 'Devolucion_Solicitada' };
+      setSelectedOrder(updatedOrder as Order);
+
+      setOrders(orders.map(o => o.id === selectedOrder.id ? updatedOrder as Order : o));
+
       showNotification('success', 'Solicitud enviada correctamente. Recibirás un correo con las instrucciones.');
       setReturnSubmitting(false);
       setShowReturnModal(false);
-    }, 1500);
+      setReturnReason(""); // Clear reason
+    } catch (error: any) {
+      console.error('Error requesting return:', error);
+      showNotification('error', error.message || 'Hubo un error al solicitar la devolución');
+      setReturnSubmitting(false);
+    }
   };
 
   // ... (keeping other functions) ...
@@ -564,7 +630,7 @@ export default function MiCuentaClientV2() {
 
     // Validar campos requeridos
     if (!addressFormData.nombre_destinatario || !addressFormData.calle ||
-      !addressFormData.numero || !addressFormData.codigo_postal ||
+      !addressFormData.numero || !addressFormData.piso || !addressFormData.codigo_postal ||
       !addressFormData.ciudad || !addressFormData.provincia) {
       setAddressMessage({
         type: "error",
@@ -730,6 +796,12 @@ export default function MiCuentaClientV2() {
       Cancelado: "bg-red-100 text-red-700",
       Devuelto: "bg-gray-100 text-gray-700",
       Devolucion_Solicitada: "bg-orange-100 text-orange-700",
+      // Estados del admin en tabla devoluciones
+      pendiente: "bg-yellow-100 text-yellow-700",
+      aprobada: "bg-blue-100 text-blue-700",
+      recibida: "bg-indigo-100 text-indigo-700",
+      reembolsada: "bg-green-100 text-green-700",
+      rechazada: "bg-red-100 text-red-700",
     };
     return colors[estado] || "bg-gray-100 text-gray-700";
   };
@@ -745,6 +817,12 @@ export default function MiCuentaClientV2() {
       Cancelado: "Cancelado",
       Devuelto: "Devuelto",
       Devolucion_Solicitada: "Devolucion solicitada",
+      // Estados del admin en tabla devoluciones
+      pendiente: "Pendiente de revisión",
+      aprobada: "Aprobada",
+      recibida: "Recibida",
+      reembolsada: "Reembolsada ✅",
+      rechazada: "Rechazada",
     };
     return labels[estado] || estado;
   };
@@ -883,9 +961,30 @@ export default function MiCuentaClientV2() {
                 <path d="M16 16a2 2 0 11-4 0 2 2 0 014 0zM4 16a2 2 0 11-4 0 2 2 0 014 0z"></path>
               </svg>
               Mis Pedidos
-              {orders.length > 0 && (
+              {orders.filter(o => !['Devolucion_Solicitada', 'Devuelto'].includes(o.estado)).length > 0 && (
                 <span className="ml-auto bg-[#00aa45] text-white text-xs px-2 py-0.5 rounded-full">
-                  {orders.length}
+                  {orders.filter(o => !['Devolucion_Solicitada', 'Devuelto'].includes(o.estado)).length}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveSection("devoluciones");
+                setSelectedOrder(null);
+              }}
+              className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition flex items-center gap-2 ${activeSection === "devoluciones"
+                ? "bg-[#f0fff6] text-[#00aa45] border-l-4 border-[#00aa45]"
+                : "text-gray-700 hover:bg-gray-100"
+                }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+              </svg>
+              Mis Devoluciones
+              {orders.filter(o => ['Devolucion_Solicitada', 'Devuelto'].includes(o.estado)).length > 0 && (
+                <span className="ml-auto bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">
+                  {orders.filter(o => ['Devolucion_Solicitada', 'Devuelto'].includes(o.estado)).length}
                 </span>
               )}
             </button>
@@ -1118,71 +1217,92 @@ export default function MiCuentaClientV2() {
         )}
 
         {/* ============================================================ */}
-        {/* MIS PEDIDOS */}
+        {/* MIS PEDIDOS Y DEVOLUCIONES */}
         {/* ============================================================ */}
-        {activeSection === "pedidos" && !selectedOrder && (
+        {(activeSection === "pedidos" || activeSection === "devoluciones") && !selectedOrder && (
           <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
             <h2 className="text-2xl font-black text-gray-900 mb-8 flex items-center gap-3 pb-4 border-b-2 border-gray-100">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00aa45] to-[#008a35] flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 6H6.28l-.31-1.243A1 1 0 005 4H3z"></path>
-                  <path d="M16 16a2 2 0 11-4 0 2 2 0 014 0zM4 16a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                </svg>
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${activeSection === 'devoluciones' ? 'bg-gradient-to-br from-orange-500 to-red-500' : 'bg-gradient-to-br from-[#00aa45] to-[#008a35]'}`}>
+                {activeSection === 'devoluciones' ? (
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                  </svg>
+                ) : (
+                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 6H6.28l-.31-1.243A1 1 0 005 4H3z"></path>
+                  </svg>
+                )}
               </div>
-              Mis Pedidos
+              {activeSection === 'devoluciones' ? 'Mis Devoluciones' : 'Mis Pedidos'}
             </h2>
 
-            {orders.length === 0 ? (
-              <div className="text-center py-12">
-                <svg className="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-                </svg>
-                <p className="text-gray-600 mb-4">Aun no tienes pedidos</p>
-                <a
-                  href="/productos"
-                  className="inline-block bg-[#00aa45] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#009340] transition"
-                >
-                  Explorar productos
-                </a>
+            {orders.filter(order =>
+              activeSection === 'devoluciones'
+                ? ['Devolucion_Solicitada', 'Devuelto'].includes(order.estado)
+                : !['Devolucion_Solicitada', 'Devuelto'].includes(order.estado)
+            ).length === 0 ? (
+              <div className="text-center py-12 bg-gray-50 rounded-xl">
+                <p className="text-gray-500 text-lg">
+                  {activeSection === 'devoluciones'
+                    ? 'No tienes devoluciones solicitadas.'
+                    : 'Aún no has realizado ningún pedido.'}
+                </p>
+                {activeSection === 'pedidos' && (
+                  <a
+                    href="/"
+                    className="inline-block mt-4 px-6 py-2 bg-[#00aa45] text-white rounded-full font-bold hover:bg-[#008a35] transition"
+                  >
+                    Ir a comprar
+                  </a>
+                )}
               </div>
             ) : (
-              <div className="space-y-4">
-                {orders.map((order) => (
-                  <div
-                    key={order.id}
-                    className="bg-gray-50 rounded-xl p-5 border border-gray-200 hover:border-[#00aa45] transition cursor-pointer"
-                    onClick={() => loadOrderDetails(order)}
-                  >
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="font-bold text-gray-900 text-lg">
-                          {order.numero_orden}
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          {formatDate(order.fecha_creacion)}
-                        </p>
+              <div className="grid gap-6">
+                {orders
+                  .filter(order =>
+                    activeSection === 'devoluciones'
+                      ? ['Devolucion_Solicitada', 'Devuelto'].includes(order.estado)
+                      : !['Devolucion_Solicitada', 'Devuelto'].includes(order.estado)
+                  )
+                  .map((order) => (
+                    <div
+                      key={order.id}
+                      className="bg-gray-50 rounded-xl p-5 border border-gray-200 hover:border-[#00aa45] transition cursor-pointer"
+                      onClick={() => loadOrderDetails(order)}
+                    >
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="font-bold text-gray-900 text-lg">
+                            {order.numero_orden}
+                          </h3>
+                          <p className="text-sm text-gray-600">
+                            {formatDate(order.fecha_creacion)}
+                          </p>
+                        </div>
+                        <span
+                          className={`px-3 py-1.5 rounded-full text-xs font-bold ${activeSection === 'devoluciones'
+                              ? getStatusColor(devolucionesMap[order.id] || order.estado)
+                              : getStatusColor(order.estado)
+                            }`}
+                        >
+                          {activeSection === 'devoluciones'
+                            ? getStatusLabel(devolucionesMap[order.id] || order.estado)
+                            : getStatusLabel(order.estado)}
+                        </span>
                       </div>
-                      <span
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold ${getStatusColor(
-                          order.estado
-                        )}`}
-                      >
-                        {getStatusLabel(order.estado)}
-                      </span>
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-4 sm:mt-0">
+                        <span className="text-2xl font-black text-[#00aa45]">
+                          {formatPrice(order.total)}
+                        </span>
+                        <span className="text-[#00aa45] font-medium flex items-center gap-1">
+                          Ver detalle
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                          </svg>
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-4 sm:mt-0">
-                      <span className="text-2xl font-black text-[#00aa45]">
-                        {formatPrice(order.total)}
-                      </span>
-                      <span className="text-[#00aa45] font-medium flex items-center gap-1">
-                        Ver detalle
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             )}
           </div>
@@ -1191,7 +1311,10 @@ export default function MiCuentaClientV2() {
         {/* ============================================================ */}
         {/* DETALLE DE PEDIDO */}
         {/* ============================================================ */}
-        {activeSection === "pedidos" && selectedOrder && (
+        {/* ============================================================ */}
+        {/* DETALLE DE PEDIDO */}
+        {/* ============================================================ */}
+        {(activeSection === "pedidos" || activeSection === "devoluciones") && selectedOrder && (
           <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
             {/* Header */}
             <div className="bg-gray-50 p-6 border-b border-gray-200">
@@ -1202,7 +1325,7 @@ export default function MiCuentaClientV2() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
-                Volver a mis pedidos
+                {activeSection === 'devoluciones' ? 'Volver a mis devoluciones' : 'Volver a mis pedidos'}
               </button>
               <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                 <div>
@@ -1330,7 +1453,18 @@ export default function MiCuentaClientV2() {
               </div>
 
               {/* Botón de devolución */}
-              {canRequestReturn(selectedOrder) && (
+              {/* Botón de devolución */}
+              {selectedOrder.estado === 'Devolucion_Solicitada' ? (
+                <button
+                  disabled
+                  className="w-full bg-orange-100 text-orange-700 py-3 rounded-xl font-bold cursor-not-allowed flex items-center justify-center gap-2 opacity-100"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  Devolución solicitada
+                </button>
+              ) : canRequestReturn(selectedOrder) && (
                 <button
                   onClick={() => setShowReturnModal(true)}
                   className="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition flex items-center justify-center gap-2"
@@ -1543,7 +1677,7 @@ export default function MiCuentaClientV2() {
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Piso / Puerta (opcional)
+                      Piso / Puerta *
                     </label>
                     <input
                       type="text"

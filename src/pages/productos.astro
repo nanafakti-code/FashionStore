@@ -1,6 +1,5 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import ProductCard from "@/components/ProductCard.astro";
 import PriceRangeFilter from "@/components/islands/PriceRangeFilter";
 import CollapsibleFilter from "@/components/islands/CollapsibleFilter";
 import ProductsList from "@/components/islands/ProductsList";
@@ -10,9 +9,6 @@ import { supabase } from "@/lib/supabase";
 const url = new URL(Astro.request.url);
 const searchQuery = url.searchParams.get("q") || "";
 const selectedCategory = url.searchParams.get("categoria") || "";
-// Los parámetros vienen en EUROS, convertir a CÉNTIMOS para comparar con BD
-const minPrice = (Number(url.searchParams.get("minPrice")) || 0) * 100;
-const maxPrice = (Number(url.searchParams.get("maxPrice")) || 999999) * 100;
 const sortOrder = url.searchParams.get("orden") || "relevancia";
 
 // Obtener productos
@@ -22,7 +18,7 @@ let debugInfo = { error: null, productsCount: 0, categoriesCount: 0 };
 
 try {
   // Obtener categorías
-  const { data: cats, error: catsError } = await supabase
+  const { data: cats } = await supabase
     .from("categorias")
     .select("id, nombre, slug")
     .eq("activa", true)

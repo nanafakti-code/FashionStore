@@ -17,6 +17,9 @@
 import type { APIRoute } from 'astro';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
+import { supabase as supabaseAuth } from '@/lib/supabase';
+
+import { randomInt } from 'crypto';
 
 const stripeKey = import.meta.env.STRIPE_SECRET_KEY;
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
@@ -35,29 +38,20 @@ if (!supabaseKey) {
 
 const stripe = new Stripe(stripeKey || '');
 
-// Generar número de orden único
+// Generar número de orden único con crypto random
 function generateOrderNumber(): string {
   const date = new Date();
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
-  const random = Math.floor(Math.random() * 10000)
-    .toString()
-    .padStart(4, '0');
+  const random = randomInt(10000).toString().padStart(4, '0');
   return `FS-${year}${month}${day}-${random}`;
 }
 
 export const POST: APIRoute = async (context) => {
   try {
-    console.log('[CREATE-SESSION] Iniciando creación de sesión de Stripe');
-
     // Verificar configuración
     if (!stripeKey || !supabaseUrl || !supabaseKey) {
-      console.error('[CREATE-SESSION] ❌ Variables de entorno faltantes:', {
-        stripe: !!stripeKey,
-        supabaseUrl: !!supabaseUrl,
-        supabaseKey: !!supabaseKey
-      });
       return new Response(
         JSON.stringify({ error: 'Configuración del servidor incompleta' }),
         { status: 500 }
@@ -65,7 +59,6 @@ export const POST: APIRoute = async (context) => {
     }
 
     const body = await context.request.json();
-    console.log('[CREATE-SESSION] Body recibido:', JSON.stringify(body, null, 2));
 
     const {
       totalAmount,
@@ -82,6 +75,41 @@ export const POST: APIRoute = async (context) => {
     } = body;
 
     // ============================================================
+    // 0. VERIFICAR AUTENTICACIÓN
+    // ============================================================
+    if (userId) {
+      // Usuario autenticado: verificar token
+      let token = context.cookies.get('sb-access-token')?.value;
+      if (!token) {
+        const authHeader = context.request.headers.get('Authorization');
+        if (authHeader?.startsWith('Bearer ')) {
+          token = authHeader.slice(7);
+        }
+      }
+
+      if (!token) {
+        return new Response(
+          JSON.stringify({ error: 'Autenticación requerida' }),
+          { status: 401, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token);
+      if (authError || !user || user.id !== userId) {
+        return new Response(
+          JSON.stringify({ error: 'No autorizado' }),
+          { status: 403, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+    } else if (!guestSessionId) {
+      // Ni usuario autenticado ni sesión de invitado
+      return new Response(
+        JSON.stringify({ error: 'Se requiere userId o guestSessionId' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // ============================================================
     // 1. VALIDACIONES
     // ============================================================
     if (!totalAmount || !userEmail) {
@@ -94,7 +122,7 @@ export const POST: APIRoute = async (context) => {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(userEmail)) {
-      console.error('[CREATE-SESSION] Email inválido:', userEmail);
+      console.error('[CREATE-SESSION] Email inválido:');
       return new Response(
         JSON.stringify({ error: 'Email no válido' }),
         { status: 400 }
@@ -112,14 +140,14 @@ export const POST: APIRoute = async (context) => {
     // ============================================================
     // 2. CREAR PEDIDO EN BD (con estado "Pendiente_Pago")
     // ============================================================
-    console.log('[CREATE-SESSION] Creando pedido en BD...');
-
     const supabase = createClient(supabaseUrl, supabaseKey);
     const numeroOrden = generateOrderNumber();
 
-    // Calcular impuestos (21% en España)
-    const subtotal = totalAmount - descuento;
-    const impuestos = Math.round((totalAmount * 21) / 121); // Incluido en el total
+    // Calcular impuestos (sin IVA)
+    // totalAmount ya viene CON DESCUENTO APLICADO del cliente
+    // Para obtener el subtotal original: totalAmount + descuento
+    const subtotal = totalAmount + descuento;
+    const impuestos = 0; // Sin impuestos
 
     const orderData: any = {
       numero_orden: numeroOrden,
@@ -149,15 +177,12 @@ export const POST: APIRoute = async (context) => {
       .single();
 
     if (orderError || !order) {
-      console.error('[CREATE-SESSION] Error creando pedido:', orderError);
+      console.error('[CREATE-SESSION] Error creando pedido:');
       return new Response(
         JSON.stringify({ error: 'Error al crear el pedido' }),
         { status: 500 }
       );
     }
-
-    console.log(`[CREATE-SESSION] ✅ Pedido creado: ${numeroOrden} (ID: ${order.id})`);
-
     // ============================================================
     // 2.5 REGISTRAR USO DEL CUPÓN (si aplica)
     // ============================================================
@@ -174,10 +199,7 @@ export const POST: APIRoute = async (context) => {
           });
 
         if (usageError) {
-          console.warn(`[CREATE-SESSION] ⚠️ Error insertando uso cupón:`, usageError);
         } else {
-          console.log(`[CREATE-SESSION] ✅ Uso de cupón ${cuponId} registrado`);
-
           // Check if coupon should be deactivated
           const { data: couponData } = await supabase
             .from('coupons')
@@ -191,7 +213,6 @@ export const POST: APIRoute = async (context) => {
             // EXCLUSIVE coupon (assigned to specific user) → deactivate after use
             if (couponData.assigned_user_id) {
               shouldDeactivate = true;
-              console.log(`[CREATE-SESSION] Cupón exclusivo ${cuponId} → desactivando`);
             }
 
             // GLOBAL coupon with explicit total usage limit → deactivate ONLY when limit reached
@@ -205,9 +226,7 @@ export const POST: APIRoute = async (context) => {
 
               if ((count || 0) >= couponData.max_uses_global) {
                 shouldDeactivate = true;
-                console.log(`[CREATE-SESSION] Límite global alcanzado (${count}/${couponData.max_uses_global}) → desactivando`);
               } else {
-                console.log(`[CREATE-SESSION] Cupón global ${cuponId}: ${count}/${couponData.max_uses_global} usos, sigue activo`);
               }
             }
 
@@ -218,33 +237,26 @@ export const POST: APIRoute = async (context) => {
                 .eq('id', cuponId);
 
               if (deactivateError) {
-                console.warn(`[CREATE-SESSION] ⚠️ Error desactivando cupón:`, deactivateError);
               } else {
-                console.log(`[CREATE-SESSION] ✅ Cupón ${cuponId} desactivado`);
               }
             } else if (!couponData.assigned_user_id) {
-              console.log(`[CREATE-SESSION] Cupón global ${cuponId} sigue activo para otros usuarios`);
             }
           }
         }
       } catch (couponError) {
-        console.warn('[CREATE-SESSION] ⚠️ Error al canjear cupón (no bloqueante):', couponError);
       }
     }
 
     // ============================================================
     // 3. CREAR ITEMS DEL PEDIDO EN BD
     // ============================================================
-    console.log('[CREATE-SESSION] Creando items del pedido...');
-    console.log('[CREATE-SESSION] Items a insertar:', JSON.stringify(items, null, 2));
-
     let insertedItems = 0;
     const itemErrors: string[] = [];
 
     for (const item of items) {
       // Validar que el item tenga los campos requeridos
       if (!item.producto_id) {
-        console.error('[CREATE-SESSION] Item sin producto_id:', item);
+        console.error('[CREATE-SESSION] Item sin producto_id:');
         itemErrors.push(`Item sin producto_id: ${JSON.stringify(item)}`);
         continue;
       }
@@ -260,31 +272,23 @@ export const POST: APIRoute = async (context) => {
         precio_unitario: item.precio_unitario || 0,
         subtotal: (item.precio_unitario || 0) * (item.cantidad || 1),
       };
-
-      console.log(`[CREATE-SESSION] Insertando item:`, itemData);
-
       const { error: itemError } = await supabase
         .from('items_orden')
         .insert(itemData);
 
       if (itemError) {
-        console.error('[CREATE-SESSION] Error creando item:', itemError);
+        console.error('[CREATE-SESSION] Error creando item:');
         itemErrors.push(`Error en ${item.producto_id}: ${itemError.message}`);
       } else {
         insertedItems++;
       }
     }
-
-    console.log(`[CREATE-SESSION] ✅ ${insertedItems}/${items.length} items creados`);
     if (itemErrors.length > 0) {
-      console.warn('[CREATE-SESSION] Errores en items:', itemErrors);
     }
 
     // ============================================================
     // 4. CREAR SESIÓN EN STRIPE (con order_id en metadata)
     // ============================================================
-    console.log('[CREATE-SESSION] Creando sesión de Stripe...');
-
     // Preparar items de forma compacta para metadata (límite 500 chars por valor)
     const itemsSummary = items.map((i: any) => ({
       id: i.producto_id,
@@ -299,19 +303,23 @@ export const POST: APIRoute = async (context) => {
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'eur',
-            product_data: {
-              name: `Pedido ${numeroOrden}`,
-              description: `${items.length} producto(s) de FashionStore`,
-            },
-            unit_amount: totalAmount,
+      line_items: items.map((item: any) => ({
+        price_data: {
+          currency: 'eur',
+          product_data: {
+            name: item.nombre || 'Producto',
+            description: [
+              item.talla && `Talla: ${item.talla}`,
+              item.color && `Color: ${item.color}`,
+            ]
+              .filter(Boolean)
+              .join(' | ') || undefined,
+            images: item.imagen ? [item.imagen] : [],
           },
-          quantity: 1,
+          unit_amount: item.precio_unitario,
         },
-      ],
+        quantity: item.cantidad,
+      })),
       mode: 'payment',
       customer_email: userEmail,
       success_url:
@@ -337,8 +345,6 @@ export const POST: APIRoute = async (context) => {
         items: itemsMetadata,
       },
     });
-
-    console.log(`[CREATE-SESSION] ✅ Sesión Stripe creada: ${session.id}`);
     console.log(
       `[CREATE-SESSION] === LISTO PARA PAGO: ${numeroOrden} ===\n`
     );
@@ -358,19 +364,15 @@ export const POST: APIRoute = async (context) => {
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('[CREATE-SESSION] ❌ Error completo:', error);
+    console.error('[CREATE-SESSION] ❌ Error completo:');
 
     // Detectar tipo de error
     let errorMessage = 'Error al crear la sesión de pago';
-    let errorDetails = 'Unknown error';
 
     if (error instanceof Error) {
-      errorDetails = error.message;
-
       // Errores específicos de Stripe
       if (error.message.includes('Invalid API Key')) {
         errorMessage = 'Error de configuración de Stripe';
-        errorDetails = 'La clave de API de Stripe es inválida';
       } else if (error.message.includes('No such')) {
         errorMessage = 'Error de Stripe';
       }
@@ -379,7 +381,6 @@ export const POST: APIRoute = async (context) => {
     return new Response(
       JSON.stringify({
         error: errorMessage,
-        details: errorDetails,
       }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );

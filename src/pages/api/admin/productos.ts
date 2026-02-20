@@ -1,5 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
+import { requireAdmin } from '@/lib/admin-guard';
+import { randomInt } from 'node:crypto';
 
 // Cliente estático para lecturas públicas (GET)
 const supabasePublic = createClient(
@@ -16,7 +18,10 @@ const supabaseAdmin = createClient(
   import.meta.env.SUPABASE_SERVICE_ROLE_KEY || ''
 );
 
-export const GET: APIRoute = async (_context) => {
+export const GET: APIRoute = async ({ request }) => {
+  const denied = requireAdmin(request);
+  if (denied) return denied;
+
   try {
     const { data, error } = await supabasePublic
       .from('productos')
@@ -30,28 +35,24 @@ export const GET: APIRoute = async (_context) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Error fetching products:', error);
+    console.error('Error fetching products');
     return new Response(
-      JSON.stringify({ error: 'Failed to fetch products', details: (error as any).message }),
+      JSON.stringify({ error: 'Error interno del servidor' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 };
 
 export const POST: APIRoute = async (context) => {
+  const denied = requireAdmin(context.request);
+  if (denied) return denied;
+
   try {
     const body = await context.request.json();
     const { action, data, id } = body;
 
-    // NOTA: Eliminamos la verificación manual del JWT.
-    // Confiamos en que la ruta está protegida por la lógica de negocio 
-    // y usamos supabaseAdmin (Service Role) para las escrituras.
-
-    console.log(`[API] Acción: ${action}, ID: ${id || 'N/A'} (Usando Service Role)`);
-
     // Crear producto
     if (action === 'create') {
-      console.log('[API] Creando producto:', data.nombre);
       // Asegurar que NO insertamos stock_total (trigger lo maneja)
       // Extraer variantes para insertarlas después
       // Extraer imagen_url para no violar el esquema (si se envía por error)
@@ -71,8 +72,6 @@ export const POST: APIRoute = async (context) => {
 
       // Insertar variantes si existen
       if (variants && Array.isArray(variants) && variants.length > 0) {
-        console.log(`[API] Insertando ${variants.length} variantes para el nuevo producto ${newProduct.id}`);
-
         const variantsToInsert = variants.map((v: any) => ({
           producto_id: newProduct.id,
           talla: v.talla,
@@ -81,7 +80,7 @@ export const POST: APIRoute = async (context) => {
           // Generar nombre_variante automáticamente
           nombre_variante: v.color ? `${v.capacidad || v.talla} - ${v.color}` : (v.capacidad || v.talla),
           // Generar SKU único si no existe
-          sku_variante: `VAR-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          sku_variante: `VAR-${Date.now()}-${randomInt(1000)}`,
           stock: v.stock,
           imagen_url: v.imagen_url,
           precio_adicional: v.precio || 0,  // ✅ Store as delta
@@ -106,7 +105,6 @@ export const POST: APIRoute = async (context) => {
             .single();
 
           if (!fetchError && updatedProduct) {
-            console.log('[API] Producto recuperado con stock actualizado:', updatedProduct.stock_total);
             return new Response(JSON.stringify({ success: true, data: updatedProduct }), {
               status: 201,
               headers: { 'Content-Type': 'application/json' },
@@ -123,8 +121,6 @@ export const POST: APIRoute = async (context) => {
 
     // Actualizar producto
     if (action === 'update') {
-      console.log('[API] Actualizando producto:', id);
-
       // Extraer variantes, stock_total, y variantsToDelete del payload 
       // para no intentar guardarlas en tabla productos
       const { variants, stock_total, imagen_url, variantsToDelete, ...productData } = data;
@@ -143,14 +139,11 @@ export const POST: APIRoute = async (context) => {
 
       // 2. Actualizar variantes si existen
       if (variants && Array.isArray(variants)) {
-        console.log(`[API] Procesando ${variants.length} variantes para producto ${id}`);
-
         // 🛡️ PRESERVATION GUARANTEE: We NO LONGER auto-delete variants!
         // Variants are only deleted via explicit user action (variantsToDelete array)
 
         // 2a. Handle explicit deletions ONLY (if provided)
         if (variantsToDelete && Array.isArray(variantsToDelete) && variantsToDelete.length > 0) {
-          console.log(`[API] Borrando ${variantsToDelete.length} variantes por solicitud explícita del usuario`);
           const { error: deleteError } = await supabaseAdmin
             .from('variantes_producto')
             .delete()
@@ -166,7 +159,6 @@ export const POST: APIRoute = async (context) => {
         for (const v of variants) {
           // Si tiene ID, actualizamos stock (y otros campos si fuera necesario)
           if (v.id) {
-            console.log(`[API] Actualizando variante ${v.id} con stock ${v.stock}`);
             const { error: vError } = await supabaseAdmin
               .from('variantes_producto')
               .update({
@@ -188,7 +180,6 @@ export const POST: APIRoute = async (context) => {
           }
           // Si NO tiene ID, es una nueva variante añadida en edición
           else {
-            console.log(`[API] Insertando nueva variante para producto ${id}`);
             const { error: vError } = await supabaseAdmin
               .from('variantes_producto')
               .insert({
@@ -197,7 +188,7 @@ export const POST: APIRoute = async (context) => {
                 capacidad: v.capacidad,
                 color: v.color,
                 nombre_variante: v.color ? `${v.capacidad || v.talla} - ${v.color}` : (v.capacidad || v.talla),
-                sku_variante: `VAR-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                sku_variante: `VAR-${Date.now()}-${randomInt(1000)}`,
                 stock: v.stock,
                 imagen_url: v.imagen_url,
                 precio_adicional: v.precio || 0,  // ✅ Store as delta
@@ -212,7 +203,6 @@ export const POST: APIRoute = async (context) => {
           }
         }
       } else {
-        console.log('[API] No se recibieron variantes para actualizar');
       }
 
 
@@ -224,7 +214,6 @@ export const POST: APIRoute = async (context) => {
 
     // Eliminar producto
     if (action === 'delete') {
-      console.log('[API] Eliminando producto:', id);
       const { error } = await supabaseAdmin
         .from('productos')
         .delete()
@@ -268,14 +257,12 @@ export const POST: APIRoute = async (context) => {
             .eq('producto_id', productId);
 
           if (updateError) throw updateError;
-          console.log('[API] Imagen actualizada para producto:', productId);
         } else {
           const { error: insertError } = await supabaseAdmin
             .from('imagenes_producto')
             .insert({ producto_id: productId, url });
 
           if (insertError) throw insertError;
-          console.log('[API] Imagen creada para producto:', productId);
         }
 
         return new Response(JSON.stringify({ success: true }), {
@@ -283,9 +270,9 @@ export const POST: APIRoute = async (context) => {
           headers: { 'Content-Type': 'application/json' },
         });
       } catch (error) {
-        console.error('[API] Error saving image:', error);
+        console.error('[API] Error saving image');
         return new Response(
-          JSON.stringify({ error: (error as any).message }),
+          JSON.stringify({ error: 'Error interno del servidor' }),
           { status: 500, headers: { 'Content-Type': 'application/json' } }
         );
       }
@@ -296,9 +283,9 @@ export const POST: APIRoute = async (context) => {
       { status: 400, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('[API] Error in admin products endpoint:', error);
+    console.error('[API] Error in admin products endpoint');
     return new Response(
-      JSON.stringify({ error: (error as any).message || 'Internal error' }),
+      JSON.stringify({ error: 'Error interno del servidor' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }

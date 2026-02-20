@@ -6,8 +6,12 @@
 
 import type { APIRoute } from 'astro';
 import { supabase } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/admin-guard';
 
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ request }) => {
+  const denied = requireAdmin(request);
+  if (denied) return denied;
+
   try {
     const { data: users, error } = await supabase
       .from('usuarios')

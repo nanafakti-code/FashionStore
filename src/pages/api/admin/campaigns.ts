@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import { sendEmail } from '@/lib/emailService';
+import { requireAdmin } from '@/lib/admin-guard';
 
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
 const supabaseKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY || import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
@@ -83,7 +84,10 @@ function wrapNewsletterHtml(content: string, unsubscribeUrl: string): string {
 // ═══════════════════════════════════════════════════════════════════════════════
 // GET — Listar campañas + suscriptores + estadísticas
 // ═══════════════════════════════════════════════════════════════════════════════
-export const GET: APIRoute = async ({ url }) => {
+export const GET: APIRoute = async ({ url, request }) => {
+  const denied = requireAdmin(request);
+  if (denied) return denied;
+
   try {
     const supabase = getSupabase();
     const type = url.searchParams.get('type') || 'campaigns';
@@ -152,7 +156,7 @@ export const GET: APIRoute = async ({ url }) => {
 
   } catch (error: any) {
     console.error('[CAMPAIGNS API] GET Error:', error);
-    return new Response(JSON.stringify({ error: error.message || 'Error interno' }), { status: 500, headers: JSON_HEADERS });
+    return new Response(JSON.stringify({ error: 'Error interno del servidor' }), { status: 500, headers: JSON_HEADERS });
   }
 };
 
@@ -160,6 +164,9 @@ export const GET: APIRoute = async ({ url }) => {
 // POST — Crear, actualizar, eliminar, enviar campañas
 // ═══════════════════════════════════════════════════════════════════════════════
 export const POST: APIRoute = async ({ request }) => {
+  const denied = requireAdmin(request);
+  if (denied) return denied;
+
   try {
     const supabase = getSupabase();
     const body = await request.json();
@@ -378,6 +385,6 @@ export const POST: APIRoute = async ({ request }) => {
 
   } catch (error: any) {
     console.error('[CAMPAIGNS API] POST Error:', error);
-    return new Response(JSON.stringify({ error: error.message || 'Error interno' }), { status: 500, headers: JSON_HEADERS });
+    return new Response(JSON.stringify({ error: 'Error interno del servidor' }), { status: 500, headers: JSON_HEADERS });
   }
 };

@@ -22,7 +22,7 @@ interface Props {
 
 const {
     slug,
-    id = slug,
+    id: _id = slug,
     name,
     price,
     originalPrice,
@@ -32,7 +32,7 @@ const {
     rating = 4.5,
     reviews = 0,
     badge_color = "bg-amber-400",
-    stock = 0,
+    stock: _stock = 0,
 } = Astro.props;
 
 // Calcular el descuento
