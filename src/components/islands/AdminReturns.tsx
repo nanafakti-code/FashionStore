@@ -88,21 +88,26 @@ const AdminReturns = () => {
 
   const updateStatus = async (id: string, newStatus: string) => {
     try {
-      const updateData: any = { estado: newStatus };
-      if (newStatus === 'aprobada') {
-        updateData.fecha_aprobacion = new Date().toISOString();
-      } else if (newStatus === 'recibida') {
-        updateData.fecha_recepcion = new Date().toISOString();
-      } else if (newStatus === 'reembolsada') {
-        updateData.fecha_reembolso = new Date().toISOString();
+      const response = await fetch('/api/admin/returns', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'update-status',
+          id,
+          estado: newStatus
+        })
+      });
+
+      if (!response.ok) throw new Error('Error updating return status');
+
+      const result = await response.json();
+      if (result.success) {
+        console.log('✓ Estado de devolución actualizado y notificación enviada');
+        loadReturns();
       }
-      await supabase
-        .from('devoluciones')
-        .update(updateData)
-        .eq('id', id);
-      loadReturns();
     } catch (error) {
       console.error('Error updating return:', error);
+      alert('Error al actualizar el estado de la devolución');
     }
   };
 

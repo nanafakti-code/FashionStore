@@ -721,7 +721,8 @@ export async function sendOrderStatusUpdateEmail(
   nombre: string,
   numero_orden: string,
   nuevo_estado: string,
-  tracking?: string
+  tracking?: string,
+  orderData?: OrderData
 ): Promise<boolean> {
   const statusMessages: Record<string, { title: string; message: string; color: string }> = {
     Pendiente: { title: 'Pedido Pendiente 🕒', message: 'Tu pedido está pendiente de procesamiento.', color: '#f59e0b' },
@@ -731,6 +732,7 @@ export async function sendOrderStatusUpdateEmail(
     Entregado: { title: 'Pedido Entregado 📦', message: 'Tu pedido ha sido entregado correctamente.', color: '#16a34a' },
     Completado: { title: 'Pedido Completado 🌟', message: 'Tu pedido ha sido marcado como completado.', color: '#059669' },
     Cancelado: { title: 'Pedido Cancelado ❌', message: 'Tu pedido ha sido cancelado.', color: '#dc2626' },
+    Reembolsada: { title: 'Pedido Reembolsado ↩️', message: 'Tu pedido ha sido devuelto y el reembolso procesado.', color: '#6b7280' },
   };
 
   const status = statusMessages[nuevo_estado] || {
@@ -738,6 +740,47 @@ export async function sendOrderStatusUpdateEmail(
     message: `El estado de tu pedido ha cambiado a: ${nuevo_estado}.`,
     color: '#6b7280'
   };
+
+  let attachments = [];
+  if (nuevo_estado === 'Reembolsada' && orderData) {
+    try {
+      const pdfBuffer = await generateInvoicePDF({
+        numero_orden: orderData.numero_orden,
+        fecha: new Date().toISOString(),
+        nombre_cliente: orderData.nombre,
+        email_cliente: orderData.email,
+        telefono_cliente: orderData.telefono,
+        direccion: orderData.direccion ? {
+          calle: orderData.direccion.calle,
+          ciudad: orderData.direccion.ciudad,
+          codigo_postal: orderData.direccion.codigo_postal,
+          pais: orderData.direccion.pais,
+        } : undefined,
+        items: orderData.items.map(item => ({
+          nombre: item.nombre,
+          cantidad: item.cantidad,
+          precio_unitario: item.precio_unitario,
+          precio_original: item.precio_original,
+          talla: item.talla,
+          color: item.color,
+        })),
+        subtotal: orderData.subtotal,
+        descuento: orderData.descuento,
+        impuestos: orderData.impuestos,
+        total: orderData.total,
+        isReturn: true
+      });
+
+      attachments.push({
+        filename: `Factura-Abono-${orderData.numero_orden}.pdf`,
+        content: pdfBuffer,
+        contentType: 'application/pdf',
+      });
+    } catch (pdfError) {
+      console.error('[EMAIL] Error generating return invoice PDF:', pdfError);
+    }
+  }
+
   const trackingHTML = (tracking && (nuevo_estado === 'Enviado' || nuevo_estado === 'Completado')) ?
     `<div style="background-color: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 15px; border-radius: 8px; margin: 20px 0;">
        <strong>Tracking:</strong> ${tracking}
@@ -776,7 +819,7 @@ export async function sendOrderStatusUpdateEmail(
     </body>
   </html>`;
 
-  return await sendEmail({ to: email, subject: status.title, html });
+  return await sendEmail({ to: email, subject: status.title, html, attachments });
 }
 
 // =============================================================================

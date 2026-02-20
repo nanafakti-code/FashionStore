@@ -71,11 +71,28 @@ export const POST: APIRoute = async ({ request }) => {
             try {
                 const { sendOrderStatusUpdateEmail } = await import('@/lib/emailService');
                 if (data && data.email_cliente && data.nombre_cliente && data.numero_orden) {
+                    // Map order data for the email service
+                    const orderDataForEmail = {
+                        numero_orden: data.numero_orden,
+                        email: data.email_cliente,
+                        nombre: data.nombre_cliente,
+                        telefono: data.telefono_cliente,
+                        direccion: data.direccion_envio,
+                        items: data.items || [],
+                        subtotal: data.subtotal || 0,
+                        impuestos: data.impuestos || 0,
+                        envio: data.envio || 0,
+                        descuento: data.descuento || 0,
+                        total: data.total || 0
+                    };
+
                     await sendOrderStatusUpdateEmail(
                         data.email_cliente,
                         data.nombre_cliente,
                         data.numero_orden,
-                        estado
+                        estado,
+                        undefined,
+                        orderDataForEmail
                     );
                     console.log(`[API] Email de actualización enviado para: ${data.numero_orden} -> ${estado}`);
                 }

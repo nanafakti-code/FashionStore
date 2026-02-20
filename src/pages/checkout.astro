@@ -145,12 +145,13 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2"
-                      >Piso / Puerta</label
+                      >Piso / Puerta *</label
                     >
                     <input
                       type="text"
                       id="input-piso"
                       placeholder="Ej: 2º A"
+                      required
                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent"
                     />
                   </div>
@@ -199,18 +200,13 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
                   <label class="block text-sm font-medium text-gray-700 mb-2"
                     >País *</label
                   >
-                  <select
+                  <input
+                    type="text"
                     id="input-pais"
+                    placeholder="Tu país"
                     required
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aa45] focus:border-transparent"
-                  >
-                    <option value="">Selecciona un país</option>
-                    <option value="España">España</option>
-                    <option value="Francia">Francia</option>
-                    <option value="Italia">Italia</option>
-                    <option value="Portugal">Portugal</option>
-                    <option value="Alemania">Alemania</option>
-                  </select>
+                  />
                 </div>
               </div>
 
@@ -220,10 +216,12 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
                   <input type="checkbox" required class="mt-1" />
                   <span class="text-sm text-gray-600">
                     Acepto los <a
-                      href="#"
+                      href="/terminos"
                       class="text-[#00aa45] hover:underline"
                       >términos y condiciones</a
-                    > y la <a href="#" class="text-[#00aa45] hover:underline"
+                    > y la <a
+                      href="/privacidad"
+                      class="text-[#00aa45] hover:underline"
                       >política de privacidad</a
                     >
                   </span>
@@ -258,27 +256,51 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
               </div>
 
               <!-- Descuento row (hidden, se muestra dinámicamente) -->
-              <div id="discount-row" class="hidden flex justify-between text-green-600 text-sm mb-3">
+              <div
+                id="discount-row"
+                class="hidden flex justify-between text-green-600 text-sm mb-3"
+              >
                 <span id="discount-label">Descuento:</span>
                 <span id="discount-value">-0.00€</span>
               </div>
 
               <!-- Cupón -->
-              <div id="coupon-section" class="mb-4 border-t border-gray-200 pt-4">
-                <label class="text-sm font-semibold text-gray-700 mb-2 block">¿Tienes un cupón de descuento?</label>
+              <div
+                id="coupon-section"
+                class="mb-4 border-t border-gray-200 pt-4"
+              >
+                <label class="text-sm font-semibold text-gray-700 mb-2 block"
+                  >¿Tienes un cupón de descuento?</label
+                >
                 <div id="coupon-input-area" class="flex gap-2">
-                  <input type="text" id="coupon-input" placeholder="Código de cupón"
-                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm uppercase focus:outline-none focus:border-[#00aa45] focus:ring-1 focus:ring-[#00aa45]" />
-                  <button type="button" id="apply-coupon-btn"
-                    class="bg-[#00aa45] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-700 transition whitespace-nowrap">
+                  <input
+                    type="text"
+                    id="coupon-input"
+                    placeholder="Código de cupón"
+                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm uppercase focus:outline-none focus:border-[#00aa45] focus:ring-1 focus:ring-[#00aa45]"
+                  />
+                  <button
+                    type="button"
+                    id="apply-coupon-btn"
+                    class="bg-[#00aa45] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-700 transition whitespace-nowrap"
+                  >
                     Aplicar
                   </button>
                 </div>
                 <div id="coupon-message" class="mt-2 text-sm hidden"></div>
                 <div id="coupon-applied" class="mt-2 hidden">
-                  <div class="flex justify-between items-center bg-green-50 p-2 rounded-lg border border-green-200">
-                    <span class="text-green-700 text-sm font-semibold" id="coupon-applied-text"></span>
-                    <button type="button" id="remove-coupon-btn" class="text-red-500 text-xs font-bold hover:text-red-700 transition">✕ Quitar</button>
+                  <div
+                    class="flex justify-between items-center bg-green-50 p-2 rounded-lg border border-green-200"
+                  >
+                    <span
+                      class="text-green-700 text-sm font-semibold"
+                      id="coupon-applied-text"></span>
+                    <button
+                      type="button"
+                      id="remove-coupon-btn"
+                      class="text-red-500 text-xs font-bold hover:text-red-700 transition"
+                      >✕ Quitar</button
+                    >
                   </div>
                 </div>
               </div>
@@ -583,9 +605,10 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
       if (appliedDiv) appliedDiv.classList.remove("hidden");
       if (msgDiv) msgDiv.classList.add("hidden");
       if (appliedText) {
-        const label = appliedCoupon.discount_type === "PERCENTAGE"
-          ? `${appliedCoupon.value}% OFF`
-          : `${appliedCoupon.value}€ OFF`;
+        const label =
+          appliedCoupon.discount_type === "PERCENTAGE"
+            ? `${appliedCoupon.value}% OFF`
+            : `${appliedCoupon.value}€ OFF`;
         appliedText.textContent = `✓ Cupón ${appliedCoupon.code} aplicado (${label})`;
       }
     }
@@ -703,7 +726,10 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
         } else if (appliedCoupon.discount_type === "PERCENTAGE") {
           discountAmount = Math.round((subtotal * appliedCoupon.value) / 100);
         } else {
-          discountAmount = Math.min(Math.round(appliedCoupon.value * 100), subtotal);
+          discountAmount = Math.min(
+            Math.round(appliedCoupon.value * 100),
+            subtotal,
+          );
         }
       }
       currentDiscountCents = discountAmount;
@@ -725,8 +751,10 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
 
       if (discountRow && discountAmount > 0) {
         discountRow.classList.remove("hidden");
-        if (discountLabel) discountLabel.textContent = `Descuento (${appliedCoupon?.code || ''}):`; 
-        if (discountValue) discountValue.textContent = `-${discountEuros.toFixed(2)}€`;
+        if (discountLabel)
+          discountLabel.textContent = `Descuento (${appliedCoupon?.code || ""}):`;
+        if (discountValue)
+          discountValue.textContent = `-${discountEuros.toFixed(2)}€`;
       } else if (discountRow) {
         discountRow.classList.add("hidden");
       }
@@ -818,10 +846,14 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
       const removeCouponBtn = document.getElementById("remove-coupon-btn");
       const couponInput = document.getElementById("coupon-input");
       if (applyCouponBtn) applyCouponBtn.addEventListener("click", applyCoupon);
-      if (removeCouponBtn) removeCouponBtn.addEventListener("click", removeCoupon);
+      if (removeCouponBtn)
+        removeCouponBtn.addEventListener("click", removeCoupon);
       if (couponInput) {
         couponInput.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") { e.preventDefault(); applyCoupon(); }
+          if (e.key === "Enter") {
+            e.preventDefault();
+            applyCoupon();
+          }
         });
       }
 
@@ -926,14 +958,18 @@ import CheckoutAddressSelector from "@/components/islands/CheckoutAddressSelecto
               const qty = item.quantity || 1;
               paySubtotal += price * qty;
             }
-            const payAfterDiscount = Math.max(0, paySubtotal - currentDiscountCents);
+            const payAfterDiscount = Math.max(
+              0,
+              paySubtotal - currentDiscountCents,
+            );
             const payTax = 0;
             const totalCents = payAfterDiscount;
             const isGuest = !currentSession;
 
             const headers = { "Content-Type": "application/json" };
             if (currentSession?.access_token) {
-              headers["Authorization"] = `Bearer ${currentSession.access_token}`;
+              headers["Authorization"] =
+                `Bearer ${currentSession.access_token}`;
             }
 
             const response = await fetch("/api/stripe/create-session", {

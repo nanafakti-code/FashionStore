@@ -175,7 +175,8 @@ export default function MiCuentaClientV2() {
           table: 'devoluciones',
         },
         () => {
-          fetchDevoluciones(userData.id);
+          const ids = orders.map(o => o.id);
+          if (ids.length > 0) fetchDevoluciones(ids);
         }
       )
       .subscribe();
@@ -313,18 +314,22 @@ export default function MiCuentaClientV2() {
       }
 
       // Cargar también el estado real de las devoluciones
-      await fetchDevoluciones(userId);
+      if (ordersData && ordersData.length > 0) {
+        await fetchDevoluciones(ordersData.map((o: any) => o.id));
+      }
     } catch (error) {
       console.error("Error in fetchOrders:", error);
     }
   };
 
-  const fetchDevoluciones = async (userId: string) => {
-    // Obtener los IDs de las órdenes del usuario que tienen devolución solicitada
+  const fetchDevoluciones = async (orderIds: string[]) => {
+    if (orderIds.length === 0) return;
+
+    // Obtener los estados de las devoluciones para estos pedidos
     const { data: devData } = await supabase
       .from('devoluciones')
       .select('orden_id, estado')
-      .eq('usuario_id', userId);
+      .in('orden_id', orderIds);
 
     if (devData) {
       const map: Record<string, string> = {};
@@ -819,6 +824,7 @@ export default function MiCuentaClientV2() {
       Cancelado: "bg-red-100 text-red-700",
       Devuelto: "bg-gray-100 text-gray-700",
       Devolucion_Solicitada: "bg-orange-100 text-orange-700",
+      "En Proceso": "bg-blue-100 text-blue-700",
       // Estados del admin en tabla devoluciones
       pendiente: "bg-yellow-100 text-yellow-700",
       aprobada: "bg-blue-100 text-blue-700",
@@ -840,18 +846,19 @@ export default function MiCuentaClientV2() {
       Cancelado: "Cancelado",
       Devuelto: "Devuelto",
       Devolucion_Solicitada: "Devolucion solicitada",
+      "En Proceso": "En proceso",
       // Estados del admin en tabla devoluciones
       pendiente: "Pendiente de revisión",
       aprobada: "Aprobada",
       recibida: "Recibida",
-      reembolsada: "Reembolsada ✅",
+      reembolsada: "Reembolsada",
       rechazada: "Rechazada",
     };
     return labels[estado] || estado;
   };
 
   const canRequestReturn = (order: Order) => {
-    const validStates = ["Pagado", "Enviado", "Entregado"];
+    const validStates = ["Completado"];
     if (!validStates.includes(order.estado)) return false;
 
     const orderDate = new Date(order.fecha_entrega || order.fecha_pago);
@@ -1360,11 +1367,14 @@ export default function MiCuentaClientV2() {
                   </p>
                 </div>
                 <span
-                  className={`px-4 py-2 rounded-full text-sm font-bold ${getStatusColor(
-                    selectedOrder.estado
-                  )}`}
+                  className={`px-4 py-2 rounded-full text-sm font-bold ${activeSection === 'devoluciones'
+                    ? getStatusColor(devolucionesMap[selectedOrder.id] || selectedOrder.estado)
+                    : getStatusColor(selectedOrder.estado)
+                    }`}
                 >
-                  {getStatusLabel(selectedOrder.estado)}
+                  {activeSection === 'devoluciones'
+                    ? getStatusLabel(devolucionesMap[selectedOrder.id] || selectedOrder.estado)
+                    : getStatusLabel(selectedOrder.estado)}
                 </span>
               </div>
             </div>
@@ -1372,46 +1382,70 @@ export default function MiCuentaClientV2() {
             {/* Contenido */}
             <div className="p-6">
               {/* Timeline de estados */}
-              <div className="mb-8">
-                <h3 className="font-bold text-gray-900 mb-4">Estado del pedido</h3>
-                <div className="flex items-center gap-2 overflow-x-auto pb-2">
-                  {["Pagado", "Enviado", "Entregado"].map((estado, idx) => {
-                    const statusOrder = ["Pagado", "Enviado", "Entregado"];
-                    const currentStatus = selectedOrder.estado === "Completado" ? "Entregado" : selectedOrder.estado;
-                    const isActive = statusOrder.indexOf(currentStatus) >= idx;
-                    return (
-                      <div key={estado} className="flex items-center">
-                        <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center ${isActive
-                            ? "bg-[#00aa45] text-white"
-                            : "bg-gray-200 text-gray-500"
-                            }`}
-                        >
-                          {isActive ? (
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
-                            </svg>
-                          ) : (
-                            <span className="text-xs font-bold">{idx + 1}</span>
-                          )}
-                        </div>
-                        <span
-                          className={`ml-2 text-sm font-medium ${isActive ? "text-gray-900" : "text-gray-500"
-                            }`}
-                        >
-                          {estado}
-                        </span>
-                        {idx < 2 && (
-                          <div
-                            className={`w-12 h-0.5 mx-2 ${isActive ? "bg-[#00aa45]" : "bg-gray-200"
-                              }`}
-                          ></div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+              {((activeSection === 'devoluciones' && devolucionesMap[selectedOrder.id]?.toLowerCase() !== 'rechazada') ||
+                (activeSection === 'pedidos' && selectedOrder.estado !== 'Cancelado')) && (
+                  <div className="mb-8">
+                    <h3 className="font-bold text-gray-900 mb-4">
+                      {activeSection === 'devoluciones' ? 'Estado de la devolución' : 'Estado del pedido'}
+                    </h3>
+                    <div className="flex items-center gap-2 overflow-x-auto pb-4 scrollbar-hide">
+                      {(activeSection === 'devoluciones'
+                        ? ["pendiente", "aprobada", "recibida", "reembolsada"]
+                        : ["Pagado", "Enviado", "Entregado"]
+                      ).map((estado, idx, array) => {
+                        const returnStatusOrder = ["pendiente", "aprobada", "recibida", "reembolsada"];
+                        const orderStatusOrder = ["Pagado", "Enviado", "Entregado"];
+
+                        let isActive = false;
+                        let isRechazada = activeSection === 'devoluciones' && devolucionesMap[selectedOrder.id]?.toLowerCase() === 'rechazada';
+
+                        if (activeSection === 'devoluciones') {
+                          const currentStatus = devolucionesMap[selectedOrder.id]?.toLowerCase() || "pendiente";
+                          isActive = returnStatusOrder.indexOf(currentStatus) >= idx;
+                        } else {
+                          const statusMapping: Record<string, string> = {
+                            "Completado": "Entregado",
+                            "En Proceso": "Pagado",
+                            "Confirmado": "Pagado"
+                          };
+                          const currentStatus = statusMapping[selectedOrder.estado] || selectedOrder.estado;
+                          isActive = orderStatusOrder.indexOf(currentStatus) >= idx;
+                        }
+
+                        return (
+                          <div key={estado} className="flex items-center flex-shrink-0">
+                            <div className="flex flex-col items-center">
+                              <div
+                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-300 ${isRechazada && idx === 0
+                                  ? "bg-red-500 text-white"
+                                  : isActive
+                                    ? "bg-[#00aa45] text-white"
+                                    : "bg-gray-200 text-gray-500"
+                                  }`}
+                              >
+                                <span className="text-xs font-bold">{idx + 1}</span>
+                              </div>
+                              <span
+                                className={`mt-2 text-[10px] font-bold uppercase tracking-wider ${isRechazada && idx === 0 ? "text-red-600" : isActive ? "text-gray-900" : "text-gray-400"
+                                  }`}
+                              >
+                                {activeSection === 'devoluciones' && isRechazada && idx === 0 ? "Rechazada" : getStatusLabel(estado)}
+                              </span>
+                            </div>
+                            {idx < array.length - 1 && (
+                              <div className="flex flex-col items-center px-2 pb-5">
+                                <div
+                                  className={`w-12 h-0.5 ${isActive ? "bg-[#00aa45]" : "bg-gray-200"
+                                    }`}
+                                ></div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
               {/* Productos */}
               <div className="mb-8">
@@ -1477,7 +1511,7 @@ export default function MiCuentaClientV2() {
 
               {/* Botón de devolución */}
               {/* Botón de devolución */}
-              {selectedOrder.estado === 'Devolucion_Solicitada' ? (
+              {selectedOrder.estado === 'Devolucion_Solicitada' && devolucionesMap[selectedOrder.id]?.toLowerCase() === 'pendiente' ? (
                 <button
                   disabled
                   className="w-full bg-orange-100 text-orange-700 py-3 rounded-xl font-bold cursor-not-allowed flex items-center justify-center gap-2 opacity-100"

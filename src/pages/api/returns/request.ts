@@ -81,7 +81,7 @@ export const POST: APIRoute = async (context) => {
     // ============================================================
     // 3. VALIDAR ESTADO DEL PEDIDO
     // ============================================================
-    const validStates = ['Pagado', 'Enviado', 'Entregado'];
+    const validStates = ['Completado'];
     if (!validStates.includes(order.estado)) {
       console.log(`[RETURNS] Estado inválido: ${order.estado}`);
       return new Response(
@@ -128,6 +128,7 @@ export const POST: APIRoute = async (context) => {
         .from('devoluciones')
         .insert({
           orden_id: order.id,
+          usuario_id: order.usuario_id, // Store for easier tracking
           numero_devolucion: returnNumber,
           motivo: reason || 'No especificado',
           estado: 'Pendiente',

@@ -37,6 +37,7 @@ interface InvoiceData {
   impuestos: number;  // cents
   envio?: number;     // cents
   total: number;      // cents
+  isReturn?: boolean; // Flag to indicate if it's a return invoice (Abono)
 }
 
 // ── Company constants (mismos que BillingSettings) ──
@@ -76,7 +77,7 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
   doc.setTextColor(255);
   doc.setFontSize(22);
   doc.setFont('helvetica', 'bold');
-  doc.text('FACTURA', 15, 18);
+  doc.text(data.isReturn ? 'FACTURA DE ABONO' : 'FACTURA', 15, 18);
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
@@ -133,10 +134,10 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
   // Payment info
   doc.setFontSize(10);
   doc.setTextColor(30);
-  doc.text('Estado: Pagado', w / 2 + 10, yInfo + 7);
+  doc.text(data.isReturn ? 'Estado: Reembolsado' : 'Estado: Pagado', w / 2 + 10, yInfo + 7);
   doc.setTextColor(80);
   doc.setFontSize(9);
-  doc.text(`Fecha pago: ${fmtDateFull(data.fecha)}`, w / 2 + 10, yInfo + 13);
+  doc.text(`${data.isReturn ? 'Fecha abono' : 'Fecha pago'}: ${fmtDateFull(data.fecha)}`, w / 2 + 10, yInfo + 13);
 
   // ═══════════════════════════════════════════════
   // TABLA DE ITEMS
@@ -182,7 +183,7 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
   const printRow = (label: string, value: string, bold = false) => {
     doc.setFont('helvetica', bold ? 'bold' : 'normal');
     if (bold) { doc.setTextColor(30); doc.setFontSize(11); }
-    else      { doc.setTextColor(80); doc.setFontSize(9);  }
+    else { doc.setTextColor(80); doc.setFontSize(9); }
     doc.text(label, totX, tY);
     doc.text(value, w - 15, tY, { align: 'right' });
     tY += bold ? 8 : 6;
