@@ -255,8 +255,8 @@ export default function MiCuentaClientV2() {
 
       setUserData(data as UserData);
 
-      // Load orders
-      await fetchOrders(user.id);
+      // Load orders (passing email to associate guest orders)
+      await fetchOrders(user.id, user.email || "");
 
       // Load addresses from direcciones table
 
@@ -279,21 +279,44 @@ export default function MiCuentaClientV2() {
     }
   };
 
-  const fetchOrders = async (userId: string) => {
-    const { data: ordersData, error: ordersError } = await supabase
-      .from("ordenes")
-      .select("*")
-      .eq("usuario_id", userId)
-      .order("fecha_creacion", { ascending: false });
+  const fetchOrders = async (userId: string, userEmail?: string) => {
+    try {
+      // 1. Vincular pedidos de invitado si existe el correo
+      if (userEmail) {
+        const { error: linkError } = await supabase
+          .from("ordenes")
+          .update({ usuario_id: userId })
+          .eq("email_cliente", userEmail)
+          .is("usuario_id", null);
 
-    if (ordersError) {
-      console.error("Error loading orders:", ordersError);
-    } else {
-      setOrders((ordersData as Order[]) || []);
+        if (linkError) {
+          console.error("Error vinculando pedidos de invitado:", linkError);
+        }
+      }
+
+      // 2. Obtener todos los pedidos (del ID o del correo si no están vinculados aún)
+      let query = supabase.from("ordenes").select("*");
+
+      if (userEmail) {
+        query = query.or(`usuario_id.eq.${userId},email_cliente.eq.${userEmail}`);
+      } else {
+        query = query.eq("usuario_id", userId);
+      }
+
+      const { data: ordersData, error: ordersError } = await query
+        .order("fecha_creacion", { ascending: false });
+
+      if (ordersError) {
+        console.error("Error loading orders:", ordersError);
+      } else {
+        setOrders((ordersData as Order[]) || []);
+      }
+
+      // Cargar también el estado real de las devoluciones
+      await fetchDevoluciones(userId);
+    } catch (error) {
+      console.error("Error in fetchOrders:", error);
     }
-
-    // Cargar también el estado real de las devoluciones
-    await fetchDevoluciones(userId);
   };
 
   const fetchDevoluciones = async (userId: string) => {
@@ -1281,8 +1304,8 @@ export default function MiCuentaClientV2() {
                         </div>
                         <span
                           className={`px-3 py-1.5 rounded-full text-xs font-bold ${activeSection === 'devoluciones'
-                              ? getStatusColor(devolucionesMap[order.id] || order.estado)
-                              : getStatusColor(order.estado)
+                            ? getStatusColor(devolucionesMap[order.id] || order.estado)
+                            : getStatusColor(order.estado)
                             }`}
                         >
                           {activeSection === 'devoluciones'
