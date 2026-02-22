@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+
 import {
     TrendingUp,
     Clock,
@@ -11,7 +11,7 @@ import {
 interface KPICardProps {
     title: string;
     value: string | number;
-    icon: ReactNode;
+    icon: any;
     color: string;
     description?: string;
 }

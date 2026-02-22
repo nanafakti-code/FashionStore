@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import AdminCategories from './AdminCategories';
 import AdminBrands from './AdminBrands';
@@ -16,7 +15,6 @@ import KPICards from '../admin/KPICards';
 import SalesChart from '../admin/SalesChart';
 import {
   BarChart3,
-  Package,
   ShoppingCart,
   Users as UsersIcon,
   ArrowRight,
@@ -77,11 +75,11 @@ export default function AdminDashboard({ initialSection = 'dashboard' }: AdminDa
   const [loading, setLoading] = useState(true);
   const [productos, setProductos] = useState<Product[]>([]);
   const [pedidos, setPedidos] = useState<Order[]>([]);
-  const [usuarios, setUsuarios] = useState<User[]>([]);
+  const [usuarios] = useState<User[]>([]);
   const [categorias, setCategorias] = useState<Category[]>([]);
   const [marcas, setMarcas] = useState<any[]>([]);
   const [cupones, setCupones] = useState<any[]>([]);
-  const [_envios, setEnvios] = useState<any[]>([]);
+  const [_envios] = useState<any[]>([]);
 
   useEffect(() => {
     loadStats();

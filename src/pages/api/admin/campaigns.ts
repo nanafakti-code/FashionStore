@@ -24,10 +24,9 @@ function sanitizeHtml(html: string): string {
 }
 
 // ─── Template wrapper para newsletter ───
-function wrapNewsletterHtml(content: string, unsubscribeUrl: string): string {
+function wrapNewsletterHtml(content: string): string {
   const BRAND_COLOR = '#00aa45';
   const LOGO_URL = 'https://res.cloudinary.com/djvj32zic/image/upload/v1769980559/admin-logo_qq0qlz.png';
-  const SITE_URL = import.meta.env.APP_URL || 'https://fashionstorerbv3.victoriafp.online';
 
   return `<!DOCTYPE html>
 <html lang="es">
@@ -291,8 +290,7 @@ export const POST: APIRoute = async ({ request }) => {
 
         const results = await Promise.allSettled(
           batch.map(async (sub) => {
-            const unsubscribeUrl = `${SITE_URL}/api/newsletter/unsubscribe?email=${encodeURIComponent(sub.email)}`;
-            const htmlWithWrapper = wrapNewsletterHtml(campaign.contenido_html, unsubscribeUrl);
+            const htmlWithWrapper = wrapNewsletterHtml(campaign.contenido_html);
 
             const sent = await sendEmail({
               to: sub.email,

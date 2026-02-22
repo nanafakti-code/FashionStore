@@ -166,7 +166,7 @@ export default function Cart() {
     calculateTotals(cartItems, coupon);
   };
 
-  const updateQuantity = async (carritoItemId: string, newQuantity: number, maxStock?: number) => {
+  const updateQuantity = async (carritoItemId: string, newQuantity: number) => {
     if (newQuantity <= 0) {
       removeItem(carritoItemId);
       return;
