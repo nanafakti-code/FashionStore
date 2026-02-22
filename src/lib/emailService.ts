@@ -724,21 +724,71 @@ export async function sendOrderStatusUpdateEmail(
   tracking?: string,
   orderData?: OrderData
 ): Promise<boolean> {
-  const statusMessages: Record<string, { title: string; message: string; color: string }> = {
-    Pendiente: { title: 'Pedido Pendiente 🕒', message: 'Tu pedido está pendiente de procesamiento.', color: '#f59e0b' },
-    Pagado: { title: 'Pago Recibido ✅', message: 'Hemos recibido tu pago correctamente.', color: '#059669' },
-    'En Proceso': { title: 'Pedido en Proceso ⚙️', message: 'Estamos preparando tu pedido.', color: '#3b82f6' },
-    Enviado: { title: 'Tu pedido está en camino 🚚', message: '¡Buenas noticias! Hemos enviado tu pedido.', color: '#2563eb' },
-    Entregado: { title: 'Pedido Entregado 📦', message: 'Tu pedido ha sido entregado correctamente.', color: '#16a34a' },
-    Completado: { title: 'Pedido Completado 🌟', message: 'Tu pedido ha sido marcado como completado.', color: '#059669' },
-    Cancelado: { title: 'Pedido Cancelado ❌', message: 'Tu pedido ha sido cancelado.', color: '#dc2626' },
-    Reembolsada: { title: 'Pedido Reembolsado ↩️', message: 'Tu pedido ha sido devuelto y el reembolso procesado.', color: '#6b7280' },
+  const statusMessages: Record<string, { title: string; message: string; color: string; icon: string; nextStep: string }> = {
+    Pendiente: {
+      title: 'Pedido Recibido',
+      message: 'Estamos procesando tu pedido y pronto estará listo.',
+      color: '#f59e0b',
+      icon: '🕒',
+      nextStep: 'En cuanto confirmemos el stock, pasaremos a preparar tu envío.'
+    },
+    Pagado: {
+      title: 'Pago Confirmado',
+      message: 'Hemos recibido tu pago correctamente. ¡Gracias!',
+      color: '#059669',
+      icon: '✅',
+      nextStep: 'Nuestro equipo de logística empezará a preparar tu paquete de inmediato.'
+    },
+    'En Proceso': {
+      title: 'Preparando tu Pedido',
+      message: 'Tu pedido está siendo preparado con cuidado en nuestro almacén.',
+      color: '#3b82f6',
+      icon: '⚙️',
+      nextStep: 'Te avisaremos en cuanto el paquete sea entregado a la empresa de transporte.'
+    },
+    Enviado: {
+      title: 'Pedido en Camino',
+      message: '¡Grandes noticias! Tu pedido ya ha salido de nuestras instalaciones.',
+      color: '#111827',
+      icon: '🚚',
+      nextStep: 'Puedes realizar el seguimiento de tu envío con el número de tracking proporcionado.'
+    },
+    Entregado: {
+      title: 'Pedido Entregado',
+      message: 'Tu pedido ha sido entregado. ¡Esperamos que lo disfrutes!',
+      color: '#16a34a',
+      icon: '📦',
+      nextStep: 'Si tienes cualquier duda con tu producto, estamos aquí para ayudarte.'
+    },
+    Completado: {
+      title: 'Pedido Finalizado',
+      message: 'Todo ha salido perfecto. Tu pedido está completado.',
+      color: '#059669',
+      icon: '🌟',
+      nextStep: 'Gracias por confiar en FashionStore. ¡Esperamos verte pronto!'
+    },
+    Cancelado: {
+      title: 'Pedido Cancelado',
+      message: 'Tu pedido ha sido cancelado.',
+      color: '#dc2626',
+      icon: '❌',
+      nextStep: 'Si el pago ya se había realizado, recibirás el reembolso en los próximos 3-5 días.'
+    },
+    Reembolsada: {
+      title: 'Reembolso Procesado',
+      message: 'Hemos procesado el reembolso de tu pedido.',
+      color: '#6b7280',
+      icon: '↩️',
+      nextStep: 'El dinero debería aparecer en tu cuenta en un plazo de 5 a 10 días laborables.'
+    },
   };
 
   const status = statusMessages[nuevo_estado] || {
-    title: `Actualización: ${nuevo_estado}`,
+    title: nuevo_estado,
     message: `El estado de tu pedido ha cambiado a: ${nuevo_estado}.`,
-    color: '#6b7280'
+    color: '#6b7280',
+    icon: 'ℹ️',
+    nextStep: 'Seguiremos informándote de cualquier cambio.'
   };
 
   let attachments = [];
@@ -781,10 +831,19 @@ export async function sendOrderStatusUpdateEmail(
     }
   }
 
+  const itemsHTML = (orderData && orderData.items && orderData.items.length > 0)
+    ? buildItemsRows(orderData.items)
+    : '';
+
   const trackingHTML = (tracking && (nuevo_estado === 'Enviado' || nuevo_estado === 'Completado')) ?
-    `<div style="background-color: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 15px; border-radius: 8px; margin: 20px 0;">
-       <strong>Tracking:</strong> ${tracking}
-     </div>` : '';
+    `<tr>
+      <td style="padding: 0 40px 30px 40px;">
+        <div style="background-color: #f0f9ff; border: 1px dashed #0284c7; padding: 20px; border-radius: 12px; text-align: center;">
+          <div style="font-family: sans-serif; font-size: 12px; color: #0369a1; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-weight: bold;">Número de Seguimiento</div>
+          <div style="font-family: monospace; font-size: 20px; font-weight: 800; color: #0c4a6e;">${tracking}</div>
+        </div>
+      </td>
+    </tr>` : '';
 
   const html = `<!DOCTYPE html>
   <html>
@@ -793,23 +852,110 @@ export async function sendOrderStatusUpdateEmail(
       <table cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="${BG_COLOR}">
         <tr>
           <td align="center" style="padding: 20px 10px;">
-            <table class="container" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 12px; overflow: hidden;">
+            <!-- CONTAINER -->
+            <table class="container" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+              
+              <!-- HEADER -->
               <tr>
-                <td style="padding: 40px 30px; text-align: center;">
-                  <img src="${LOGO_URL}" alt="FashionStore" width="120" height="auto" style="width: 120px; height: auto; display: block; margin: 0 auto 20px auto; border: 0;">
-                  <h1 style="color: ${status.color}; font-family: sans-serif; margin-bottom: 10px;">${status.title}</h1>
-                  <p style="color: #4b5563; font-family: sans-serif; font-size: 16px; margin-bottom: 5px;">Hola ${nombre},</p>
-                  <p style="color: #4b5563; font-family: sans-serif; font-size: 16px; margin-bottom: 20px;">${status.message}</p>
-                  
-                  <div style="background-color: #f9fafb; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-family: sans-serif; color: #374151;">
-                    Pedido <strong>#${numero_orden}</strong>
+                <td style="background-color: #111827; padding: 25px 20px; text-align: center;">
+                  <img src="${LOGO_URL}" alt="FashionStore" width="100" style="width: 100px; display: block; margin: 0 auto;">
+                </td>
+              </tr>
+
+              <!-- STATUS BANNER -->
+              <tr>
+                <td style="background-color: ${status.color}; padding: 30px 40px; text-align: center;">
+                  <div style="font-size: 40px; margin-bottom: 10px;">${status.icon}</div>
+                  <h1 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 24px; font-weight: 800; color: #ffffff; margin: 0; text-transform: uppercase; letter-spacing: 1px;">
+                    ${status.title}
+                  </h1>
+                </td>
+              </tr>
+
+              <!-- MESSAGE -->
+              <tr>
+                <td class="mobile-padding" style="padding: 40px 40px 30px 40px;">
+                  <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 18px; color: #111827; margin: 0 0 15px 0; font-weight: 700;">
+                    Hola ${nombre.split(' ')[0]},
+                  </p>
+                  <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; color: #4b5563; margin: 0; line-height: 1.6;">
+                    ${status.message}
+                  </p>
+                </td>
+              </tr>
+
+              <!-- INFO BAR -->
+              <tr>
+                <td class="mobile-padding" style="padding: 0 40px 30px 40px;">
+                  <table width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f9fafb; border-radius: 12px; border: 1px solid #f3f4f6;">
+                    <tr>
+                      <td width="50%" style="padding: 15px; border-right: 1px solid #f3f4f6; text-align: center;">
+                        <span style="display: block; font-family: sans-serif; font-size: 10px; text-transform: uppercase; color: #9ca3af; margin-bottom: 4px;">Nº Pedido</span>
+                        <span style="display: block; font-family: sans-serif; font-size: 15px; font-weight: 700; color: #111827;">#${numero_orden}</span>
+                      </td>
+                      <td width="50%" style="padding: 15px; text-align: center;">
+                        <span style="display: block; font-family: sans-serif; font-size: 10px; text-transform: uppercase; color: #9ca3af; margin-bottom: 4px;">Fecha Actualización</span>
+                        <span style="display: block; font-family: sans-serif; font-size: 15px; font-weight: 700; color: #111827;">${new Date().toLocaleDateString('es-ES')}</span>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              ${trackingHTML}
+
+              <!-- NEXT STEPS -->
+              <tr>
+                <td class="mobile-padding" style="padding: 0 40px 30px 40px;">
+                  <div style="border-left: 4px solid ${status.color}; background-color: #f9fafb; padding: 20px; border-radius: 0 12px 12px 0;">
+                    <h4 style="font-family: sans-serif; font-size: 13px; color: #111827; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px;">¿Qué sucede ahora?</h4>
+                    <p style="font-family: sans-serif; font-size: 14px; color: #4b5563; margin: 0; line-height: 1.5;">
+                      ${status.nextStep}
+                    </p>
                   </div>
+                </td>
+              </tr>
 
-                  ${trackingHTML}
+              <!-- ITEMS SUMMARY (Optional) -->
+              ${itemsHTML ? `
+              <tr>
+                <td class="mobile-padding" style="padding: 0 40px 30px 40px;">
+                  <h3 style="font-family: sans-serif; font-size: 14px; font-weight: 800; color: #111827; margin: 0 0 15px 0; text-transform: uppercase; border-bottom: 1px solid #eee; padding-bottom: 8px;">Detalles del Pedido</h3>
+                  <table width="100%" cellspacing="0" cellpadding="0" border="0">
+                    ${itemsHTML}
+                  </table>
+                  <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top: 15px;">
+                    <tr>
+                      <td style="font-family: sans-serif; font-size: 16px; font-weight: 800; color: #111827;">Total</td>
+                      <td style="font-family: sans-serif; font-size: 18px; font-weight: 800; color: ${BRAND_COLOR}; text-align: right;">${formatPrice(orderData?.total || 0)}</td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              ` : ''}
 
-                  <a href="${SITE_URL}/mis-pedidos" style="display: inline-block; padding: 12px 24px; background-color: #111827; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; font-family: sans-serif;">
-                    Ver detalles
+              <!-- CTA -->
+              <tr>
+                <td style="padding: 10px 40px 40px 40px; text-align: center;">
+                  <a href="${SITE_URL}/mis-pedidos" style="display: inline-block; padding: 18px 36px; background-color: #111827; color: #ffffff; text-decoration: none; font-family: sans-serif; font-size: 16px; font-weight: bold; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    Ver Estado en Tiempo Real
                   </a>
+                </td>
+              </tr>
+
+              <!-- FOOTER -->
+              <tr>
+                <td style="background-color: #f9fafb; padding: 40px; text-align: center; border-top: 1px solid #eee;">
+                  <img src="${LOGO_URL}" alt="FashionStore" width="60" style="width: 60px; margin-bottom: 20px; opacity: 0.5;">
+                  <div style="margin-bottom: 20px;">
+                    <a href="#" style="margin: 0 10px; text-decoration: none; color: #111827;">📱</a>
+                    <a href="#" style="margin: 0 10px; text-decoration: none; color: #111827;">📸</a>
+                    <a href="#" style="margin: 0 10px; text-decoration: none; color: #111827;">🐥</a>
+                  </div>
+                  <p style="font-family: sans-serif; font-size: 12px; color: #9ca3af; margin: 0; line-height: 1.6;">
+                    &copy; ${new Date().getFullYear()} FashionStore. Todos los derechos reservados.<br>
+                    Calle de la Moda 5, 28001 Madrid, España.
+                  </p>
                 </td>
               </tr>
             </table>
@@ -819,7 +965,7 @@ export async function sendOrderStatusUpdateEmail(
     </body>
   </html>`;
 
-  return await sendEmail({ to: email, subject: status.title, html, attachments });
+  return await sendEmail({ to: email, subject: `${status.icon} Actualización de tu pedido #${numero_orden}`, html, attachments });
 }
 
 // =============================================================================

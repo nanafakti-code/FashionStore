@@ -16,12 +16,13 @@ export const POST: APIRoute = async ({ request }) => {
         const { action, id, estado } = body;
 
         if (action === 'update-status') {
-            const updateData: any = { estado };
-            if (estado === 'aprobada') {
+            const capitalizedEstado = estado.charAt(0).toUpperCase() + estado.slice(1).toLowerCase();
+            const updateData: any = { estado: capitalizedEstado };
+            if (estado === 'aprobada' || estado === 'Aprobada') {
                 updateData.fecha_aprobacion = new Date().toISOString();
-            } else if (estado === 'recibida') {
+            } else if (estado === 'recibida' || estado === 'Recibida') {
                 updateData.fecha_recepcion = new Date().toISOString();
-            } else if (estado === 'reembolsada') {
+            } else if (estado === 'reembolsada' || estado === 'Reembolsada') {
                 updateData.fecha_reembolso = new Date().toISOString();
             }
             updateData.actualizado_en = new Date().toISOString();

@@ -42,9 +42,10 @@ const AdminCoupons = () => {
     assigned_user_id: '',
   });
 
-  // Deactivate modal
+  // Deactivate and Delete modals
   const [deactivateModal, setDeactivateModal] = useState<{ isOpen: boolean; id: number; code: string } | null>(null);
-  const [users, setUsers] = useState<{id: string; email: string; nombre: string}[]>([]);
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: number; code: string } | null>(null);
+  const [users, setUsers] = useState<{ id: string; email: string; nombre: string }[]>([]);
   const [userSearch, setUserSearch] = useState('');
   const [assignToSpecificUser, setAssignToSpecificUser] = useState(false);
 
@@ -127,6 +128,27 @@ const AdminCoupons = () => {
       console.error('Error deactivating coupon:', err);
     } finally {
       setDeactivateModal(null);
+    }
+  };
+
+  const handleDeleteClick = (id: number, code: string) => {
+    setDeleteModal({ isOpen: true, id, code });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteModal) return;
+    try {
+      const res = await fetch('/api/admin/coupons', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', id: deleteModal.id }),
+      });
+      const data = await res.json();
+      if (data.success) loadCoupons();
+    } catch (err) {
+      console.error('Error deleting coupon:', err);
+    } finally {
+      setDeleteModal(null);
     }
   };
 
@@ -357,9 +379,8 @@ const AdminCoupons = () => {
                             key={u.id}
                             type="button"
                             onClick={() => { setFormData({ ...formData, assigned_user_id: u.id }); setUserSearch(''); }}
-                            className={`w-full text-left px-4 py-2 text-sm hover:bg-green-50 transition border-b border-gray-50 last:border-0 ${
-                              formData.assigned_user_id === u.id ? 'bg-green-100 font-bold text-green-800' : 'text-gray-700'
-                            }`}
+                            className={`w-full text-left px-4 py-2 text-sm hover:bg-green-50 transition border-b border-gray-50 last:border-0 ${formData.assigned_user_id === u.id ? 'bg-green-100 font-bold text-green-800' : 'text-gray-700'
+                              }`}
                           >
                             <span className="font-medium">{u.email}</span>
                             {u.nombre && <span className="text-gray-400 ml-2">({u.nombre})</span>}
@@ -369,8 +390,8 @@ const AdminCoupons = () => {
                         u.email.toLowerCase().includes(userSearch.toLowerCase()) ||
                         (u.nombre || '').toLowerCase().includes(userSearch.toLowerCase())
                       ).length === 0 && (
-                        <p className="px-4 py-3 text-sm text-gray-400 text-center">No se encontraron usuarios</p>
-                      )}
+                          <p className="px-4 py-3 text-sm text-gray-400 text-center">No se encontraron usuarios</p>
+                        )}
                     </div>
                     {formData.assigned_user_id && (
                       <div className="mt-2 flex items-center gap-2 bg-green-50 px-3 py-2 rounded-lg border border-green-200">
@@ -421,16 +442,16 @@ const AdminCoupons = () => {
         ) : (
           <div>
             {/* Desktop Header */}
-            <div className="hidden lg:flex lg:items-center lg:gap-4 px-5 py-3 bg-gray-50 border-b border-gray-200 text-[11px] uppercase tracking-wider font-semibold text-gray-500">
-              <div className="w-[120px] flex-shrink-0">Código</div>
-              <div className="w-[100px] flex-shrink-0 text-right pr-4">Descuento</div>
-              <div className="w-[90px] flex-shrink-0 text-center">Min. Compra</div>
-              <div className="w-[100px] flex-shrink-0 text-center">Usos</div>
-              <div className="w-[80px] flex-shrink-0 text-center">Usuarios</div>
-              <div className="w-[110px] flex-shrink-0">Asignado a</div>
-              <div className="w-[110px] flex-shrink-0">Vencimiento</div>
-              <div className="w-[80px] flex-shrink-0 text-center">Estado</div>
-              <div className="w-[100px] flex-shrink-0 text-right">Acciones</div>
+            <div className="hidden lg:flex lg:items-center lg:gap-4 px-5 py-3 bg-gray-50 border-b border-gray-200 text-[11px] uppercase tracking-wider font-semibold text-gray-500 w-full overflow-hidden">
+              <div className="flex-1 min-w-[120px]">Código</div>
+              <div className="w-[100px] text-right pr-4">Descuento</div>
+              <div className="w-[110px] text-center">Min. Compra</div>
+              <div className="w-[120px] text-center">Usos</div>
+              <div className="w-[80px] text-center">Usuarios</div>
+              <div className="flex-[1.5] min-w-[150px]">Asignado a</div>
+              <div className="flex-1 min-w-[120px]">Vencimiento</div>
+              <div className="w-[90px] text-center">Estado</div>
+              <div className="w-[120px] text-right">Acciones</div>
             </div>
 
             <div className="space-y-4 lg:space-y-0 lg:divide-y lg:divide-gray-100 p-4 lg:p-0">
@@ -444,61 +465,60 @@ const AdminCoupons = () => {
 
                     {/* Desktop Row */}
                     <div className="hidden lg:flex lg:items-center lg:gap-4">
-                      <div className="w-[120px] flex-shrink-0">
+                      <div className="flex-1 min-w-[120px]">
                         <span className="font-mono text-xs font-black text-gray-800 bg-gray-100 px-2 py-1 rounded tracking-wide border border-gray-200">
                           {c.code}
                         </span>
                       </div>
 
-                      <div className="w-[100px] flex-shrink-0 text-right pr-4">
+                      <div className="w-[100px] text-right pr-4">
                         <span className={`font-black text-lg ${isPct ? 'text-blue-600' : 'text-green-600'}`}>
                           {c.value}{isPct ? '%' : '€'}
                         </span>
                       </div>
 
-                      <div className="w-[90px] flex-shrink-0 text-center text-sm text-gray-600">
+                      <div className="w-[110px] text-center text-sm text-gray-600">
                         {c.min_order_value ? `${c.min_order_value}€` : '—'}
                       </div>
 
-                      <div className="w-[100px] flex-shrink-0 text-center text-sm">
+                      <div className="w-[120px] text-center text-sm">
                         <span className="font-bold text-gray-900">{c.times_used}</span>
                         <span className="text-gray-400">
                           {c.max_uses_global ? ` / ${c.max_uses_global}` : ' / ∞'}
                         </span>
                       </div>
 
-                      <div className="w-[80px] flex-shrink-0 text-center text-sm text-gray-600">
+                      <div className="w-[80px] text-center text-sm text-gray-600">
                         {c.unique_users}
                       </div>
 
-                      <div className="w-[110px] flex-shrink-0 text-xs font-medium">
+                      <div className="flex-[1.5] min-w-[150px] text-xs font-medium">
                         {c.assigned_user_email ? (
                           <span className="text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded truncate block" title={c.assigned_user_email}>
-                            {c.assigned_user_email.split('@')[0]}
+                            {c.assigned_user_email}
                           </span>
                         ) : (
-                          <span className="text-gray-400">Público</span>
+                          <span className="text-gray-400">Público (Todos los usuarios)</span>
                         )}
                       </div>
 
-                      <div className="w-[110px] flex-shrink-0 text-xs text-gray-500 font-medium">
+                      <div className="flex-1 min-w-[120px]">
                         {formatDate(c.expiration_date)}
-                        {expired && <span className="block text-red-500 text-[10px] font-bold">EXPIRADO</span>}
+                        {expired && <span className="block text-red-500 text-[10px] font-bold uppercase">Expirado</span>}
                       </div>
 
-                      <div className="w-[80px] flex-shrink-0 text-center">
-                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wide ${
-                          isActive
+                      <div className="w-[90px] text-center">
+                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wide ${isActive
                             ? 'bg-green-100 text-green-800 border-green-200'
                             : expired
                               ? 'bg-orange-100 text-orange-800 border-orange-200'
                               : 'bg-red-100 text-red-800 border-red-200'
-                        }`}>
+                          }`}>
                           {isActive ? 'Activo' : expired ? 'Expirado' : 'Inactivo'}
                         </span>
                       </div>
 
-                      <div className="w-[100px] flex-shrink-0 flex justify-end gap-2">
+                      <div className="w-[120px] flex justify-end gap-1">
                         <button
                           onClick={() => handleEditClick(c)}
                           className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
@@ -506,15 +526,22 @@ const AdminCoupons = () => {
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                         </button>
-                        {c.is_active && (
+                        {c.is_active && !expired && (
                           <button
                             onClick={() => handleDeactivateClick(c.id, c.code)}
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                            className="p-1.5 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition"
                             title="Desactivar"
                           >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
                           </button>
                         )}
+                        <button
+                          onClick={() => handleDeleteClick(c.id, c.code)}
+                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                          title="Eliminar permanentemente"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
                       </div>
                     </div>
 
@@ -525,13 +552,12 @@ const AdminCoupons = () => {
                           <span className="font-mono text-lg font-black text-gray-900 tracking-tight">{c.code}</span>
                           <span className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mt-0.5">Código</span>
                         </div>
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${
-                          isActive
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${isActive
                             ? 'bg-green-100 text-green-800 border-green-200'
                             : expired
                               ? 'bg-orange-100 text-orange-800 border-orange-200'
                               : 'bg-red-100 text-red-800 border-red-200'
-                        }`}>
+                          }`}>
                           {isActive ? 'Activo' : expired ? 'Expirado' : 'Inactivo'}
                         </span>
                       </div>
@@ -614,18 +640,18 @@ const AdminCoupons = () => {
 
       {/* Deactivate Modal */}
       {deactivateModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 transform transition-all scale-100">
-            <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-4">
+              <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
               </svg>
             </div>
             <h3 className="text-xl font-bold text-gray-900 text-center mb-2">¿Desactivar Cupón?</h3>
             <p className="text-gray-500 text-center text-sm mb-2">
-              El cupón <strong className="font-mono">{deactivateModal.code}</strong> dejará de ser válido para los clientes.
+              El cupón <strong className="font-mono">{deactivateModal.code}</strong> dejará de ser válido temporalmente.
             </p>
-            <p className="text-gray-400 text-center text-xs mb-6">Esta acción se puede revertir editando el cupón.</p>
+            <p className="text-gray-400 text-center text-xs mb-6">Podrás reactivarlo en cualquier momento editándolo.</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setDeactivateModal(null)}
@@ -635,9 +661,41 @@ const AdminCoupons = () => {
               </button>
               <button
                 onClick={confirmDeactivate}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition"
+                className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition"
               >
-                Sí, Desactivar
+                Desactivar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Modal */}
+      {deleteModal && (
+        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 transform transition-all scale-100 text-center">
+            <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">¿Eliminar permanentemente?</h3>
+            <p className="text-gray-500 text-sm mb-1">
+              Estás a punto de borrar el cupón <strong className="font-mono text-red-600">{deleteModal.code}</strong>.
+            </p>
+            <p className="text-red-600 text-xs font-bold uppercase tracking-widest mb-6">Esta acción no se puede deshacer.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteModal(null)}
+                className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition shadow-lg shadow-red-200"
+              >
+                Eliminar
               </button>
             </div>
           </div>

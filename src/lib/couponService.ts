@@ -81,11 +81,11 @@ export async function validateCoupon(
     }
 
     // 3. CHECK MINIMUM ORDER VALUE
-    if (coupon.min_order_value && cartTotal < coupon.min_order_value) {
-      const minInEuros = (coupon.min_order_value / 100).toFixed(2);
+    if (coupon.min_order_value && cartTotal < (coupon.min_order_value * 100)) {
+      const minInEuros = coupon.min_order_value.toFixed(2);
       return {
         valid: false,
-        error: `Compra mínima requerida: €${minInEuros}`,
+        error: `Compra mínima requerida: ${minInEuros}€`,
       };
     }
 

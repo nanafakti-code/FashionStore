@@ -12,68 +12,108 @@ export const GET: APIRoute = async ({ request }) => {
     if (denied) return denied;
 
     try {
-        // Ejecutar todas las queries en paralelo
+        const ahora = new Date();
+        const hace7Dias = new Date(ahora);
+        hace7Dias.setDate(ahora.getDate() - 7);
+        const fechaLimite7Dias = hace7Dias.toISOString();
+
+        const mesActualInicio = new Date(ahora.getFullYear(), ahora.getMonth(), 1).toISOString();
+
+        // Ejecutar todas las queries en paralelo para máxima eficiencia
         const [
             pedidosResult,
             usuariosResult,
             devolucionesResult,
             reseniasResult,
+            ventas7DiasResult,
+            topProductosResult
         ] = await Promise.all([
-            supabaseAdmin.from('ordenes').select('*').order('creado_en', { ascending: false }),
-            supabaseAdmin.from('usuarios').select('id, nombre, email, activo').eq('activo', true),
-            supabaseAdmin.from('devoluciones').select('id, estado').eq('estado', 'pendiente'),
-            supabaseAdmin.from('resenas').select('puntuacion'),
+            // Todos los pedidos para el total histórico (usando la tabla 'ordenes')
+            supabaseAdmin.from('ordenes').select('id, total, estado, fecha_creacion').order('fecha_creacion', { ascending: false }),
+            // Usuarios activos
+            supabaseAdmin.from('usuarios').select('id').eq('activo', true),
+            // Devoluciones pendientes
+            supabaseAdmin.from('devoluciones').select('id').eq('estado', 'Pendiente'),
+            // Promedio de reseñas
+            supabaseAdmin.from('resenas').select('calificacion'),
+            // Ventas de los últimos 7 días para el gráfico
+            supabaseAdmin.from('ordenes')
+                .select('total, fecha_creacion')
+                .neq('estado', 'Cancelado')
+                .gte('fecha_creacion', fechaLimite7Dias),
+            // Obtener productos más vendidos (vía items_orden)
+            supabaseAdmin.from('items_orden')
+                .select('producto_id, cantidad, producto_nombre')
+                .order('cantidad', { ascending: false })
+                .limit(50)
         ]);
 
         const pedidos = pedidosResult.data || [];
         const usuarios = usuariosResult.data || [];
         const devoluciones = devolucionesResult.data || [];
         const resenas = reseniasResult.data || [];
+        const ventas7DiasRaw = ventas7DiasResult.data || [];
+        const topProductosRaw = topProductosResult.data || [];
 
-        // Calcular estadísticas de pedidos
-        const hoy = new Date().toISOString().split('T')[0];
-        const mesActual = new Date().toISOString().substring(0, 7);
-
-        const ventasHoy = pedidos
-            .filter((p: any) => p.creado_en?.startsWith(hoy))
-            .reduce((sum: number, p: any) => sum + (p.total_precio || 0), 0);
-
+        // 1. KPI: Ventas Totales del Mes (Pagados o Entregados)
         const ventasMes = pedidos
-            .filter((p: any) => p.creado_en?.startsWith(mesActual))
-            .reduce((sum: number, p: any) => sum + (p.total_precio || 0), 0);
+            .filter(p => p.fecha_creacion >= mesActualInicio && !['Cancelado', 'Pendiente'].includes(p.estado))
+            .reduce((sum, p) => sum + (p.total || 0), 0);
 
-        const ordenesEnProceso = pedidos.filter(
-            (p: any) => p.estado?.toLowerCase() === 'en_proceso'
-        ).length;
+        // 2. KPI: Pedidos Pendientes
+        const pedidosPendientes = pedidos.filter(p => p.estado === 'Pendiente').length;
 
-        const pedidosPagados = pedidos
-            .filter((p: any) => p.estado?.toLowerCase() === 'pagado')
-            .slice(0, 10);
+        // 3. KPI: Producto Más Vendido (Agregación manual de los top 50 detalles)
+        const counts: Record<string, { nombre: string, cantidad: number }> = {};
+        topProductosRaw.forEach((item: any) => {
+            const id = item.producto_id;
+            const nombre = item.producto_nombre || 'Producto desconocido';
+            if (!counts[id]) counts[id] = { nombre, cantidad: 0 };
+            counts[id].cantidad += item.cantidad;
+        });
+        const productoMasVendido = Object.values(counts).sort((a, b) => b.cantidad - a.cantidad)[0]?.nombre || 'N/A';
 
-        // Calcular promedio de reseñas
+        // 4. Datos para el gráfico: Ventas últimos 7 días
+        const ventasMap = new Map();
+        for (let i = 0; i < 7; i++) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const dateStr = d.toISOString().split('T')[0];
+            ventasMap.set(dateStr, 0);
+        }
+
+        ventas7DiasRaw.forEach((p: any) => {
+            const dateStr = p.fecha_creacion.split('T')[0];
+            if (ventasMap.has(dateStr)) {
+                ventasMap.set(dateStr, ventasMap.get(dateStr) + (p.total || 0));
+            }
+        });
+
+        const graficoVentas = Array.from(ventasMap.entries())
+            .map(([fecha, total]) => ({ fecha, total: total / 100 }))
+            .reverse();
+
+        // 5. Estadísticas de Reseñas
         const reseniasPromedio = resenas.length > 0
-            ? Math.round((resenas.reduce((sum: number, r: any) => sum + (r.puntuacion || 0), 0) / resenas.length) * 10) / 10
+            ? Math.round((resenas.reduce((sum, r) => sum + (r.calificacion || 0), 0) / resenas.length) * 10) / 10
             : 0;
 
         return new Response(JSON.stringify({
-            pedidos: {
-                total: pedidos.length,
-                ventasHoy: ventasHoy / 100,
+            kpis: {
                 ventasMes: ventasMes / 100,
-                ordenesEnProceso,
-                ultimos10Pagados: pedidosPagados,
+                pedidosPendientes,
+                productoMasVendido,
+                clientesActivos: usuarios.length,
+                devolucionesActivas: devoluciones.length,
+                valoracionMedia: reseniasPromedio
             },
-            usuarios: {
-                total: usuarios.length,
-                lista: usuarios.slice(0, 10),
-            },
-            devoluciones: {
-                activas: devoluciones.length,
-            },
-            resenas: {
-                promedio: reseniasPromedio,
-                total: resenas.length,
-            },
+            grafico: graficoVentas,
+            ultimosPedidos: pedidos.slice(0, 10).map(p => ({
+                id: p.id,
+                total: p.total / 100,
+                estado: p.estado,
+                fecha: p.fecha_creacion
+            }))
         }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
@@ -81,7 +121,7 @@ export const GET: APIRoute = async ({ request }) => {
     } catch (error) {
         console.error('[API] Error fetching dashboard stats:', error);
         return new Response(
-            JSON.stringify({ error: 'Error interno del servidor' }),
+            JSON.stringify({ error: 'Error interno del servidor', details: error instanceof Error ? error.message : String(error) }),
             { status: 500, headers: { 'Content-Type': 'application/json' } }
         );
     }

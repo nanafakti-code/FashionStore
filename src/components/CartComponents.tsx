@@ -292,6 +292,7 @@ export function CartItemsList() {
                   <input
                     type="number"
                     min="1"
+                    max={(item.product_stock || 0) + item.quantity}
                     value={item.quantity}
                     onChange={(e: any) =>
                       handleQuantityChange(item.id, parseInt(e.target?.value || 1) || 1)
@@ -301,7 +302,7 @@ export function CartItemsList() {
                   />
                   <button
                     onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                    disabled={isProcessing || item.quantity >= (item.product_stock || 999)}
+                    disabled={isProcessing || (item.product_stock || 0) <= 0}
                     className="qty-btn"
                   >
                     +

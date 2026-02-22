@@ -172,9 +172,9 @@ export default function Cart() {
       return;
     }
 
-    // Si se especifica stock máximo, ajustar cantidad
+    // El stock total disponible para este item es: cantidad en carrito + stock restante en almacén
     const item = cartItems.find(i => i.id === carritoItemId);
-    const maxAllowed = maxStock || item?.product_stock || 999;
+    const maxAllowed = (item?.quantity || 0) + (item?.product_stock || 0);
     const adjustedQuantity = Math.min(newQuantity, maxAllowed);
 
     setIsProcessing(true);
@@ -371,7 +371,7 @@ export default function Cart() {
 
                     {/* Row 1: Quantity + Price */}
                     <div className="flex flex-row sm:flex-col justify-between sm:items-end items-center gap-2">
-                      {item.product_stock !== 1 ? (
+                      {((item.product_stock || 0) + (item.quantity || 0)) > 1 ? (
                         <div className="flex items-center gap-2 border border-gray-300 rounded-lg bg-gray-50">
                           <button
                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
@@ -383,20 +383,20 @@ export default function Cart() {
                           <input
                             type="number"
                             min="1"
-                            max={item.product_stock || 999}
+                            max={(item.product_stock || 0) + item.quantity}
                             value={item.quantity}
                             onChange={(e: any) => {
                               const newQty = parseInt(e.target.value) || 1;
                               if (newQty > 0) {
-                                updateQuantity(item.id, newQty, item.product_stock);
+                                updateQuantity(item.id, newQty);
                               }
                             }}
                             disabled={isProcessing}
                             className="w-12 text-center py-1 border-l border-r border-gray-300 text-gray-900 font-semibold disabled:bg-white"
                           />
                           <button
-                            onClick={() => updateQuantity(item.id, item.quantity + 1, item.product_stock)}
-                            disabled={isProcessing || item.quantity >= (item.product_stock || 999)}
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            disabled={isProcessing || (item.product_stock || 0) <= 0}
                             className="px-3 py-1 text-gray-600 hover:text-[#00aa45] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                           >
                             +

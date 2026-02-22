@@ -17,15 +17,15 @@ interface IconProps {
 // Icono de Éxito / Check
 export function CheckIcon({ className = '', size = 20, color = 'currentColor', strokeWidth = 2 }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={strokeWidth}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="M20 6L9 17l-5-5" />
@@ -36,15 +36,15 @@ export function CheckIcon({ className = '', size = 20, color = 'currentColor', s
 // Icono de Éxito Circular
 export function CheckCircleIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
@@ -56,15 +56,15 @@ export function CheckCircleIcon({ className = '', size = 20, color = 'currentCol
 // Icono de Error / X
 export function XIcon({ className = '', size = 20, color = 'currentColor', strokeWidth = 2 }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={strokeWidth}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="M18 6L6 18M6 6l12 12" />
@@ -75,15 +75,15 @@ export function XIcon({ className = '', size = 20, color = 'currentColor', strok
 // Icono de Error Circular
 export function XCircleIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <circle cx="12" cy="12" r="10" />
@@ -95,15 +95,15 @@ export function XCircleIcon({ className = '', size = 20, color = 'currentColor' 
 // Icono de Advertencia / Alert
 export function AlertIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
@@ -115,15 +115,15 @@ export function AlertIcon({ className = '', size = 20, color = 'currentColor' }:
 // Icono de Carrito
 export function CartIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <circle cx="8" cy="21" r="1" />
@@ -136,15 +136,15 @@ export function CartIcon({ className = '', size = 20, color = 'currentColor' }: 
 // Icono de Bolsa de Compras
 export function ShoppingBagIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
@@ -157,15 +157,15 @@ export function ShoppingBagIcon({ className = '', size = 20, color = 'currentCol
 // Icono de Paquete / Envío
 export function PackageIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="m7.5 4.27 9 5.15" />
@@ -179,15 +179,15 @@ export function PackageIcon({ className = '', size = 20, color = 'currentColor' 
 // Icono de Camión de Envío
 export function TruckIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" />
@@ -202,15 +202,15 @@ export function TruckIcon({ className = '', size = 20, color = 'currentColor' }:
 // Icono de Estrella
 export function StarIcon({ className = '', size = 20, color = 'currentColor', filled = false }: IconProps & { filled?: boolean }) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill={filled ? color : 'none'} 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill={filled ? color : 'none'}
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
@@ -221,15 +221,15 @@ export function StarIcon({ className = '', size = 20, color = 'currentColor', fi
 // Icono de Corazón (Favorito)
 export function HeartIcon({ className = '', size = 20, color = 'currentColor', filled = false }: IconProps & { filled?: boolean }) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill={filled ? color : 'none'} 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill={filled ? color : 'none'}
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
@@ -240,15 +240,15 @@ export function HeartIcon({ className = '', size = 20, color = 'currentColor', f
 // Icono de Regalo
 export function GiftIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <rect x="3" y="8" width="18" height="4" rx="1" />
@@ -262,15 +262,15 @@ export function GiftIcon({ className = '', size = 20, color = 'currentColor' }: 
 // Icono de Etiqueta / Tag (Descuento)
 export function TagIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z" />
@@ -282,15 +282,15 @@ export function TagIcon({ className = '', size = 20, color = 'currentColor' }: I
 // Icono de Porcentaje (Descuento)
 export function PercentIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <line x1="19" x2="5" y1="5" y2="19" />
@@ -303,15 +303,15 @@ export function PercentIcon({ className = '', size = 20, color = 'currentColor' 
 // Icono de Brillo / Sparkles
 export function SparklesIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
@@ -326,15 +326,15 @@ export function SparklesIcon({ className = '', size = 20, color = 'currentColor'
 // Icono de Fuego / Hot
 export function FireIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
@@ -345,15 +345,15 @@ export function FireIcon({ className = '', size = 20, color = 'currentColor' }: 
 // Icono de Celebración / Party
 export function PartyIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="M5.8 11.3 2 22l10.7-3.79" />
@@ -372,15 +372,15 @@ export function PartyIcon({ className = '', size = 20, color = 'currentColor' }:
 // Icono de Reloj / Timer
 export function ClockIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <circle cx="12" cy="12" r="10" />
@@ -392,15 +392,15 @@ export function ClockIcon({ className = '', size = 20, color = 'currentColor' }:
 // Icono de Usuario
 export function UserIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
@@ -412,15 +412,15 @@ export function UserIcon({ className = '', size = 20, color = 'currentColor' }: 
 // Icono de Email
 export function MailIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <rect width="20" height="16" x="2" y="4" rx="2" />
@@ -432,15 +432,15 @@ export function MailIcon({ className = '', size = 20, color = 'currentColor' }: 
 // Icono de Teléfono
 export function PhoneIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
@@ -451,15 +451,15 @@ export function PhoneIcon({ className = '', size = 20, color = 'currentColor' }:
 // Icono de Ubicación
 export function MapPinIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
@@ -471,15 +471,15 @@ export function MapPinIcon({ className = '', size = 20, color = 'currentColor' }
 // Icono de Información
 export function InfoIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <circle cx="12" cy="12" r="10" />
@@ -491,15 +491,15 @@ export function InfoIcon({ className = '', size = 20, color = 'currentColor' }: 
 // Icono de Carga / Spinner
 export function LoaderIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={`animate-spin ${className}`} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={`animate-spin ${className}`}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="M21 12a9 9 0 1 1-6.219-8.56" />
@@ -510,15 +510,15 @@ export function LoaderIcon({ className = '', size = 20, color = 'currentColor' }
 // Icono de Más
 export function PlusIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="M5 12h14M12 5v14" />
@@ -529,15 +529,15 @@ export function PlusIcon({ className = '', size = 20, color = 'currentColor' }: 
 // Icono de Menos
 export function MinusIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="M5 12h14" />
@@ -548,15 +548,15 @@ export function MinusIcon({ className = '', size = 20, color = 'currentColor' }:
 // Icono de Basura / Eliminar
 export function TrashIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
@@ -569,15 +569,15 @@ export function TrashIcon({ className = '', size = 20, color = 'currentColor' }:
 // Icono de Editar
 export function EditIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
@@ -588,15 +588,15 @@ export function EditIcon({ className = '', size = 20, color = 'currentColor' }: 
 // Icono de Ojo (Ver)
 export function EyeIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
@@ -608,15 +608,15 @@ export function EyeIcon({ className = '', size = 20, color = 'currentColor' }: I
 // Icono de Ojo Cerrado (Ocultar)
 export function EyeOffIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
@@ -630,15 +630,15 @@ export function EyeOffIcon({ className = '', size = 20, color = 'currentColor' }
 // Icono de Búsqueda
 export function SearchIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <circle cx="11" cy="11" r="8" />
@@ -650,15 +650,15 @@ export function SearchIcon({ className = '', size = 20, color = 'currentColor' }
 // Icono de Filtro
 export function FilterIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
@@ -669,15 +669,15 @@ export function FilterIcon({ className = '', size = 20, color = 'currentColor' }
 // Icono de Menú (Hamburger)
 export function MenuIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <line x1="4" x2="20" y1="12" y2="12" />
@@ -690,15 +690,15 @@ export function MenuIcon({ className = '', size = 20, color = 'currentColor' }: 
 // Icono de Flecha Derecha
 export function ChevronRightIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="m9 18 6-6-6-6" />
@@ -709,15 +709,15 @@ export function ChevronRightIcon({ className = '', size = 20, color = 'currentCo
 // Icono de Flecha Izquierda
 export function ChevronLeftIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="m15 18-6-6 6-6" />
@@ -728,15 +728,15 @@ export function ChevronLeftIcon({ className = '', size = 20, color = 'currentCol
 // Icono de Flecha Arriba
 export function ChevronUpIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="m18 15-6-6-6 6" />
@@ -747,18 +747,40 @@ export function ChevronUpIcon({ className = '', size = 20, color = 'currentColor
 // Icono de Flecha Abajo
 export function ChevronDownIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
   return (
-    <svg 
-      className={className} 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       stroke={color}
       strokeWidth={2}
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
+// Icono de Recargar / Reenviar
+export function RefreshIcon({ className = '', size = 20, color = 'currentColor' }: IconProps) {
+  return (
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+      <path d="M21 3v5h-5" />
+      <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+      <path d="M3 21v-5h5" />
     </svg>
   );
 }
@@ -768,7 +790,7 @@ export function StarRating({ rating, size = 16, className = '' }: { rating: numb
   const stars = [];
   const fullStars = Math.floor(rating);
   const hasHalfStar = rating % 1 >= 0.5;
-  
+
   for (let i = 0; i < 5; i++) {
     if (i < fullStars) {
       stars.push(<StarIcon key={i} size={size} className={`text-yellow-400 ${className}`} filled={true} />);
@@ -778,7 +800,7 @@ export function StarRating({ rating, size = 16, className = '' }: { rating: numb
       stars.push(<StarIcon key={i} size={size} className={`text-gray-300 ${className}`} filled={false} />);
     }
   }
-  
+
   return <div className="flex items-center gap-0.5">{stars}</div>;
 }
 
@@ -821,5 +843,6 @@ export const Icons = {
   ChevronLeft: ChevronLeftIcon,
   ChevronUp: ChevronUpIcon,
   ChevronDown: ChevronDownIcon,
+  Refresh: RefreshIcon,
   StarRating
 };

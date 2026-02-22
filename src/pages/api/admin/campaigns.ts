@@ -28,7 +28,7 @@ function wrapNewsletterHtml(content: string, unsubscribeUrl: string): string {
   const BRAND_COLOR = '#00aa45';
   const LOGO_URL = 'https://res.cloudinary.com/djvj32zic/image/upload/v1769980559/admin-logo_qq0qlz.png';
   const SITE_URL = import.meta.env.APP_URL || 'https://fashionstorerbv3.victoriafp.online';
-  
+
   return `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -68,9 +68,7 @@ function wrapNewsletterHtml(content: string, unsubscribeUrl: string): string {
               © ${new Date().getFullYear()} FashionStore. Todos los derechos reservados.
             </p>
             <p style="margin:0;">
-              <a href="${SITE_URL}" style="color:${BRAND_COLOR};text-decoration:none;font-size:12px;">Visitar tienda</a>
-              <span style="color:#4b5563;margin:0 8px;">|</span>
-              <a href="${unsubscribeUrl}" style="color:#9ca3af;text-decoration:underline;font-size:12px;">Cancelar suscripción</a>
+              <!-- Enlaces eliminados por petición del usuario -->
             </p>
           </td>
         </tr>
@@ -374,6 +372,28 @@ export const POST: APIRoute = async ({ request }) => {
           tipo_segmento: original.tipo_segmento,
           estado: 'Borrador',
         })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return new Response(JSON.stringify({ success: true, campaign: data }), { headers: JSON_HEADERS });
+    }
+
+    // ─── RESETEAR campaña (para reenviar) ───
+    if (action === 'reset') {
+      const { id } = body;
+      if (!id) return new Response(JSON.stringify({ error: 'ID requerido' }), { status: 400, headers: JSON_HEADERS });
+
+      const { data, error } = await supabase
+        .from('campanas_email')
+        .update({
+          estado: 'Borrador',
+          fecha_envio: null,
+          total_enviados: 0,
+          total_destinatarios: 0,
+          actualizada_en: new Date().toISOString()
+        })
+        .eq('id', id)
         .select()
         .single();
 

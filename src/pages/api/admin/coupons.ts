@@ -9,8 +9,12 @@
  */
 
 import type { APIRoute } from 'astro';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 import { requireAdmin } from '@/lib/admin-guard';
+const supabaseAdmin = createClient(
+  import.meta.env.PUBLIC_SUPABASE_URL || '',
+  import.meta.env.SUPABASE_SERVICE_ROLE_KEY || ''
+);
 
 export const POST: APIRoute = async ({ request }) => {
   const denied = requireAdmin(request);
@@ -39,8 +43,8 @@ export const POST: APIRoute = async ({ request }) => {
         );
       }
 
-      // Insert new coupon
-      const { data: coupon, error } = await supabase
+      // Insert new coupon using admin client
+      const { data: coupon, error } = await supabaseAdmin
         .from('coupons')
         .insert({
           code: code.toUpperCase(),
@@ -74,16 +78,19 @@ export const POST: APIRoute = async ({ request }) => {
         );
       }
 
-      // Build update object with proper types
+      // Build update object with ALL fields
       const updatePayload: any = {};
       if (updateData.expiration_date) updatePayload.expiration_date = updateData.expiration_date;
       if (updateData.max_uses_global !== undefined) updatePayload.max_uses_global = updateData.max_uses_global;
+      if (updateData.max_uses_per_user !== undefined) updatePayload.max_uses_per_user = parseInt(updateData.max_uses_per_user);
       if (updateData.is_active !== undefined) updatePayload.is_active = updateData.is_active;
       if (updateData.description !== undefined) updatePayload.description = updateData.description;
       if (updateData.value !== undefined) updatePayload.value = parseFloat(updateData.value);
+      if (updateData.discount_type !== undefined) updatePayload.discount_type = updateData.discount_type;
+      if (updateData.min_order_value !== undefined) updatePayload.min_order_value = updateData.min_order_value ? parseFloat(updateData.min_order_value) : null;
       if (updateData.assigned_user_id !== undefined) updatePayload.assigned_user_id = updateData.assigned_user_id || null;
 
-      const { data: coupon, error } = await supabase
+      const { data: coupon, error } = await supabaseAdmin
         .from('coupons')
         .update(updatePayload)
         .eq('id', id)
@@ -107,9 +114,32 @@ export const POST: APIRoute = async ({ request }) => {
         );
       }
 
-      const { error } = await supabase
+      const { error } = await supabaseAdmin
         .from('coupons')
         .update({ is_active: false })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      return new Response(
+        JSON.stringify({ success: true }),
+        { status: 200 }
+      );
+    }
+
+    if (action === 'delete') {
+      const { id } = data;
+
+      if (!id) {
+        return new Response(
+          JSON.stringify({ error: 'ID de cupón requerido' }),
+          { status: 400 }
+        );
+      }
+
+      const { error } = await supabaseAdmin
+        .from('coupons')
+        .delete()
         .eq('id', id);
 
       if (error) throw error;
@@ -139,7 +169,7 @@ export const GET: APIRoute = async ({ request }) => {
 
   try {
     // Get all coupons directly from coupons table (views can have RLS issues)
-    const { data: coupons, error } = await supabase
+    const { data: coupons, error } = await supabaseAdmin
       .from('coupons')
       .select('*')
       .order('id', { ascending: false });
@@ -148,7 +178,7 @@ export const GET: APIRoute = async ({ request }) => {
       console.error('[COUPONS GET] query error:', error);
       // Table may not exist yet – return empty list instead of 500
       return new Response(
-        JSON.stringify({ success: true, coupons: [], warning: 'Error parcial en la operaci�n' }),
+        JSON.stringify({ success: true, coupons: [], warning: 'Error parcial en la operacin' }),
         { status: 200, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -160,13 +190,13 @@ export const GET: APIRoute = async ({ request }) => {
         let uniqueUsers = 0;
 
         try {
-          const { count } = await supabase
+          const { count } = await supabaseAdmin
             .from('coupon_usages')
             .select('id', { count: 'exact', head: true })
             .eq('coupon_id', c.id);
           timesUsed = count || 0;
 
-          const { data: uniqueData } = await supabase
+          const { data: uniqueData } = await supabaseAdmin
             .from('coupon_usages')
             .select('user_id')
             .eq('coupon_id', c.id);
@@ -181,7 +211,7 @@ export const GET: APIRoute = async ({ request }) => {
         let assigned_user_email = null;
         if (c.assigned_user_id) {
           try {
-            const { data: userData } = await supabase
+            const { data: userData } = await supabaseAdmin
               .from('usuarios')
               .select('email')
               .eq('id', c.assigned_user_id)

@@ -52,6 +52,13 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // Nuevo suscriptor con cupón generado
+    // Nuevo suscriptor con cupón generado
+    const { sendNewsletterWelcomeEmail } = await import('@/lib/emailService');
+    // Enviamos el correo (no bloqueamos la respuesta al cliente)
+    sendNewsletterWelcomeEmail(email.toLowerCase(), result.codigo).catch((e: Error) => {
+      console.error('Error sending newsletter welcome email:', e);
+    });
+
     return new Response(
       JSON.stringify({
         success: true,

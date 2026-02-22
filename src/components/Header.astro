@@ -1,14 +1,18 @@
 ---
-import CartIcon from './islands/CartIcon';
-import UserMenu from './islands/UserMenu';
-import SearchBar from './islands/SearchBar';
-import MobileSearchBar from './islands/MobileSearchBar';
+import CartIcon from "./islands/CartIcon";
+import UserMenu from "./islands/UserMenu";
+import SearchBar from "./islands/SearchBar";
+import MobileSearchBar from "./islands/MobileSearchBar";
+
+const isHome = Astro.url.pathname === "/";
 ---
 
 <header class="bg-white shadow-lg sticky top-0 z-50">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     {/* Top Bar */}
-    <div class="flex justify-between items-center py-3 border-b border-gray-200">
+    <div
+      class="flex justify-between items-center py-3 border-b border-gray-200"
+    >
       <div class="text-xs text-gray-600">
         <p>Envío gratis en pedidos mayores a 50€</p>
       </div>
@@ -18,11 +22,21 @@ import MobileSearchBar from './islands/MobileSearchBar';
     </div>
 
     {/* Main Header */}
-    <div class="flex justify-between items-center py-4">
-      {/* Logo */}
+    <div class="flex justify-between items-center py-4 gap-4">
+      {/* Mobile Menu Trigger & Logo */}
       <div class="flex items-center gap-2">
-        <img src="/admin-logo.png" alt="FashionStore Logo" class="w-16 h-16 object-contain flex-shrink-0" />
-        <h1 class="text-3xl font-black italic text-gray-900">FashionStore</h1>
+        <a href="/" class="flex items-center gap-2">
+          <img
+            src="/admin-logo.png"
+            alt="FashionStore Logo"
+            class="w-12 h-12 sm:w-16 sm:h-16 object-contain flex-shrink-0"
+          />
+          <h1
+            class="text-2xl sm:text-3xl font-black italic text-gray-900 hidden xs:block"
+          >
+            FashionStore
+          </h1>
+        </a>
       </div>
 
       {/* Search Bar */}
@@ -34,31 +48,58 @@ import MobileSearchBar from './islands/MobileSearchBar';
 
     {/* Navigation */}
     <nav class="flex gap-6 py-4 overflow-x-auto">
-      <a href="/" class="text-gray-700 hover:text-[#00aa45] font-semibold whitespace-nowrap">
+      <a
+        href="/"
+        class="text-gray-700 hover:text-[#00aa45] font-semibold whitespace-nowrap"
+      >
         Inicio
       </a>
-      <a href="/categoria/smartphones" class="text-gray-700 hover:text-[#00aa45] font-semibold whitespace-nowrap">
+      <a
+        href="/categoria/smartphones"
+        class="text-gray-700 hover:text-[#00aa45] font-semibold whitespace-nowrap"
+      >
         Móviles
       </a>
-      <a href="/categoria/laptops" class="text-gray-700 hover:text-[#00aa45] font-semibold whitespace-nowrap">
+      <a
+        href="/categoria/laptops"
+        class="text-gray-700 hover:text-[#00aa45] font-semibold whitespace-nowrap"
+      >
         Portátiles
       </a>
-      <a href="/categoria/tablets" class="text-gray-700 hover:text-[#00aa45] font-semibold whitespace-nowrap">
+      <a
+        href="/categoria/tablets"
+        class="text-gray-700 hover:text-[#00aa45] font-semibold whitespace-nowrap"
+      >
         Tablets
       </a>
-      <a href="/categoria/audio" class="text-gray-700 hover:text-[#00aa45] font-semibold whitespace-nowrap">
+      <a
+        href="/categoria/audio"
+        class="text-gray-700 hover:text-[#00aa45] font-semibold whitespace-nowrap"
+      >
         Audio
       </a>
-      <a href="/categoria/wearables" class="text-gray-700 hover:text-[#00aa45] font-semibold whitespace-nowrap">
+      <a
+        href="/categoria/wearables"
+        class="text-gray-700 hover:text-[#00aa45] font-semibold whitespace-nowrap"
+      >
         Smartwatches
       </a>
-      <a href="/categoria/camaras" class="text-gray-700 hover:text-[#00aa45] font-semibold whitespace-nowrap">
+      <a
+        href="/categoria/camaras"
+        class="text-gray-700 hover:text-[#00aa45] font-semibold whitespace-nowrap"
+      >
         Cámaras
       </a>
-      <a href="/categoria/monitores" class="text-gray-700 hover:text-[#00aa45] font-semibold whitespace-nowrap">
+      <a
+        href="/categoria/monitores"
+        class="text-gray-700 hover:text-[#00aa45] font-semibold whitespace-nowrap"
+      >
         Monitores
       </a>
-      <a href="/categoria/consolas" class="text-gray-700 hover:text-[#00aa45] font-semibold whitespace-nowrap">
+      <a
+        href="/categoria/consolas"
+        class="text-gray-700 hover:text-[#00aa45] font-semibold whitespace-nowrap"
+      >
         Consolas
       </a>
     </nav>

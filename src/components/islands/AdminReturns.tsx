@@ -48,7 +48,8 @@ const AdminReturns = () => {
         .order('fecha_solicitud', { ascending: false });
 
       if (filter !== 'todos') {
-        query = query.eq('estado', filter);
+        const capitalizedFilter = filter.charAt(0).toUpperCase() + filter.slice(1).toLowerCase();
+        query = query.eq('estado', capitalizedFilter);
       }
 
       const { data, error } = await query;

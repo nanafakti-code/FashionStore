@@ -119,25 +119,26 @@ export const POST: APIRoute = async (context) => {
     }
 
     // ============================================================
-    // 6. CREAR REGISTRO DE DEVOLUCIÓN (si existe la tabla)
+    // 6. CREAR REGISTRO DE DEVOLUCIÓN
     // ============================================================
     const returnNumber = `RET-${order.numero_orden.replace('FS-', '')}`;
 
-    try {
-      await supabase
-        .from('devoluciones')
-        .insert({
-          orden_id: order.id,
-          usuario_id: order.usuario_id, // Store for easier tracking
-          numero_devolucion: returnNumber,
-          motivo: reason || 'No especificado',
-          estado: 'Pendiente',
-          fecha_solicitud: new Date().toISOString(),
-        });
+    const { error: returnError } = await supabase
+      .from('devoluciones')
+      .insert({
+        orden_id: order.id,
+        numero_devolucion: returnNumber,
+        motivo: reason || 'No especificado',
+        estado: 'Pendiente',
+        fecha_solicitud: new Date().toISOString(),
+      });
+
+    if (returnError) {
+      console.error('[RETURNS] Error creando registro de devolución:', returnError);
+      // No fallamos toda la operación para no frustrar al cliente si el pedido ya se marcó como tal,
+      // pero informamos internamente.
+    } else {
       console.log(`[RETURNS] Registro de devolución creado: ${returnNumber}`);
-    } catch (e) {
-      // Si la tabla no existe, continuamos sin error
-      console.log('[RETURNS] Tabla devoluciones no disponible, continuando...');
     }
 
     // ============================================================

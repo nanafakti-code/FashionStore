@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { MailIcon, UserIcon, MenuIcon, PackageIcon, EditIcon, TrashIcon, CheckIcon, XIcon, AlertIcon, EyeIcon, PlusIcon, ChevronRightIcon } from '@/components/ui/Icons';
+import { MailIcon, UserIcon, MenuIcon, PackageIcon, EditIcon, TrashIcon, CheckIcon, XIcon, AlertIcon, EyeIcon, PlusIcon, ChevronRightIcon, RefreshIcon } from '@/components/ui/Icons';
 
 interface Campaign {
   id: string;
@@ -315,6 +315,25 @@ export default function AdminCampaigns() {
     if (showPreview) updatePreview();
   }, [showPreview, formData.contenido_html]);
 
+  const handleReset = async (id: string) => {
+    try {
+      const res = await fetch('/api/admin/campaigns', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reset', id }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        notify('success', 'Campaña reseteada a borrador para reenviar');
+        await loadCampaigns();
+      } else {
+        notify('error', data.error || 'Error al resetear');
+      }
+    } catch (err) {
+      notify('error', 'Error de conexión');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-20">
@@ -470,6 +489,11 @@ export default function AdminCampaigns() {
                             <button onClick={() => handleDuplicate(c.id)} title="Duplicar" className="p-2 rounded-lg hover:bg-purple-50 text-purple-600 transition-colors">
                               <PlusIcon size={18} />
                             </button>
+                            {c.estado === 'Enviada' && (
+                              <button onClick={() => handleReset(c.id)} title="Reenviar" className="p-2 rounded-lg hover:bg-orange-50 text-orange-600 transition-colors">
+                                <RefreshIcon size={18} />
+                              </button>
+                            )}
                             <button onClick={() => setConfirmDelete(c.id)} title="Eliminar" className="p-2 rounded-lg hover:bg-red-50 text-red-600 transition-colors">
                               <TrashIcon size={18} />
                             </button>
@@ -536,6 +560,12 @@ export default function AdminCampaigns() {
                         <PlusIcon size={14} />
                         Copia
                       </button>
+                      {c.estado === 'Enviada' && (
+                        <button onClick={() => handleReset(c.id)} title="Reenviar" className="flex-1 px-3 py-2 rounded-lg hover:bg-orange-50 text-orange-600 text-xs font-bold transition-colors flex items-center justify-center gap-1">
+                          <RefreshIcon size={14} />
+                          Reenviar
+                        </button>
+                      )}
                       <button onClick={() => setConfirmDelete(c.id)} title="Eliminar" className="flex-1 px-3 py-2 rounded-lg hover:bg-red-50 text-red-600 text-xs font-bold transition-colors flex items-center justify-center gap-1">
                         <TrashIcon size={14} />
                         Borrar
@@ -576,8 +606,7 @@ export default function AdminCampaigns() {
                     <tr className="bg-gray-50 text-left text-xs text-gray-500 uppercase tracking-wider font-semibold">
                       <th className="px-5 py-3">#</th>
                       <th className="px-5 py-3">Email</th>
-                      <th className="px-5 py-3">Nombre</th>
-                      <th className="px-5 py-3">Fecha suscripción</th>
+                      <th className="px-5 py-3 text-right">Fecha suscripción</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -585,8 +614,7 @@ export default function AdminCampaigns() {
                       <tr key={sub.id} className="hover:bg-gray-50/50 transition-colors duration-200">
                         <td className="px-5 py-4 text-gray-400 text-sm">{i + 1}</td>
                         <td className="px-5 py-4 font-medium text-gray-900 text-sm">{sub.email}</td>
-                        <td className="px-5 py-4 text-gray-600 text-sm">{sub.nombre || '—'}</td>
-                        <td className="px-5 py-4 text-gray-500 text-xs">{formatDate(sub.created_at)}</td>
+                        <td className="px-5 py-4 text-gray-500 text-xs text-right">{formatDate(sub.created_at)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -608,13 +636,6 @@ export default function AdminCampaigns() {
                       </div>
                     </div>
 
-                    {/* Nombre */}
-                    {sub.nombre && (
-                      <div className="mb-3 bg-gray-50 rounded-lg p-3 border border-gray-100">
-                        <p className="text-[10px] uppercase tracking-widest text-gray-400 font-medium mb-1">Nombre</p>
-                        <p className="text-sm text-gray-800 font-medium">{sub.nombre}</p>
-                      </div>
-                    )}
 
                     {/* Fecha */}
                     <div className="flex items-center text-[10px] font-medium text-gray-400 uppercase tracking-widest border-t border-gray-100 pt-3">
