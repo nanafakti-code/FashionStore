@@ -4,6 +4,20 @@ import Layout from "@/layouts/Layout.astro";
 import ProductCard from "@/components/ProductCard.astro";
 import { supabase } from "@/lib/supabase";
 
+// Generar rutas estáticas para todas las categorías
+export async function getStaticPaths() {
+  const { data: categorias } = await supabase
+    .from("categorias")
+    .select("slug")
+    .eq("activa", true);
+
+  return (
+    categorias?.map((c: any) => ({
+      params: { slug: c.slug },
+    })) || []
+  );
+}
+
 const { slug } = Astro.params;
 
 // Obtener categoría de Supabase
