@@ -54,7 +54,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (storedPassword.startsWith('$2b$') || storedPassword.startsWith('$2a$')) {
       // Contraseña hasheada con bcrypt
       try {
-        const bcrypt = (await import('bcrypt')).default;
+        const bcrypt = (await import('bcryptjs')).default;
         passwordValid = await bcrypt.compare(password, storedPassword);
       } catch (e) {
         console.error('[Admin Login] Error al comparar bcrypt:', e);

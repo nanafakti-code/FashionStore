@@ -7,7 +7,7 @@
 
 import { supabase } from './supabase';
 import { createHmac, randomBytes, timingSafeEqual } from 'crypto';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 // Rondas de bcrypt para hashing
 const BCRYPT_ROUNDS = 12;
@@ -16,11 +16,12 @@ const BCRYPT_ROUNDS = 12;
 const ADMIN_EMAIL = 'admin@fashionstore.com';
 
 // Clave secreta para firmar tokens — OBLIGATORIA en producción
-const TOKEN_SECRET: string = (() => {
+const TOKEN_SECRET: string | null = (() => {
   const secret = import.meta.env.ADMIN_TOKEN_SECRET;
   if (secret) return secret as string;
   if (import.meta.env.PROD) {
-    throw new Error('ADMIN_TOKEN_SECRET es obligatorio en producción');
+    console.warn('[ADMIN-AUTH] WARNING: ADMIN_TOKEN_SECRET no está configurado en producción. Las sesiones no funcionarán.');
+    return null;
   }
   // Solo en desarrollo: generar secreto efímero (sessions se pierden al reiniciar)
   return randomBytes(32).toString('hex');
@@ -109,6 +110,10 @@ export async function validateAdminCredentials(username: string, password: strin
  * Formato: base64(payload).signature
  */
 export function createAdminSessionToken(username: string): string {
+  if (!TOKEN_SECRET) {
+    throw new Error('No se puede crear el token: ADMIN_TOKEN_SECRET no está configurado');
+  }
+
   const session: AdminSession = {
     username,
     isAdmin: true,
@@ -134,6 +139,8 @@ export function verifyAdminSessionToken(token: string): AdminSession | null {
 
     const payload = parts[0]!;
     const signature = parts[1]!;
+
+    if (!TOKEN_SECRET) return null;
 
     // Verificar firma HMAC
     const expectedSignature = createHmac('sha256', TOKEN_SECRET).update(payload).digest('base64url');
