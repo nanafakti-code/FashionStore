@@ -8,16 +8,17 @@ import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
 import preact from '@astrojs/preact';
 import node from '@astrojs/node';
+import sitemap from '@astrojs/sitemap';
 
 // https://astro.build/config
 export default defineConfig({
     // Site URL para desarrollo local
-    site: process.env.APP_URL || 'http://localhost:4321/',
+    site: process.env.APP_URL || 'https://fashionstorerbv3.victoriafp.online/',
 
     // Modo servidor: SSR por defecto, usa export const prerender = true para SSG
     // En Astro 5.0, 'hybrid' fue removido. Usamos 'server' y marcamos páginas estáticas con prerender
     output: 'server',
-    
+
     // Adaptador para Node.js (producción)
     adapter: node({
         mode: 'standalone',
@@ -36,6 +37,9 @@ export default defineConfig({
         preact({
             compat: true, // Habilita compatibilidad con React
         }),
+
+        // Sitemap generation
+        sitemap(),
     ],
 
     // Configuración de servidor de desarrollo
