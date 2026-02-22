@@ -1,225 +1,107 @@
-# 🛍️ FashionStore
+# 👗 FashionStore - Modern E-commerce Platform
 
-E-commerce premium de moda construido con Astro 5.0, Tailwind CSS, Supabase y Stripe.
+[![Astro 5.0](https://img.shields.io/badge/Astro-5.0-EB3349?logo=astro&logoColor=white)](https://astro.build/)
+[![Supabase](https://img.shields.io/badge/Supabase-Database-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Preact](https://img.shields.io/badge/Preact-Islands-673AB7?logo=preact&logoColor=white)](https://preactjs.com/)
 
-![FashionStore Banner](https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=400&fit=crop)
-
-## 🚀 Stack Tecnológico
-
-| Tecnología | Uso |
-|------------|-----|
-| **Astro 5.0** | Framework web (modo híbrido SSR/SSG) |
-| **Preact** | Componentes interactivos (islands) |
-| **Tailwind CSS** | Estilos y diseño responsive |
-| **Supabase** | PostgreSQL + Auth + Storage + RLS |
-| **Stripe** | Pagos y checkout seguro |
-| **Nano Stores** | Estado global ligero |
-| **TypeScript** | Tipado estático |
-
-## ✨ Características Principales
-
-### 🛒 Tienda
-- Catálogo de productos con filtros y búsqueda
-- Carrito de compra persistente (usuarios autenticados y invitados)
-- Sistema de favoritos
-- Reseñas y valoraciones de productos
-- Checkout con Stripe (tarjeta, Google Pay, Apple Pay)
-- Seguimiento de pedidos
-
-### 👤 Usuarios
-- Autenticación con Supabase Auth
-- Perfil de usuario con historial de pedidos
-- Sistema de devoluciones
-- Carrito sincronizado entre dispositivos
-
-### 🔧 Panel de Administración
-- Dashboard con estadísticas
-- CRUD completo de productos
-- Gestión de categorías y marcas
-- Gestión de pedidos (estados, envíos)
-- Sistema de cupones y descuentos
-- Gestión de reseñas
-- Gestión de usuarios
-- Sistema de devoluciones
-
-## 📋 Requisitos Previos
-
-- Node.js 18+
-- npm o pnpm
-- Cuenta de [Supabase](https://supabase.com)
-- Cuenta de [Stripe](https://stripe.com) (para pagos)
-
-## 🛠️ Instalación
-
-### 1. Clonar el repositorio
-```bash
-git clone https://github.com/tu-usuario/FashionStore.git
-cd FashionStore
-```
-
-### 2. Instalar dependencias
-```bash
-npm install
-```
-
-### 3. Configurar variables de entorno
-```bash
-cp .env.example .env.local
-```
-
-Edita `.env.local` con tus credenciales:
-```env
-# Supabase
-PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
-PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
-SUPABASE_SERVICE_ROLE_KEY=tu-service-role-key
-
-# Stripe
-STRIPE_SECRET_KEY=sk_test_...
-PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-
-# App
-PUBLIC_SITE_URL=http://localhost:4321
-```
-
-### 4. Configurar Base de Datos
-Ejecuta los siguientes scripts en el SQL Editor de Supabase:
-
-1. `supabase/schema.sql` - Esquema principal
-2. `SQL_EJECUTAR_AHORA.sql` - Tablas de órdenes y devoluciones
-
-### 5. Configurar Stripe Webhook
-```bash
-# Instalar Stripe CLI
-stripe login
-stripe listen --forward-to localhost:4321/api/stripe/webhook
-```
-
-### 6. Iniciar servidor de desarrollo
-```bash
-npm run dev
-```
-
-Abre [http://localhost:4321](http://localhost:4321) 🎉
-
-## 📁 Estructura del Proyecto
-
-```
-FashionStore/
-├── src/
-│   ├── components/
-│   │   ├── islands/          # Componentes Preact interactivos
-│   │   │   ├── Cart.tsx
-│   │   │   ├── AddToCartButton.tsx
-│   │   │   ├── AdminDashboard.tsx
-│   │   │   ├── AdminOrders.tsx
-│   │   │   └── ...
-│   │   └── *.astro           # Componentes Astro
-│   ├── layouts/
-│   │   ├── Layout.astro      # Layout principal
-│   │   └── AdminLayout.astro # Layout admin
-│   ├── lib/
-│   │   ├── supabase.ts       # Cliente Supabase
-│   │   ├── cartService.ts    # Lógica del carrito
-│   │   └── utils.ts          # Utilidades
-│   ├── pages/
-│   │   ├── api/              # API endpoints
-│   │   │   ├── stripe/       # Stripe endpoints
-│   │   │   └── ...
-│   │   ├── admin/            # Panel administración
-│   │   ├── productos/        # Páginas de productos
-│   │   └── ...
-│   ├── stores/               # Nano Stores
-│   └── middleware.ts         # Auth middleware
-├── supabase/                 # Scripts SQL
-├── public/                   # Assets estáticos
-└── .env.example              # Variables de entorno
-```
-
-## 🗄️ Base de Datos
-
-### Tablas Principales
-| Tabla | Descripción |
-|-------|-------------|
-| `productos` | Catálogo de productos |
-| `categorias` | Categorías de productos |
-| `marcas` | Marcas disponibles |
-| `cart_items` | Ítems del carrito (usuarios auth) |
-| `ordenes` | Pedidos realizados |
-| `items_orden` | Ítems de cada pedido |
-| `devoluciones` | Solicitudes de devolución |
-| `cupones` | Códigos de descuento |
-| `reviews` | Reseñas de productos |
-| `favoritos` | Productos favoritos |
-
-## 🔐 Acceso Admin
-
-1. Accede a `/admin-secret-login`
-2. Credenciales por defecto:
-   - Email: `admin@fashionstore.com`
-   - Password: (configurar en Supabase)
-
-## 📦 Scripts Disponibles
-
-```bash
-npm run dev          # Servidor de desarrollo
-npm run build        # Build de producción
-npm run preview      # Preview del build
-npm run check        # Verificar tipos TypeScript
-```
-
-## 🎨 Paleta de Colores
-
-| Color | Hex | Uso |
-|-------|-----|-----|
-| Navy | `#102a43` | Color principal |
-| Charcoal | `#1a1a1a` | Textos oscuros |
-| Cream | `#f1ece3` | Fondos suaves |
-| Gold | `#d4a574` | Acentos premium |
-
-## 🔄 Flujo de Compra
-
-```
-1. Usuario navega productos
-       ↓
-2. Añade al carrito (auth o invitado)
-       ↓
-3. Checkout → Stripe
-       ↓
-4. Pago procesado → Webhook
-       ↓
-5. Orden creada en BD
-       ↓
-6. Email confirmación (opcional)
-```
-
-## 📱 Responsive Design
-
-- ✅ Mobile First
-- ✅ Tablet optimizado
-- ✅ Desktop completo
-- ✅ Carrito desplegable
-- ✅ Menú hamburguesa móvil
-
-## 🛡️ Seguridad
-
-- Row Level Security (RLS) en Supabase
-- Middleware de autenticación
-- Validación de webhooks Stripe
-- Variables de entorno protegidas
-- Service Role solo en servidor
-
-## 📄 Licencia
-
-MIT License - Ver [LICENSE](LICENSE)
-
-## 👨‍💻 Autor
-
-Desarrollado para el módulo de **Sistemas de Gestión Empresarial** - DAM 2º
+**FashionStore** is a premium, high-performance e-commerce platform built with the latest web technologies. It leverages **Astro 5.0's Islands Architecture** and **Supabase** to deliver a blazingly fast experience for customers and a robust management suite for administrators.
 
 ---
 
-<p align="center">
-  <strong>FashionStore</strong> - E-commerce Premium 🛍️
-</p>
+## 🚀 Key Features
+
+### 🛍️ Storefront (Customer Experience)
+*   **Islands Architecture:** Interactive components (islands) only load JavaScript when needed, ensuring near-instant load times.
+*   **Live Search:** Real-time product search with debouncing and visual suggestions.
+*   **Dynamic Catalog:** Category-based navigation and advanced filtering.
+*   **Product Variants:** Deep support for colors, sizes, and specific product attributes.
+*   **Smart Cart:** Persistent shopping cart using **Nano Stores**, synced across sessions and authenticated states.
+*   **Reviews & Ratings:** Community-driven feedback system with verified purchase tags.
+*   **Smooth Checkout:** Integrated with **Stripe** for secure, gold-standard payment processing.
+*   **Guest Checkout:** Seamless ordering process for non-registered users.
+
+### 📊 Admin Dashboard (Business Management)
+*   **Real-time Analytics:** KPI cards for monthly sales, pending orders, and customer activity.
+*   **Inventory Management:** Full CRUD operations for products, variants, and stock levels.
+*   **Order Fulfillment:** Workflow management for processing, shipping, and completing orders.
+*   **Returns System:** Specialized module for handling return requests and stock restoration.
+*   **Automatic Invoicing:** On-the-fly PDF generation for invoices and credit notes (jsPDF).
+*   **Promo Engine:** Comprehensive coupon and discount code management system.
+
+---
+
+## 🛠️ Technical Stack
+
+| Category | Technology |
+| :--- | :--- |
+| **Framework** | [Astro 5.0](https://astro.build/) (Hybrid Rendering: SSG + SSR) |
+| **UI Library** | [Preact](https://preactjs.com/) (React-compatible, lightweight) |
+| **Styling** | [Tailwind CSS](https://tailwindcss.com/) (Modern Colorful Theme) |
+| **Database** | [Supabase](https://supabase.com/) (PostgreSQL + RLS Security) |
+| **State Management** | [Nano Stores](https://github.com/nanostores/nanostores) |
+| **Payments** | [Stripe SDK](https://stripe.com/) |
+| **PDF Generation** | [jsPDF](https://github.com/parallax/jsPDF) |
+
+---
+
+## ⚙️ Key Optimizations
+
+*   **Atomic Stock Management:** Uses Supabase **Remote Procedure Calls (RPCs)** to handle stock deductions during checkout, preventing overselling and race conditions.
+*   **SEO Engine:** 
+    *   Dynamic **Sitemap** generation.
+    *   Optimized `robots.txt` configuration.
+    *   Prerendered static routes for blazing-fast SEO performance.
+*   **Row-Level Security (RLS):** Policies defined at the database level ensure customer data privacy and secure admin access.
+*   **Hybrid Power:** Uses Server-Side Rendering (SSR) for personalized data and Static Site Generation (SSG) for public catalog pages.
+
+---
+
+## 📂 Project Structure
+
+```text
+├── src/
+│   ├── components/       # Reusable UI components (Islands)
+│   ├── layouts/          # Base page layouts
+│   ├── lib/              # Service services (Supabase, Stripe, API)
+│   ├── pages/            # File-based routing (Astro)
+│   └── stores/           # Nano Stores state management
+├── public/               # Static assets (images, robots.txt)
+├── supabase/             # Database migrations and SQL functions
+└── astro.config.mjs      # Framework configuration
+```
+
+---
+
+## 🛠️ Getting Started
+
+1.  **Clone the repo:**
+    ```bash
+    git clone https://github.com/your-username/FashionStore.git
+    cd FashionStore
+    ```
+
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
+
+3.  **Setup Environment:**
+    Create a `.env` file with your credentials:
+    ```env
+    PUBLIC_SUPABASE_URL=your_url
+    PUBLIC_SUPABASE_ANON_KEY=your_key
+    SUPABASE_SERVICE_ROLE_KEY=your_admin_key
+    STRIPE_SECRET_KEY=your_stripe_key
+    ```
+
+4.  **Run development server:**
+    ```bash
+    npm run dev
+    ```
+
+---
+
+## 📄 License
+
+Developed as a Final Project for the **SGE (Enterprise Management Systems)** module in 2DAM.
