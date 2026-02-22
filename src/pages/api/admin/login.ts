@@ -92,9 +92,12 @@ export const POST: APIRoute = async ({ request }) => {
         },
       }
     );
-  } catch (e) {
+  } catch (e: any) {
     console.error('[Admin Login] Error interno:', e);
-    return new Response(JSON.stringify({ error: 'Error interno del servidor' }), {
+    return new Response(JSON.stringify({
+      error: 'Error interno del servidor',
+      details: e.message || String(e)
+    }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
