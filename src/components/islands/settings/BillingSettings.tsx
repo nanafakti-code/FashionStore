@@ -67,14 +67,14 @@ const fmtDateFull = (d: string) =>
   new Date(d).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
 
 const STATUS_MAP: Record<string, { bg: string; text: string; label: string }> = {
-  Pagado:                 { bg: 'bg-emerald-50 border-emerald-100', text: 'text-emerald-700', label: 'Pagado' },
-  Completado:             { bg: 'bg-emerald-50 border-emerald-100', text: 'text-emerald-700', label: 'Completado' },
-  Enviado:                { bg: 'bg-blue-50 border-blue-100',       text: 'text-blue-700',    label: 'Enviado' },
-  'En Proceso':           { bg: 'bg-amber-50 border-amber-100',     text: 'text-amber-700',   label: 'En Proceso' },
-  Pendiente:              { bg: 'bg-slate-50 border-slate-200',     text: 'text-slate-600',   label: 'Pendiente' },
-  Cancelado:              { bg: 'bg-red-50 border-red-100',         text: 'text-red-700',     label: 'Cancelado' },
-  Devolucion_Solicitada:  { bg: 'bg-orange-50 border-orange-100',   text: 'text-orange-700',  label: 'Devolución' },
-  Devuelto:               { bg: 'bg-red-50 border-red-100',         text: 'text-red-600',     label: 'Devuelto' },
+  Pagado: { bg: 'bg-emerald-50 border-emerald-100', text: 'text-emerald-700', label: 'Pagado' },
+  Completado: { bg: 'bg-emerald-50 border-emerald-100', text: 'text-emerald-700', label: 'Completado' },
+  Enviado: { bg: 'bg-blue-50 border-blue-100', text: 'text-blue-700', label: 'Enviado' },
+  'En Proceso': { bg: 'bg-amber-50 border-amber-100', text: 'text-amber-700', label: 'En Proceso' },
+  Pendiente: { bg: 'bg-slate-50 border-slate-200', text: 'text-slate-600', label: 'Pendiente' },
+  Cancelado: { bg: 'bg-red-50 border-red-100', text: 'text-red-700', label: 'Cancelado' },
+  Devolucion_Solicitada: { bg: 'bg-orange-50 border-orange-100', text: 'text-orange-700', label: 'Devolución' },
+  Devuelto: { bg: 'bg-red-50 border-red-100', text: 'text-red-600', label: 'Devuelto' },
 };
 
 // ── Component ──
@@ -85,6 +85,8 @@ export default function BillingSettings() {
   const [filtroEstado, setFiltroEstado] = useState('todos');
   const [search, setSearch] = useState('');
   const [downloading, setDownloading] = useState<string | null>(null);
+  const [customStart, setCustomStart] = useState('');
+  const [customEnd, setCustomEnd] = useState('');
 
   useEffect(() => { loadOrdenes(); }, []);
 
@@ -276,9 +278,10 @@ export default function BillingSettings() {
   // ================================================
   // PDF: Resumen de periodo
   // ================================================
-  const downloadSummary = (period: 'dia' | 'semana' | 'mes') => {
+  const downloadSummary = (period: 'dia' | 'semana' | 'mes' | 'custom') => {
     const now = new Date();
     let from: Date;
+    let to = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
     let prevFrom: Date;
     let prevTo: Date;
     let periodLabel: string;
@@ -296,12 +299,28 @@ export default function BillingSettings() {
       prevFrom = new Date(prevTo);
       prevFrom.setDate(prevFrom.getDate() - 7);
       periodLabel = `Semana del ${fmtDate(from.toISOString())} al ${fmtDate(now.toISOString())}`;
-    } else {
+    } else if (period === 'mes') {
       from = new Date(now.getFullYear(), now.getMonth(), 1);
       prevTo = new Date(from);
       prevFrom = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       periodLabel = now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
       periodLabel = periodLabel.charAt(0).toUpperCase() + periodLabel.slice(1);
+    } else {
+      // custom
+      if (!customStart || !customEnd) {
+        alert('Por favor, selecciona un rango de fechas válido.');
+        return;
+      }
+      from = new Date(customStart);
+      to = new Date(customEnd);
+      to.setHours(23, 59, 59, 999);
+
+      // Calcular periodo anterior para comparación (mismo número de días)
+      const diffTime = Math.abs(to.getTime() - from.getTime());
+      prevTo = new Date(from.getTime() - 1);
+      prevFrom = new Date(prevTo.getTime() - diffTime);
+
+      periodLabel = `Rango del ${fmtDate(from.toISOString())} al ${fmtDate(to.toISOString())}`;
     }
 
     const inRange = (d: string, a: Date, b: Date) => {
@@ -309,7 +328,10 @@ export default function BillingSettings() {
       return t >= a && t < b;
     };
 
-    const current = ordenes.filter(o => new Date(o.fecha_creacion) >= from);
+    const current = ordenes.filter(o => {
+      const t = new Date(o.fecha_creacion);
+      return t >= from && t <= to;
+    });
     const previous = ordenes.filter(o => inRange(o.fecha_creacion, prevFrom, prevTo));
 
     const sumValid = (arr: Orden[]) => arr.filter(o => !EXCLUDED_STATES.includes(o.estado)).reduce((s, o) => s + o.total, 0);
@@ -550,26 +572,58 @@ export default function BillingSettings() {
       {/* ── Descargar resúmenes ── */}
       <div className="bg-white rounded-xl border border-slate-200 p-5">
         <h3 className="text-sm font-semibold text-slate-700 mb-3">Descargar resumen de ventas</h3>
-        <div className="flex flex-wrap gap-3">
-          {([
-            { key: 'dia', label: 'Hoy', icon: 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5' },
-            { key: 'semana', label: 'Esta semana', icon: 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z' },
-            { key: 'mes', label: 'Este mes', icon: 'M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6' },
-          ] as const).map(p => (
-            <button
-              key={p.key}
-              onClick={() => downloadSummary(p.key)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 transition-colors"
-            >
-              <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d={p.icon} />
-              </svg>
-              {p.label}
-              <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-              </svg>
-            </button>
-          ))}
+        <div className="flex flex-wrap gap-4 items-end">
+          <div className="flex flex-wrap gap-2">
+            {([
+              { key: 'dia', label: 'Hoy', icon: 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5' },
+              { key: 'semana', label: 'Esta semana', icon: 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z' },
+              { key: 'mes', label: 'Este mes', icon: 'M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6' },
+            ] as const).map(p => (
+              <button
+                key={p.key}
+                onClick={() => downloadSummary(p.key)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 transition-colors"
+              >
+                <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d={p.icon} />
+                </svg>
+                {p.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="h-9 border-l border-slate-200 hidden sm:block"></div>
+
+          {/* Rango personalizado */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide ml-1">Rango personalizado</label>
+            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5">
+              <input
+                type="date"
+                max={new Date().toISOString().split('T')[0]}
+                className="text-xs font-semibold text-slate-700 bg-transparent border-none focus:ring-0 p-0"
+                value={customStart}
+                onChange={(e: any) => setCustomStart(e.target.value)}
+              />
+              <span className="text-slate-300 text-xs">-</span>
+              <input
+                type="date"
+                max={new Date().toISOString().split('T')[0]}
+                className="text-xs font-semibold text-slate-700 bg-transparent border-none focus:ring-0 p-0"
+                value={customEnd}
+                onChange={(e: any) => setCustomEnd(e.target.value)}
+              />
+              <button
+                onClick={() => downloadSummary('custom')}
+                className="ml-1 p-1 bg-emerald-50 text-emerald-600 rounded hover:bg-emerald-100 transition-colors"
+                title="Descargar Resumen Personalizado"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -604,11 +658,10 @@ export default function BillingSettings() {
               <button
                 key={est}
                 onClick={() => setFiltroEstado(est)}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${
-                  filtroEstado === est
-                    ? 'bg-slate-900 text-white'
-                    : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
-                }`}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${filtroEstado === est
+                  ? 'bg-slate-900 text-white'
+                  : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+                  }`}
               >
                 {est === 'todos' ? 'Todos' : (STATUS_MAP[est]?.label || est)}
               </button>

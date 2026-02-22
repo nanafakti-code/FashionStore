@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import AdminCategories from './AdminCategories';
-import AdminBrands from './AdminBrands';
 import AdminOrders from './AdminOrders';
 import AdminUsers from './AdminUsers';
 import AdminCoupons from './AdminCoupons';
@@ -75,11 +74,17 @@ export default function AdminDashboard({ initialSection = 'dashboard' }: AdminDa
   const [loading, setLoading] = useState(true);
   const [productos, setProductos] = useState<Product[]>([]);
   const [pedidos, setPedidos] = useState<Order[]>([]);
-  const [usuarios] = useState<User[]>([]);
   const [categorias, setCategorias] = useState<Category[]>([]);
-  const [marcas, setMarcas] = useState<any[]>([]);
   const [cupones, setCupones] = useState<any[]>([]);
   const [_envios] = useState<any[]>([]);
+
+  // Filtros de fecha para el gráfico
+  const [startDate, setStartDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    return d.toISOString().split('T')[0];
+  });
+  const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
 
   useEffect(() => {
     loadStats();
@@ -128,12 +133,15 @@ export default function AdminDashboard({ initialSection = 'dashboard' }: AdminDa
     // Actualizar solo el título de la página (el título es siempre FashionStore)
   }, [activeSection]);
 
-  const loadStats = async () => {
+  const loadStats = async (start?: string, end?: string) => {
     try {
       setLoading(true);
 
+      const s = start || startDate;
+      const e = end || endDate;
+
       // Cargar estadísticas generales desde la API optimizada
-      const response = await fetch('/api/admin/dashboard-stats');
+      const response = await fetch(`/api/admin/dashboard-stats?start=${s}&end=${e}`);
       const data = await response.json();
 
       if (data.error) {
@@ -161,17 +169,17 @@ export default function AdminDashboard({ initialSection = 'dashboard' }: AdminDa
         .select("*");
       if (categoriasData) setCategorias(categoriasData);
 
-      // Marcas
-      const { data: marcasData } = await supabase
-        .from("marcas")
-        .select("*")
-        .limit(10);
-      if (marcasData) setMarcas(marcasData);
-
       // Cupones
       const { data: cuponesData } = await supabase
-        .from("cupones_descuento")
-        .select("*")
+        .from("coupons")
+        .select(`
+          id,
+          code,
+          value,
+          discount_type
+        `)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
         .limit(10);
       if (cuponesData) setCupones(cuponesData);
 
@@ -209,7 +217,7 @@ export default function AdminDashboard({ initialSection = 'dashboard' }: AdminDa
             </div>
             <div className="flex gap-3">
               <button
-                onClick={loadStats}
+                onClick={() => loadStats()}
                 className="bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-gray-50 transition flex items-center gap-2"
               >
                 <RotateCcw size={16} /> Refrescar
@@ -223,7 +231,16 @@ export default function AdminDashboard({ initialSection = 'dashboard' }: AdminDa
           {/* Visualization Section */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              <SalesChart data={stats.grafico} />
+              <SalesChart
+                data={stats.grafico}
+                startDate={startDate}
+                endDate={endDate}
+                onDateRangeChange={(start, end) => {
+                  setStartDate(start);
+                  setEndDate(end);
+                  loadStats(start, end);
+                }}
+              />
             </div>
 
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
@@ -349,36 +366,6 @@ export default function AdminDashboard({ initialSection = 'dashboard' }: AdminDa
               </div>
             </div>
 
-            {/* Últimos Usuarios */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 flex items-center gap-3">
-                <div className="bg-indigo-100 p-2.5 rounded">
-                  <svg className="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-bold text-gray-900">Últimos Usuarios Activos</h3>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-100 border-b-2 border-gray-200">
-                    <tr>
-                      <th className="px-6 py-3 text-left font-semibold text-gray-700">Nombre</th>
-                      <th className="px-6 py-3 text-left font-semibold text-gray-700">Email</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {usuarios.map((usuario: User) => (
-                      <tr key={usuario.id} className="hover:bg-gray-50 transition">
-                        <td className="px-6 py-4 font-semibold text-gray-900">{usuario.nombre}</td>
-                        <td className="px-6 py-4 text-gray-600 text-xs font-medium">{usuario.email}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
             {/* Categorías */}
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 flex items-center gap-3">
@@ -396,39 +383,6 @@ export default function AdminDashboard({ initialSection = 'dashboard' }: AdminDa
                     <span className="text-xs text-gray-500 bg-gray-100 px-2.5 py-1 rounded font-medium">{cat.slug}</span>
                   </div>
                 ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Sección de Marcas y Cupones */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Marcas */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 flex items-center gap-3">
-                <div className="bg-amber-100 p-2.5 rounded">
-                  <svg className="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-bold text-gray-900">Marcas</h3>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-100 border-b-2 border-gray-200">
-                    <tr>
-                      <th className="px-6 py-3 text-left font-semibold text-gray-700">Nombre</th>
-                      <th className="px-6 py-3 text-left font-semibold text-gray-700">Productos</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {marcas.slice(0, 8).map((marca: any) => (
-                      <tr key={marca.id} className="hover:bg-gray-50 transition">
-                        <td className="px-6 py-4 font-semibold text-gray-900">{marca.nombre}</td>
-                        <td className="px-6 py-4 text-gray-600 font-medium">-</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
               </div>
             </div>
 
@@ -453,8 +407,11 @@ export default function AdminDashboard({ initialSection = 'dashboard' }: AdminDa
                   <tbody className="divide-y divide-gray-200">
                     {cupones.slice(0, 8).map((cupon: any) => (
                       <tr key={cupon.id} className="hover:bg-gray-50 transition">
-                        <td className="px-6 py-4 font-mono font-bold text-gray-900">{cupon.codigo}</td>
-                        <td className="px-6 py-4 font-semibold text-emerald-600">{cupon.descuento_porcentaje || cupon.monto_fijo}%</td>
+                        <td className="px-6 py-4 font-mono font-bold text-gray-900">{cupon.code}</td>
+                        <td className="px-6 py-4 font-semibold text-emerald-600">
+                          {cupon.value}
+                          {cupon.discount_type === 'PERCENTAGE' ? '%' : '€'}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -470,9 +427,6 @@ export default function AdminDashboard({ initialSection = 'dashboard' }: AdminDa
 
       {/* Sección de Categorías */}
       {activeSection === "categorias" && <AdminCategories />}
-
-      {/* Sección de Marcas */}
-      {activeSection === "marcas" && <AdminBrands />}
 
       {/* Sección de Pedidos */}
       {activeSection === "pedidos" && <AdminOrders />}
@@ -505,7 +459,6 @@ export default function AdminDashboard({ initialSection = 'dashboard' }: AdminDa
           </svg>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             {activeSection === "categorias" && "Gestión de Categorías"}
-            {activeSection === "marcas" && "Gestión de Marcas"}
             {activeSection === "pedidos" && "Gestión de Pedidos"}
 
             {activeSection === "devoluciones" && "Gestión de Devoluciones"}
